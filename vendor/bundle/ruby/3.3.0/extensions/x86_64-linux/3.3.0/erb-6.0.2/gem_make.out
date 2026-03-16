@@ -1,0 +1,19 @@
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/erb-6.0.2/ext/erb/escape
+/home/caik/.rbenv/versions/3.3.10/bin/ruby extconf.rb
+checking for rb_ext_ractor_safe() in ruby.h... yes
+creating Makefile
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/erb-6.0.2/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-f26mv1 sitelibdir\=./.gem.20260315-26556-f26mv1 clean
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/erb-6.0.2/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-f26mv1 sitelibdir\=./.gem.20260315-26556-f26mv1
+compiling escape.c
+linking shared-object erb/escape.so
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/erb-6.0.2/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-f26mv1 sitelibdir\=./.gem.20260315-26556-f26mv1 install
+/usr/bin/install -c -m 0755 escape.so ./.gem.20260315-26556-f26mv1/erb
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/erb-6.0.2/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-f26mv1 sitelibdir\=./.gem.20260315-26556-f26mv1 clean

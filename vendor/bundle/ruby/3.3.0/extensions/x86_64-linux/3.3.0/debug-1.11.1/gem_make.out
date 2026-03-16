@@ -1,0 +1,19 @@
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/debug-1.11.1/ext/debug
+/home/caik/.rbenv/versions/3.3.10/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/debug-1.11.1/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-oj04jz sitelibdir\=./.gem.20260315-26556-oj04jz clean
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/debug-1.11.1/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-oj04jz sitelibdir\=./.gem.20260315-26556-oj04jz
+compiling debug.c
+compiling iseq_collector.c
+linking shared-object debug/debug.so
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/debug-1.11.1/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-oj04jz sitelibdir\=./.gem.20260315-26556-oj04jz install
+/usr/bin/install -c -m 0755 debug.so ./.gem.20260315-26556-oj04jz/debug
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/debug-1.11.1/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-oj04jz sitelibdir\=./.gem.20260315-26556-oj04jz clean

@@ -1,0 +1,18 @@
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/bindex-0.8.1/ext/skiptrace
+/home/caik/.rbenv/versions/3.3.10/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-410spw sitelibdir\=./.gem.20260315-26556-410spw clean
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-410spw sitelibdir\=./.gem.20260315-26556-410spw
+compiling cruby.c
+linking shared-object skiptrace/internal/cruby.so
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-410spw sitelibdir\=./.gem.20260315-26556-410spw install
+/usr/bin/install -c -m 0755 cruby.so ./.gem.20260315-26556-410spw/skiptrace/internal
+
+current directory: /home/caik/projects/tcc/leadpulse/vendor/bundle/ruby/3.3.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20260315-26556-410spw sitelibdir\=./.gem.20260315-26556-410spw clean
