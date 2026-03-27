@@ -29,3 +29,6 @@
 !/tmp/storage/.keep
 
 /public/assets
+
+/app/assets/builds/*
+!/app/assets/builds/.keep

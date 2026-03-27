@@ -1,26 +1,108 @@
-<h2>Log in</h2>
+<%# app/views/devise/sessions/new.html.erb %>
 
-<%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-  <div class="field">
-    <p><%= f.label :email %></p>
-    <p><%= f.email_field :email, autofocus: true, autocomplete: "email" %></p>
-  </div>
+<div class="flex min-h-screen">
 
-  <div class="field">
-    <p><%= f.label :password %></p>
-    <p><%= f.password_field :password, autocomplete: "current-password" %></p>
-  </div>
+  <!-- LADO ESQUERDO - Banner azul -->
+  <div class="hidden md:flex w-1/2 bg-blue-600 flex-col justify-between p-14 relative overflow-hidden">
 
-  <% if devise_mapping.rememberable? %>
-    <div class="field">
-      <p><%= f.check_box :remember_me %></p>
-      <p><%= f.label :remember_me %></p>
+    <!-- Círculos decorativos -->
+    <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500 rounded-full opacity-40"></div>
+    <div class="absolute -top-24 -right-24 w-72 h-72 bg-blue-700 rounded-full opacity-30"></div>
+
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-2 font-extrabold text-xl text-white z-10">
+      <span>⚡</span>
+      <span>LeadPulse</span>
+    </a>
+
+    <!-- Conteúdo central -->
+    <div class="z-10">
+      <p class="text-orange-400 text-xs font-bold tracking-widest uppercase mb-5">Acesso Restrito</p>
+      <h1 class="text-7xl font-black text-white leading-none">BEM-VINDO</h1>
+      <h1 class="text-7xl font-black text-orange-500 leading-none mb-8">DE VOLTA.</h1>
+      <p class="text-blue-100 text-lg leading-relaxed max-w-sm">
+        Sua central de inteligência de dados está a um clique de distância. Continue validando, continue crescendo.
+      </p>
+
+      <!-- Avatares -->
+      <div class="flex items-center gap-4 mt-12">
+        <div class="flex -space-x-3">
+          <div class="w-10 h-10 rounded-full bg-orange-400 border-2 border-blue-600 flex items-center justify-center text-white text-xs font-bold">A</div>
+          <div class="w-10 h-10 rounded-full bg-purple-400 border-2 border-blue-600 flex items-center justify-center text-white text-xs font-bold">B</div>
+          <div class="w-10 h-10 rounded-full bg-green-400 border-2 border-blue-600 flex items-center justify-center text-white text-xs font-bold">C</div>
+          <div class="w-10 h-10 rounded-full bg-red-400 border-2 border-blue-600 flex items-center justify-center text-white text-xs font-bold">D</div>
+        </div>
+        <p class="text-blue-100 text-sm">Junte-se a +2.000 empresas hoje.</p>
+      </div>
     </div>
-  <% end %>
 
-  <div class="actions">
-    <%= f.submit "Log in" %>
+    <div class="z-10"></div>
   </div>
-<% end %>
 
-<%= render "devise/shared/links" %>
+  <!-- LADO DIREITO - Formulário -->
+  <div class="flex-1 flex items-center justify-center px-8 md:px-20 bg-white">
+    <div class="w-full max-w-md">
+
+      <!-- Título -->
+      <h2 class="text-4xl font-black text-gray-900 mb-1">Entrar</h2>
+      <p class="text-gray-500 mb-8 text-base">Insira suas credenciais para gerenciar sua base.</p>
+
+      <!-- Erro -->
+      <% if alert %>
+        <div class="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-6">
+          <%= alert %>
+        </div>
+      <% end %>
+
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+
+        <!-- E-mail -->
+        <div class="mb-5">
+          <%= f.label :email, "E-mail Corporativo",
+              class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
+          <%= f.email_field :email,
+              autofocus: true,
+              autocomplete: "email",
+              placeholder: "exemplo@empresa.com",
+              class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" %>
+        </div>
+
+        <!-- Senha -->
+        <div class="mb-5">
+          <%= f.label :password, "Sua Senha",
+              class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
+          <%= f.password_field :password,
+              autocomplete: "current-password",
+              placeholder: "••••••••",
+              class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" %>
+        </div>
+
+        <!-- Lembrar + Esqueci -->
+        <div class="flex items-center justify-between mb-7">
+          <% if devise_mapping.rememberable? %>
+            <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+              <%= f.check_box :remember_me, class: "w-4 h-4 rounded accent-blue-600" %>
+              Lembrar acesso
+            </label>
+          <% end %>
+          <%= link_to "Esqueci a senha", new_password_path(resource_name),
+              class: "text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors" %>
+        </div>
+
+        <!-- Botão submit -->
+        <%= f.submit "Acessar Painel",
+            class: "w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-0.5 shadow-lg shadow-blue-200 cursor-pointer" %>
+
+      <% end %>
+
+      <!-- Link cadastro -->
+      <p class="text-center text-sm text-gray-500 mt-8">
+        Novo por aqui?
+        <%= link_to "Crie sua conta gratuita", new_registration_path(resource_name),
+            class: "font-bold text-blue-600 hover:underline" %>
+      </p>
+
+    </div>
+  </div>
+
+</div>

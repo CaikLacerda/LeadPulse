@@ -1,34 +1,126 @@
-<h2>Sign up</h2>
+<%# app/views/devise/registrations/new.html.erb %>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+<div class="flex min-h-screen">
 
-  <div class="field">
-    <p><%= f.label :name %></p>
-    <p><%= f.text_field :name, autofocus: true, autocomplete: "name" %></p>
+  <!-- LADO ESQUERDO - Formulário -->
+  <div class="flex-1 flex items-start justify-center px-8 md:px-16 pt-12 pb-8 bg-white overflow-y-auto">
+    <div class="w-full max-w-md">
+
+      <!-- Voltar -->
+      <%= link_to "← Voltar para Início", root_path,
+          class: "text-sm font-semibold text-blue-600 hover:underline mb-8 inline-block" %>
+
+      <!-- Título -->
+      <h2 class="text-3xl font-black text-gray-900 mt-4 mb-1">Criar conta</h2>
+      <p class="text-gray-500 mb-7 text-sm">Preencha os campos para começar agora.</p>
+
+      <!-- Erros -->
+      <% if resource.errors.any? %>
+        <div class="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-6">
+          <% resource.errors.full_messages.each do |msg| %>
+            <p>• <%= msg %></p>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+
+        <!-- Nome completo -->
+        <div class="mb-4">
+          <%= f.label :name, "Nome Completo",
+              class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
+          <%= f.text_field :name,
+              autofocus: true,
+              placeholder: "Seu nome aqui",
+              class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
+        </div>
+
+        <!-- E-mail -->
+        <div class="mb-4">
+          <%= f.label :email, "E-mail",
+              class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
+          <%= f.email_field :email,
+              autocomplete: "email",
+              placeholder: "voce@empresa.com",
+              class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
+        </div>
+
+        <!-- Senha + Confirmar (lado a lado) -->
+        <div class="flex gap-4 mb-5">
+          <div class="flex-1">
+            <%= f.label :password, "Senha",
+                class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
+            <%= f.password_field :password,
+                autocomplete: "new-password",
+                placeholder: "••••••",
+                class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
+          </div>
+          <div class="flex-1">
+            <%= f.label :password_confirmation, "Confirmar",
+                class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
+            <%= f.password_field :password_confirmation,
+                autocomplete: "new-password",
+                placeholder: "••••••",
+                class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
+          </div>
+        </div>
+
+        <!-- Termos -->
+        <p class="text-xs text-gray-400 mb-6">
+          Ao se registrar, você concorda com nossos
+          <a href="#" class="text-gray-600 underline">Termos de Serviço</a>
+          e
+          <a href="#" class="text-gray-600 underline">Política de Privacidade</a>.
+        </p>
+
+        <!-- Botão -->
+        <%= f.submit "Criar minha conta",
+            class: "w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-0.5 shadow-lg shadow-orange-200 cursor-pointer" %>
+
+      <% end %>
+
+      <!-- Link login -->
+      <p class="text-center text-sm text-gray-500 mt-7">
+        Já é um cliente?
+        <%= link_to "Fazer login", new_session_path(resource_name),
+            class: "font-bold text-orange-500 hover:underline" %>
+      </p>
+
+    </div>
   </div>
 
-  <div class="field">
-    <p><%= f.label :email %></p>
-    <p><%= f.email_field :email, autofocus: true, autocomplete: "email" %></p>
+  <!-- LADO DIREITO - Banner laranja -->
+  <div class="hidden md:flex w-1/2 bg-orange-500 flex-col justify-center p-14 relative overflow-hidden">
+
+    <!-- Círculos decorativos -->
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-orange-400 rounded-full opacity-40"></div>
+    <div class="absolute -top-24 -left-24 w-72 h-72 bg-orange-600 rounded-full opacity-30"></div>
+
+    <div class="z-10">
+      <p class="text-blue-900 text-xs font-bold tracking-widest uppercase mb-6">Junte-se a nós</p>
+      <h1 class="text-7xl font-black text-white leading-none">COMECE</h1>
+      <h1 class="text-7xl font-black text-blue-800 leading-none mb-8">DO ZERO.</h1>
+      <p class="text-orange-100 text-lg leading-relaxed max-w-sm mb-10">
+        Em menos de 2 minutos, você terá acesso à tecnologia de voz que está revolucionando a limpeza de banco de dados.
+      </p>
+
+      <!-- Benefícios -->
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-7 h-7 rounded-full bg-blue-800 flex items-center justify-center shrink-0">
+            <span class="text-white text-xs">✓</span>
+          </div>
+          <p class="text-white font-semibold">100 validações gratuitas mensais</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-7 h-7 rounded-full bg-blue-800 flex items-center justify-center shrink-0">
+            <span class="text-white text-xs">✓</span>
+          </div>
+          <p class="text-white font-semibold">Relatórios em tempo real</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <div class="field">
-    <p><%= f.label :password %></p>
-    <% if @minimum_password_length %>
-      <p><em>(<%= @minimum_password_length %> characters minimum)</em></p>
-    <% end %>
-    <p><%= f.password_field :password, autocomplete: "new-password" %></p>
-  </div>
-
-  <div class="field">
-    <p><%= f.label :password_confirmation %></p>
-    <p><%= f.password_field :password_confirmation, autocomplete: "new-password" %></p>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Sign up" %>
-  </div>
-<% end %>
-
-<%= render "devise/shared/links" %>
+</div>
