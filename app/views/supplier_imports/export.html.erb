@@ -1,0 +1,77 @@
+<%# app/views/supplier_imports/export.html.erb %>
+
+<div class="min-h-screen bg-gray-5 pt-10">
+  <div class="max-w-3xl mx-auto px-8 pt-10 pb-16">
+
+    <!-- Cabeçalho -->
+    <div class="flex items-center gap-4 mb-10">
+      <%= link_to supplier_imports_path,
+          class: "w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-all font-bold" do %>
+        ←
+      <% end %>
+      <div>
+        <h1 class="text-3xl font-black text-gray-900">Exportar Relatório</h1>
+        <p class="text-gray-500 text-sm mt-0.5">Gere um arquivo com os dados selecionados.</p>
+      </div>
+    </div>
+
+    <%= form_with url: export_supplier_imports_path, method: :get, local: true do |f| %>
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+
+        <!-- Formato -->
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Formato de Saída</p>
+        <div class="grid grid-cols-3 gap-4 mb-8">
+          <% [["📄", "csv", "CSV"], ["📊", "xlsx", "EXCEL"], ["📋", "pdf", "PDF"]].each_with_index do |(icon, val, label), i| %>
+            <label class="cursor-pointer">
+              <input type="radio" name="formato" value="<%= val %>" class="hidden peer" <%= i == 0 ? "checked" : "" %>>
+              <div class="peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 border-2 border-gray-200 rounded-xl p-5 text-center text-gray-400 hover:border-blue-300 transition-all">
+                <div class="text-3xl mb-2"><%= icon %></div>
+                <p class="text-sm font-bold"><%= label %></p>
+              </div>
+            </label>
+          <% end %>
+        </div>
+
+        <!-- Período -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+          <div>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Início</p>
+            <%= f.date_field :start_date, value: 1.month.ago.to_date,
+                class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" %>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Fim</p>
+            <%= f.date_field :end_date, value: Date.today,
+                class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" %>
+          </div>
+        </div>
+
+        <!-- Colunas -->
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Colunas Selecionadas</p>
+        <div class="grid grid-cols-2 gap-3 mb-8">
+          <% {
+            "id"             => "ID do Registro",
+            "name"           => "Nome Completo",
+            "company_name"   => "Empresa",
+            "document"       => "Documento",
+            "phone_raw"      => "Telefone Original",
+            "normalized_phone" => "Telefone Normalizado",
+            "phone_status"   => "Status do Telefone",
+            "created_at"     => "Data de Importação"
+          }.each do |val, label| %>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <%= check_box_tag "colunas[]", val, true,
+                  class: "w-5 h-5 rounded accent-blue-600 cursor-pointer" %>
+              <span class="text-sm font-medium text-gray-700"><%= label %></span>
+            </label>
+          <% end %>
+        </div>
+
+        <!-- Botão -->
+        <%= f.submit "↓ Gerar e Baixar Arquivo",
+            class: "w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-0.5 shadow-md shadow-blue-100 cursor-pointer" %>
+
+      </div>
+    <% end %>
+  </div>
+</div>

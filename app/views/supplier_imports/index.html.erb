@@ -1,0 +1,127 @@
+<%# app/views/supplier_imports/index.html.erb %>
+
+<div class="min-h-screen bg-gray-50 pt-10">
+
+  <!-- Cabeçalho -->
+  <div class="max-w-7xl mx-auto px-8 pt-10 pb-6">
+    <h1 class="text-3xl font-black text-gray-900">Gestão de Dados</h1>
+    <p class="text-gray-500 mt-1">Visualize, importe e exporte seus registros de validação.</p>
+  </div>
+
+  <!-- Busca + Botões -->
+  <%= form_with url: supplier_imports_path, method: :get, local: true do |f| %>
+    <div class="max-w-7xl mx-auto px-8 flex items-center gap-4 mb-6">
+      <div class="flex-1 max-w-md">
+        <%= f.text_field :q, value: params[:q],
+            placeholder: "Buscar por ID...",
+            class: "w-full px-5 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" %>
+      </div>
+      <div class="flex gap-3 ml-auto">
+        <%= link_to export_supplier_imports_path,
+            class: "flex items-center gap-2 px-5 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm transition-all shadow-md" do %>
+          ↓ Exportar
+        <% end %>
+        <%= link_to import_supplier_imports_path,
+            class: "flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-md" do %>
+          ↑ Importar
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="max-w-7xl mx-auto px-8 mb-6">
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4 flex items-center gap-8 flex-wrap">
+        <div class="flex items-center gap-2 text-gray-500 text-sm font-semibold">
+          ⚙ FILTROS
+        </div>
+        <div class="h-8 w-px bg-gray-200"></div>
+
+        <div>
+          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">Período</p>
+          <%= f.select :periodo,
+              [["Qualquer Data", ""], ["Últimos 7 dias", "7d"], ["Último mês", "30d"], ["Último ano", "1y"]],
+              { selected: params[:periodo] },
+              class: "text-sm font-semibold text-gray-700 bg-transparent border-none focus:outline-none cursor-pointer" %>
+        </div>
+
+        <div class="h-8 w-px bg-gray-200"></div>
+
+        <div>
+          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">Status</p>
+          <%= f.select :status,
+              [["Todos os Status", "todos"], ["Concluído", "concluido"], ["Pendente", "pendente"], ["Erro", "erro"]],
+              { selected: params[:status] },
+              class: "text-sm font-semibold text-gray-700 bg-transparent border-none focus:outline-none cursor-pointer" %>
+        </div>
+
+        <button type="submit" class="ml-auto text-sm font-semibold text-blue-600 hover:underline">Filtrar</button>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Tabela -->
+  <div class="max-w-7xl mx-auto px-8 pb-12">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-100">
+            <th class="text-left text-xs font-bold text-gray-400 uppercase tracking-widest px-6 py-4">ID</th>
+            <th class="text-left text-xs font-bold text-gray-400 uppercase tracking-widest px-6 py-4">Data</th>
+            <th class="text-left text-xs font-bold text-gray-400 uppercase tracking-widest px-6 py-4">Total</th>
+            <th class="text-left text-xs font-bold text-gray-400 uppercase tracking-widest px-6 py-4">Válidos</th>
+            <th class="text-left text-xs font-bold text-gray-400 uppercase tracking-widest px-6 py-4">Inválidos</th>
+            <th class="text-left text-xs font-bold text-gray-400 uppercase tracking-widest px-6 py-4">Status</th>
+            <th class="text-left text-xs font-bold text-gray-400 uppercase tracking-widest px-6 py-4">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @imports.any? %>
+            <% @imports.each do |import| %>
+              <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-5 text-sm text-gray-400 font-mono">LD-<%= import.id.to_s.rjust(3, "0") %></td>
+                <td class="px-6 py-5 text-sm text-gray-500">
+                  📅 <%= import.created_at.strftime("%d/%m/%Y") %>
+                </td>
+                <td class="px-6 py-5 text-sm font-semibold text-gray-700"><%= import.total_rows %></td>
+                <td class="px-6 py-5 text-sm font-semibold text-green-600"><%= import.valid_rows %></td>
+                <td class="px-6 py-5 text-sm font-semibold text-red-500"><%= import.invalid_rows %></td>
+                <td class="px-6 py-5">
+                  <% case import.status
+                     when "concluido" %>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-green-600 uppercase tracking-wide">
+                      <span class="w-2 h-2 rounded-full bg-green-500"></span> Concluído
+                    </span>
+                  <% when "pendente" %>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-orange-500 uppercase tracking-wide">
+                      <span class="w-2 h-2 rounded-full bg-orange-400"></span> Pendente
+                    </span>
+                  <% when "erro" %>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-red-500 uppercase tracking-wide">
+                      <span class="w-2 h-2 rounded-full bg-red-500"></span> Erro
+                    </span>
+                  <% else %>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wide">
+                      <span class="w-2 h-2 rounded-full bg-gray-300"></span> <%= import.status&.capitalize || "—" %>
+                    </span>
+                  <% end %>
+                </td>
+                <td class="px-6 py-5">
+                  <button class="text-gray-400 hover:text-gray-700 text-lg font-bold transition-colors">···</button>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="7" class="px-6 py-16 text-center text-gray-400">
+                <p class="text-4xl mb-3">📭</p>
+                <p class="font-semibold text-gray-500">Nenhuma importação encontrada.</p>
+                <p class="text-sm mt-1">Clique em <strong>Importar</strong> para adicionar dados.</p>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

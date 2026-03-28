@@ -25,6 +25,41 @@
 
   <body>
     <main class="container">
+    <!-- NAVBAR -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur border-b border-gray-200 h-16">
+  <div class="max-w-6xl mx-auto px-8 h-full flex items-center gap-10">
+
+    <a href="#" class="flex items-center gap-2 font-extrabold text-lg text-gray-900 shrink-0">
+      <span>⚡</span>
+      <span>LeadPulse</span>
+    </a>
+
+    <nav class="flex items-center gap-8 flex-1">
+      <a href="#inicio" class="text-sm font-medium text-orange-500">Início</a>
+      <a href="#recursos" class="text-sm font-medium text-gray-500 hover:text-orange-500 transition-colors">Recursos</a>
+      <a href="#planos" class="text-sm font-medium text-gray-500 hover:text-orange-500 transition-colors">Planos</a>
+      <a href="#sobre" class="text-sm font-medium text-gray-500 hover:text-orange-500 transition-colors">Sobre</a>
+      <a href="#contato" class="text-sm font-medium text-gray-500 hover:text-orange-500 transition-colors">Contato</a>
+      <% if current_user %>
+      <%= link_to "Dados", supplier_imports_path, class: "text-sm font-medium text-gray-500 hover:text-orange-500 transition-colors" %>
+      <% end %>
+    </nav>
+
+    <% if current_user %>
+    <div class="flex items-center gap-3 ml-auto">
+      <%= link_to "Sair", destroy_user_session_path,
+          data: { turbo_method: :delete },
+          class: "text-sm font-semibold px-5 py-2 rounded-lg border-2 border-gray-200 text-gray-800 hover:border-orange-500 hover:text-orange-600 transition-all" %>
+    </div>
+    <% else %>
+    <div class="flex items-center gap-3 ml-auto">
+      <%= link_to "Entrar", new_user_session_path,
+          class: "text-sm font-semibold px-5 py-2 rounded-lg border-2 border-gray-200 text-gray-800 hover:border-blue-500 hover:text-blue-600 transition-all" %>
+    </div>
+    <% end %>
+
+  </div>
+</header>
       <%= yield %>
     </main>
   </body>
