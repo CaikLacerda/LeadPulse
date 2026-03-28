@@ -1,0 +1,92 @@
+<%# app/views/supplier_imports/import.html.erb %>
+
+<div class="min-h-screen bg-gray-50 pt-10">
+  <div class="max-w-3xl mx-auto px-8 pt-10 pb-16">
+
+    <!-- Cabeçalho -->
+    <div class="flex items-center gap-4 mb-10">
+      <%= link_to supplier_imports_path,
+          class: "w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-all font-bold" do %>
+        ←
+      <% end %>
+      <div>
+        <h1 class="text-3xl font-black text-gray-900">Importar Dados</h1>
+        <p class="text-gray-500 text-sm mt-0.5">Adicione novos registros à sua base de dados.</p>
+      </div>
+    </div>
+
+    <%= form_with url: create_import_supplier_imports_path, method: :post, multipart: true, local: true do |f| %>
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+
+        <!-- Dropzone -->
+        <div id="dropzone"
+             class="border-2 border-dashed border-blue-300 rounded-2xl p-12 text-center mb-8 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all"
+             onclick="document.getElementById('fileInput').click()">
+          <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">↑</div>
+          <p id="dropzone-label" class="text-lg font-bold text-gray-800 mb-1">Clique ou arraste o arquivo</p>
+          <p class="text-sm text-gray-400">Formatos suportados: CSV, Excel e JSON. Tamanho máximo de 10MB por arquivo.</p>
+          <%= f.file_field :file, id: "fileInput", accept: ".csv,.xlsx,.json", class: "hidden" %>
+        </div>
+
+        <!-- Formato -->
+        <div class="grid grid-cols-2 gap-8 mb-8">
+          <div>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Formato do Arquivo</p>
+            <div class="flex gap-3">
+              <% [["📄", "csv", "CSV"], ["📊", "xlsx", "EXCEL"], ["📋", "json", "JSON"]].each_with_index do |(icon, val, label), i| %>
+                <label class="cursor-pointer">
+                  <input type="radio" name="formato" value="<%= val %>" class="hidden peer" <%= i == 0 ? "checked" : "" %>>
+                  <div class="peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-600 border-2 border-gray-200 rounded-xl p-3 text-center text-gray-400 hover:border-blue-300 transition-all min-w-[72px]">
+                    <div class="text-2xl mb-1"><%= icon %></div>
+                    <p class="text-xs font-bold"><%= label %></p>
+                  </div>
+                </label>
+              <% end %>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Configurações</p>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Separador (CSV)</label>
+            <%= f.text_field :separator, value: ",",
+                class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" %>
+          </div>
+        </div>
+
+        <!-- Botão -->
+        <%= f.submit "↑ Importar Arquivo",
+            class: "w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-0.5 shadow-md shadow-blue-100 cursor-pointer" %>
+
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const label = document.getElementById('dropzone-label');
+
+  function showFile(file) {
+    if (!file) return;
+    label.textContent = `Arquivo selecionado: ${file.name}`;
+    dropzone.classList.remove('border-blue-300');
+    dropzone.classList.add('border-green-400', 'bg-green-50');
+  }
+
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('border-blue-500', 'bg-blue-50');
+  });
+
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+  });
+
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    showFile(e.dataTransfer.files[0]);
+  });
+
+  fileInput.addEventListener('change', () => showFile(fileInput.files[0]));
+</script>
