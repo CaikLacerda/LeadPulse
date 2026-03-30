@@ -1,0 +1,434 @@
+"pt-BR":
+  shared:
+    app_name: "LeadPulse"
+    flash:
+      notice: "Tudo certo"
+      alert: "Aviso"
+    statuses:
+      awaiting_submission: "Aguardando envio"
+      pendente: "Pendente"
+      processando: "Processando"
+      concluido: "Concluído"
+      erro: "Erro"
+    remote_batch_statuses:
+      awaiting_submission: "Aguardando envio"
+      accepted: "Recebido"
+      pending: "Pendente"
+      queued: "Na fila"
+      processing: "Processando"
+      completed: "Concluído"
+      failed: "Erro"
+      cancelled: "Cancelado"
+    pagination:
+      aria: "Paginação"
+      page_of: "Página %{page} de %{total}"
+      previous: "Anterior"
+      next: "Próxima"
+    header:
+      marketing:
+        home: "Início"
+        resources: "Recursos"
+        plans: "Planos"
+        about: "Sobre"
+        contact: "Contato"
+      workspace:
+        home: "Início"
+        search: "Busca"
+        validation: "Validação"
+        audit: "Auditoria"
+        settings: "Configurações"
+        developer_docs: "For Devs"
+      session:
+        sign_in: "Entrar"
+        sign_out: "Sair"
+        open_menu: "Abrir menu"
+        account: "Conta"
+    tutorial:
+      launcher: ""
+      eyebrow: "Tutorial da tela"
+      dialog_label: "Tutorial guiado da tela"
+      previous: "Voltar"
+      next: "Próximo"
+      finish: "Concluir"
+      close: "Fechar"
+      pages:
+        home:
+          steps:
+            actions:
+              title: "Atalhos principais"
+              body: "Comece daqui. Use Nova busca para abrir um recorte novo, Novo lote para importar uma planilha e Configurações para revisar a conta."
+            metrics:
+              title: "Visão rápida da operação"
+              body: "Esses cards mostram o volume atual da conta, com buscas salvas, lotes importados, pendências e resultados já prontos."
+            batches:
+              title: "Últimos lotes"
+              body: "Aqui você acompanha os lotes mais recentes e entra direto na tela de Validação para filtrar ou abrir um lote específico."
+            integrations:
+              title: "Pontos de atenção"
+              body: "Aqui aparecem pendências operacionais da conta, como lotes parados, processamento em andamento e resultados já prontos para revisão ou exportação."
+        supplier_discovery_searches:
+          steps:
+            create:
+              title: "Abrir nova busca"
+              body: "Use este botão para criar uma nova busca por segmento e região antes de levar o resultado para Validação."
+            filters:
+              title: "Filtrar buscas salvas"
+              body: "Aqui você refina a lista por código, segmento ou região para reencontrar uma busca já gerada."
+            results:
+              title: "Resultados da busca"
+              body: "Nesta tabela você baixa a planilha gerada ou importa o resultado como lote de validação de segmento."
+        supplier_imports:
+          steps:
+            create:
+              title: "Criar novo lote"
+              body: "Comece por este botão quando quiser importar uma planilha para validação cadastral ou de segmento."
+            filters:
+              title: "Filtrar lotes"
+              body: "Use estes filtros para localizar lotes por código, período, status e tipo de validação."
+            results:
+              title: "Operação dos lotes"
+              body: "Nesta tabela você acompanha status, consulta o retorno da API, exporta resultados e executa ações por lote."
+        platform_settings_company:
+          steps:
+            tabs:
+              title: "Etapas de configuração"
+              body: "Estas abas organizam a configuração da conta em Empresa, Twilio, OpenAI e Token."
+            form:
+              title: "Dados da empresa"
+              body: "Preencha aqui os dados principais da conta e o nome que a IA deve usar durante as ligações."
+            account:
+              title: "Conta provisionada"
+              body: "Este bloco mostra se a conta já foi provisionada na API e qual identificador ela recebeu."
+            submit:
+              title: "Salvar empresa"
+              body: "Depois de revisar os campos, use este botão para gravar a empresa e manter a base da conta atualizada."
+        platform_settings_twilio:
+          steps:
+            tabs:
+              title: "Etapas de configuração"
+              body: "Use estas abas para navegar entre os blocos da integração sem sair do fluxo de configuração."
+            form:
+              title: "Credenciais da Twilio"
+              body: "Aqui ficam os dados usados para autenticar chamadas, webhooks e a operação de voz da conta."
+            numbers:
+              title: "Números ativos"
+              body: "Liste aqui os números da Twilio que podem originar chamadas para a validação."
+            submit:
+              title: "Salvar Twilio"
+              body: "Quando terminar, salve para habilitar as chamadas da conta com a configuração atual."
+        platform_settings_openai:
+          steps:
+            tabs:
+              title: "Etapas de configuração"
+              body: "Estas abas deixam a configuração separada por domínio, sem misturar empresa, voz e token."
+            api_key:
+              title: "Chave da OpenAI"
+              body: "Este campo guarda a chave usada pela IA conversacional para classificar respostas e conduzir a ligação."
+            profile:
+              title: "Perfil de voz"
+              body: "Aqui você define o modelo, a voz e a velocidade usados nas conversas telefônicas."
+            submit:
+              title: "Salvar OpenAI"
+              body: "Use este botão para aplicar a configuração de IA e deixar o perfil de voz pronto para a operação."
+        platform_settings_api_token:
+          steps:
+            tabs:
+              title: "Etapas de configuração"
+              body: "Navegue entre Empresa, Twilio, OpenAI e Token conforme o que ainda falta na conta."
+            status:
+              title: "Resumo do token"
+              body: "Este bloco mostra a conta da API, o prefixo atual e a data do último token gerado."
+            generate:
+              title: "Gerar novo token"
+              body: "Aqui você cria um novo token de integração. Ao gerar um novo, o anterior é revogado automaticamente."
+        validation_audits:
+          steps:
+            filters:
+              title: "Filtrar auditorias"
+              body: "Use a busca para localizar auditorias por lote, empresa ou resultado da validação."
+            results:
+              title: "Histórico da operação"
+              body: "Esta tabela mostra quando a validação aconteceu, qual foi a ação executada e qual resultado voltou da chamada."
+            transcripts:
+              title: "Abrir transcrições"
+              body: "Use este detalhe para consultar o que o cliente falou e o que a IA respondeu em cada validação."
+    empty_state:
+      open: "Abrir"
+  home:
+    workspace:
+      kicker: "Workspace"
+      title: "Início"
+      welcome_html: "Bem-vindo, <span class=\"font-semibold text-slate-900\">%{name}</span>. Aqui você acompanha o que está pendente, o que já voltou da validação e qual é o próximo passo da operação."
+      new_search: "Nova busca"
+      new_batch: "Novo lote"
+      settings: "Configurações"
+      latest_batches: "Últimos lotes"
+      open_validation: "Abrir Validação"
+      recent_searches: "Buscas recentes"
+      open_search: "Abrir Busca"
+      empty_batches: "Nenhum lote importado ainda. O primeiro lote aparece aqui assim que entrar em validação."
+      empty_searches: "Nenhuma busca salva ainda. Use a busca web para abrir segmentos antes da validação."
+  supplier_imports:
+    messages:
+      export_from_row: "Exporte o resultado direto na ação do lote concluído."
+      select_file: "Selecione um arquivo antes de importar o lote."
+      imported_success: "Lote importado e preparado para validação."
+      started_success: "Lote enviado para validação."
+      not_started_yet: "Esse lote ainda não foi iniciado na API."
+      synced_success: "Status do lote atualizado com sucesso."
+      not_ready_to_export: "Esse lote ainda não está pronto para exportação."
+      destroy_not_allowed: "Só é possível excluir lotes pendentes, com erro ou já prontos."
+      destroyed_success: "Lote excluído com sucesso."
+      already_started: "Esse lote já foi iniciado."
+      export_pending: "Esse lote ainda não está pronto para exportação."
+      import_ready: "Importar lote"
+    index:
+      kicker: "Operação"
+      title: "Validação"
+      description: "Acompanhe os lotes que entram na operação, revise o retorno e exporte a validação."
+      search_cta: "Busca de fornecedores"
+      new_batch: "Novo lote"
+      filters:
+        query: "Buscar por código do lote"
+        any_date: "Qualquer data"
+        last_7_days: "Últimos 7 dias"
+        last_month: "Último mês"
+        last_year: "Último ano"
+        all_statuses: "Todos os status"
+        all_types: "Todos os tipos"
+        cadastral: "Cadastral"
+        supplier: "Segmento"
+        clear: "Limpar"
+        submit: "Filtrar"
+      table:
+        title: "Lotes de validação"
+        count:
+          one: "%{count} registro"
+          other: "%{count} registros"
+        headers:
+          batch: "Lote"
+          date: "Data"
+          source: "Origem"
+          type: "Tipo"
+          total: "Total"
+          valid: "Válidos"
+          invalid: "Inválidos"
+          status: "Status"
+          actions: "Ações"
+        empty: "Nenhum lote encontrado."
+      actions:
+        label: "Ações"
+        restart: "🔄 Iniciar novamente"
+        delete: "🗑️ Excluir"
+        start: "▶️ Iniciar"
+        sync: "🔎 Consultar status"
+        export: "⬇️ Exportar"
+      confirm:
+        title: "Excluir lote?"
+        message: "Esse lote será removido da lista. Deseja continuar?"
+        confirm: "Excluir"
+        cancel: "Cancelar"
+    modal:
+      eyebrow: "Novo lote"
+      title: "Importar planilha"
+      description: "Escolha o tipo do lote e envie a planilha correspondente."
+      type_label: "Tipo do lote"
+      close: "Fechar"
+      workflow:
+        cadastral:
+          title: "Validação cadastral"
+          description: "A planilha precisa ter apenas nome da empresa, telefone e CNPJ."
+        supplier:
+          title: "Validação de segmento"
+          description: "Importe a planilha baixada em Busca de fornecedores."
+      upload:
+        label: "Clique ou arraste a planilha"
+        selected: "Arquivo selecionado: %{name}"
+        cadastral_helper: "Para a validação cadastral, envie uma planilha com nome da empresa, telefone e CNPJ."
+        supplier_helper: "Para a validação de segmento, envie a planilha baixada em Busca de fornecedores."
+      preview:
+        eyebrow: "Pré-visualização"
+        title: "Conferência antes de importar"
+        loading: "Lendo arquivo e conferindo as linhas..."
+        generic_error: "Não foi possível gerar a pré-visualização."
+        ready: "Pronto para importar"
+        blocked: "Revise o arquivo antes de importar"
+        no_invalid_rows: "Nenhuma linha com problema nas primeiras amostras."
+        summary:
+          total_rows: "Linhas lidas"
+          valid_rows: "Válidas"
+          invalid_rows: "Com problema"
+          import_status: "Importação"
+        sections:
+          metadata: "Dados detectados"
+          columns: "Colunas encontradas"
+          sample: "Amostra das linhas válidas"
+          invalid_rows: "Linhas com problema"
+      separator: "Separador CSV"
+      cancel: "Cancelar"
+      submit:
+        cadastral: "Importar lote cadastral"
+        supplier: "Importar lote de segmento"
+    export:
+      headers:
+        record: "Registro"
+        company: "Empresa"
+        cnpj: "CNPJ"
+        segment: "Segmento"
+        phone_original: "Telefone informado"
+        phone_validated: "Telefone validado"
+        phone_type: "Tipo de telefone"
+        result: "Resultado"
+        call_status: "Status da ligação"
+        confirmation_source: "Confirmação por"
+        phone_confirmed: "Telefone confirmado"
+        phone_belongs_to_company: "Telefone pertence à empresa"
+        supplies_segment: "Fornece o segmento"
+        commercial_interest: "Aceita retorno comercial"
+        observation: "Observação"
+        finished_at: "Finalizado em"
+      values:
+        "yes": "Sim"
+        "no": "Não"
+      phone_types:
+        mobile: "Celular"
+        landline: "Fixo"
+        fixed: "Fixo"
+        unknown: "Não identificado"
+      call_statuses:
+        answered: "Atendida"
+        not_answered: "Não atendida"
+        busy: "Ocupado"
+        failed: "Falha"
+        completed: "Concluída"
+        in_progress: "Em andamento"
+      confirmation_sources:
+        voice_call: "Ligação"
+        whatsapp: "WhatsApp"
+        whatsapp_message: "WhatsApp"
+        email: "E-mail"
+        manual: "Manual"
+      results:
+        confirmed_by_call: "Confirmada"
+        confirmed_by_whatsapp: "Confirmada no WhatsApp"
+        confirmed_by_email: "Confirmada por e-mail"
+        validated: "Validada"
+        qualified_supplier: "Fornecedor qualificado"
+        wrong_company: "Número não pertence à empresa"
+        does_not_supply_segment: "Não fornece o segmento"
+        not_interested: "Sem interesse comercial"
+        not_answered: "Não atendida"
+        inconclusive: "Inconclusiva"
+        inconclusive_call: "Inconclusiva"
+  supplier_discovery_searches:
+    messages:
+      completed_success: "Busca concluída e planilha salva na plataforma."
+      download_unavailable: "Essa busca não possui planilha salva para download."
+      import_success: "Busca importada para Validação como lote de validação de segmento."
+    index:
+      kicker: "Busca web"
+      title: "Busca de fornecedores"
+      description: "Abra segmentos, revise o retorno filtrado da web e só transforme em lote aquilo que já vale uma ligação."
+      validation_cta: "Ver Validação"
+      new_search: "Nova busca"
+      filters:
+        query: "Buscar por código, segmento ou região"
+        clear: "Limpar"
+        submit: "Filtrar"
+      table:
+        title: "Buscas salvas"
+        count:
+          one: "%{count} busca"
+          other: "%{count} buscas"
+        headers:
+          search: "Busca"
+          segment: "Segmento"
+          region: "Região"
+          generated_at: "Gerada em"
+          found: "Encontrados"
+          actions: "Ações"
+        empty: "Nenhuma busca salva ainda."
+        no_region: "Sem filtro"
+      actions:
+        label: "Ações"
+        download: "⬇️ Baixar planilha"
+        import: "📥 Importar lote"
+      modal:
+        eyebrow: "Nova busca"
+        title: "Abrir segmento"
+        description: "A busca salva uma planilha local já filtrada para fornecedores com telefone, pronta para revisão ou importação em Validação."
+        close: "Fechar"
+        validation_pending: "A Validação ainda não está pronta nesta conta. Configure Empresa, Twilio, OpenAI e Token antes de importar este resultado em Validação."
+        fields:
+          segment: "Segmento"
+          segment_placeholder: "Ex.: Adubo, malha de ferro, resina"
+          region: "Região ou cidade"
+          region_placeholder: "Ex.: Campinas, Ribeirão Preto, Brasil"
+          max_suppliers: "Quantidade máxima"
+          callback_phone: "Telefone para retorno"
+          callback_phone_placeholder: "5511999999999"
+          callback_contact_name: "Contato para retorno"
+          callback_contact_name_placeholder: "Ex.: Comercial Agro Compras"
+        cancel: "Cancelar"
+        submit: "Iniciar busca"
+  platform_settings:
+    required_field: "Campo obrigatório"
+    tabs:
+      company: "Empresa"
+      twilio: "Twilio"
+      openai: "OpenAI"
+      api_token: "Token"
+    api_token:
+      copy_now: "Copie o token abaixo agora"
+      copy: "Copiar token"
+      copied: "Token copiado"
+  validation_audits:
+    index:
+      kicker: "Operação"
+      title: "Auditoria"
+      description: "Acompanhe cada validação já executada, com horário, resultado e as transcrições do cliente e da IA."
+      validation_cta: "Ver Validação"
+      filters:
+        query: "Buscar por lote, empresa ou resultado"
+        clear: "Limpar"
+        submit: "Filtrar"
+      table:
+        title: "Histórico de auditoria"
+        count:
+          one: "%{count} auditoria"
+          other: "%{count} auditorias"
+        headers:
+          lot: "Lote"
+          datetime: "Data e hora"
+          action: "Ação"
+          result: "Resultado"
+          conversation: "Conversa"
+        attempt: "Tentativa %{number}"
+        provider_call: "Chamada %{id}"
+        customer_label: "Cliente"
+        assistant_label: "IA"
+        view_transcripts: "Ver transcrições"
+        missing_customer: "Sem transcrição do cliente."
+        missing_assistant: "Sem transcrição da IA."
+        empty: "Nenhuma auditoria disponível ainda."
+      actions:
+        cadastral_validation: "Validação cadastral"
+        supplier_validation: "Validação de segmento"
+      results:
+        confirmed_by_call: "Confirmada"
+        confirmed_by_whatsapp: "Confirmada no WhatsApp"
+        confirmed_by_email: "Confirmada por e-mail"
+        validated: "Validada"
+        success: "Sucesso"
+        answered: "Atendida"
+        accepted: "Em processamento"
+        processing: "Processando"
+        confirmed: "Confirmada"
+        inconclusive: "Inconclusiva"
+        inconclusive_call: "Inconclusiva"
+        validation_failed: "Falha na validação"
+        invalid_phone: "Telefone inválido"
+        busy: "Ocupado"
+        failed: "Falha"
+        error: "Erro"
+        unknown: "Sem resultado"

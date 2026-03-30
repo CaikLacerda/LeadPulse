@@ -1,51 +1,527 @@
-<%# app/views/pages/home.html.erb %>
+<% if current_user %>
+  <% status_badge = lambda do |status|
+      case status
+      when SupplierImport::LOCAL_STATUS_PENDING
+        ['Pendente', 'workspace-status workspace-status--warning']
+      when SupplierImport::LOCAL_STATUS_PROCESSING
+        ['Processando', 'workspace-status workspace-status--info']
+      when SupplierImport::LOCAL_STATUS_COMPLETED
+        ['Concluído', 'workspace-status workspace-status--success']
+      when SupplierImport::LOCAL_STATUS_ERROR
+        ['Erro', 'workspace-status workspace-status--danger']
+      else
+        [status.to_s.humanize, 'workspace-status bg-slate-100 text-slate-500']
+      end
+    end %>
+  <% integration_rows = [
+    ['Empresa', @integration_flags[:company], current_user.validation_account_id.presence || 'Provisionar conta', company_platform_settings_path],
+    ['Twilio', @integration_flags[:twilio], @integration_flags[:twilio] ? 'Conta e números prontos' : 'Conectar conta e números', twilio_platform_settings_path],
+    ['OpenAI', @integration_flags[:openai], @integration_flags[:openai] ? 'Chave configurada' : 'Definir chave da conta', openai_platform_settings_path],
+    ['Token', @integration_flags[:api_token], @integration_flags[:api_token] ? 'Token ativo' : 'Gerar novo token', api_token_platform_settings_path]
+  ] %>
+  <% attention_items = [] %>
+  <% attention_items << ['Configurar empresa', 'A conta ainda não foi provisionada na API.', company_platform_settings_path] unless @integration_flags[:company] %>
+  <% attention_items << ['Conectar Twilio', 'As chamadas ainda não podem sair desta conta.', twilio_platform_settings_path] unless @integration_flags[:twilio] %>
+  <% attention_items << ['Configurar OpenAI', 'A IA conversacional ainda não está pronta para operar.', openai_platform_settings_path] unless @integration_flags[:openai] %>
+  <% attention_items << ['Gerar token da API', 'A integração ainda não tem token ativo para autenticação.', api_token_platform_settings_path] unless @integration_flags[:api_token] %>
+  <% if @dashboard_insights[:pending_batches].positive? %>
+    <% attention_items << ['Iniciar lotes pendentes', "#{@dashboard_insights[:pending_batches]} lote(s) aguardando início.", supplier_imports_path(status: 'pendente')] %>
+  <% end %>
+  <% if @dashboard_insights[:processing_batches].positive? %>
+    <% attention_items << ['Acompanhar processamento', "#{@dashboard_insights[:processing_batches]} lote(s) em andamento.", supplier_imports_path(status: 'processando')] %>
+  <% end %>
+  <% if @dashboard_insights[:ready_exports].positive? %>
+    <% attention_items << ['Exportar resultados', "#{@dashboard_insights[:ready_exports]} lote(s) já voltaram com resultado.", supplier_imports_path(status: 'concluido')] %>
+  <% end %>
 
-<!-- HERO -->
-<section id="inicio" class="min-h-screen flex items-center justify-center text-center px-8 pt-24 pb-16 bg-gray-50">
-  <div class="max-w-2xl">
-    <h1 class="text-5xl md:text-6xl font-black leading-tight tracking-tight text-gray-900">
-      Sua base de dados<br>
-      <span class="text-blue-600">sempre pulsando.</span>
-    </h1>
-    <p class="mt-5 text-lg text-gray-500 leading-relaxed">
-      Validação inteligente de fornecedores com IA. Limpamos listas obsoletas
-      em minutos através de chamadas automatizadas.
-    </p>
-    <div class="flex gap-4 justify-center mt-9 flex-wrap">
-      <%= link_to "Testar Gratuitamente", new_user_registration_path,
-          class: "px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-all hover:-translate-y-0.5 shadow-md" %>
-      <a href="#recursos"
-         class="px-6 py-3 rounded-xl border-2 border-orange-400 text-orange-500 font-semibold text-sm hover:bg-orange-500 hover:text-white transition-all">
-        Como Funciona
-      </a>
+  <div class="settings-shell min-h-screen px-5 pb-16 pt-28 sm:px-8 lg:px-10">
+    <div class="home-orb home-orb--blue -left-20 top-24 h-56 w-56 sm:h-72 sm:w-72"></div>
+    <div class="home-orb home-orb--orange right-[-70px] top-12 h-56 w-56 sm:h-72 sm:w-72"></div>
+    <div class="home-bolt left-[7%] top-36 hidden h-24 w-14 lg:block"></div>
+    <div class="home-bolt home-bolt--soft right-[12%] top-24 hidden h-20 w-12 lg:block"></div>
+
+    <div class="workspace-content mx-auto max-w-7xl">
+      <section class="mb-8 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+        <div class="max-w-3xl">
+          <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-blue-700"><%= t('home.workspace.kicker') %></p>
+          <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl"><%= t('home.workspace.title') %></h1>
+          <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
+            <%= t('home.workspace.welcome_html', name: @welcome_contact_name).html_safe %>
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-3" data-tutorial-id="home-actions">
+          <%= link_to t('home.workspace.new_search'), supplier_discovery_searches_path,
+              class: 'inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-950' %>
+          <%= link_to t('home.workspace.new_batch'), supplier_imports_path(open_import_modal: '1'),
+              class: 'inline-flex items-center justify-center rounded-md bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-950' %>
+          <%= link_to t('home.workspace.settings'), company_platform_settings_path,
+              class: 'inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-950' %>
+        </div>
+      </section>
+
+      <div class="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4" data-tutorial-id="home-metrics">
+        <div class="border border-slate-200 bg-white px-4 py-4 shadow-sm">
+          <p class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-500">Buscas salvas</p>
+          <p class="mt-2 text-3xl font-black text-slate-950"><%= @dashboard_insights[:total_searches] %></p>
+          <p class="mt-1 text-sm text-slate-500">Histórico de descoberta já registrado.</p>
+        </div>
+        <div class="border border-slate-200 bg-white px-4 py-4 shadow-sm">
+          <p class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-500">Lotes importados</p>
+          <p class="mt-2 text-3xl font-black text-slate-950"><%= @dashboard_insights[:total_batches] %></p>
+          <p class="mt-1 text-sm text-slate-500">Bases já levadas para validação.</p>
+        </div>
+        <div class="border border-slate-200 bg-white px-4 py-4 shadow-sm">
+          <p class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-500">Pendentes</p>
+          <p class="mt-2 text-3xl font-black text-slate-950"><%= @dashboard_insights[:pending_batches] %></p>
+          <p class="mt-1 text-sm text-slate-500">Lotes aguardando início.</p>
+        </div>
+        <div class="border border-slate-200 bg-white px-4 py-4 shadow-sm">
+          <p class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-500">Prontos para exportar</p>
+          <p class="mt-2 text-3xl font-black text-slate-950"><%= @dashboard_insights[:ready_exports] %></p>
+          <p class="mt-1 text-sm text-slate-500">Resultados já concluídos.</p>
+        </div>
+      </div>
+
+      <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <div class="workspace-surface" data-tutorial-id="home-batches">
+            <div class="workspace-surface-header">
+            <p class="workspace-surface-title"><%= t('home.workspace.latest_batches') %></p>
+            <%= link_to t('home.workspace.open_validation'), supplier_imports_path, class: 'text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 transition hover:text-blue-700' %>
+          </div>
+
+          <% if @recent_imports.any? %>
+            <div class="overflow-x-auto">
+              <table class="workspace-table">
+                <thead>
+                  <tr>
+                    <th>Lote</th>
+                    <th>Tipo</th>
+                    <th>Registros</th>
+                    <th>Status</th>
+                    <th>Data</th>
+                    <th>Ação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @recent_imports.each do |supplier_import| %>
+                    <tr>
+                      <td><span class="workspace-compact-code"><%= supplier_import.display_code %></span></td>
+                      <td class="font-medium text-slate-700"><%= supplier_import.workflow_kind_label %></td>
+                      <td class="font-medium text-slate-700"><%= supplier_import.total_rows %></td>
+                      <td><%= workspace_status_tag(supplier_import.status) %></td>
+                      <td>
+                        <div class="font-medium text-slate-800"><%= workspace_date(supplier_import.created_at) %></div>
+                        <div class="mt-1 text-xs text-slate-400"><%= workspace_time(supplier_import.created_at) %></div>
+                      </td>
+                      <td class="whitespace-nowrap">
+                        <%= link_to t('shared.empty_state.open'), supplier_imports_path(q: supplier_import.display_code), class: 'text-[13px] font-semibold text-blue-700 transition hover:text-blue-900' %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <div class="px-4 py-10 text-sm text-slate-500">
+              <%= t('home.workspace.empty_batches') %>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="space-y-6">
+          <div class="workspace-surface" data-tutorial-id="home-integrations">
+            <div class="workspace-surface-header">
+              <p class="workspace-surface-title">Pontos de atenção</p>
+              <p class="workspace-surface-meta"><%= attention_items.size %> item<%= 's' if attention_items.size != 1 %></p>
+            </div>
+
+            <% if attention_items.any? %>
+              <div class="divide-y divide-slate-200">
+                <% attention_items.each do |title, body, path| %>
+                  <div class="flex items-start justify-between gap-4 px-4 py-4">
+                    <div>
+                      <p class="text-sm font-semibold text-slate-900"><%= title %></p>
+                      <p class="mt-1 text-sm leading-6 text-slate-500"><%= body %></p>
+                    </div>
+                    <%= link_to 'Abrir', path, class: 'whitespace-nowrap text-[13px] font-semibold text-blue-700 transition hover:text-blue-900' %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="px-4 py-10 text-sm text-slate-500">
+                Nada crítico agora. A conta está pronta e sem fila parada neste momento.
+              </div>
+            <% end %>
+          </div>
+
+          <div class="workspace-surface">
+            <div class="workspace-surface-header">
+              <p class="workspace-surface-title">Integrações</p>
+              <p class="workspace-surface-meta"><%= integration_rows.count { |row| row[1] } %>/4 prontas</p>
+            </div>
+
+            <div class="divide-y divide-slate-200">
+              <% integration_rows.each do |label, ready, detail, path| %>
+                <div class="flex items-start justify-between gap-4 px-4 py-4">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <p class="text-sm font-semibold text-slate-900"><%= label %></p>
+                      <span class="<%= ready ? 'workspace-status workspace-status--success' : 'workspace-status workspace-status--warning' %>">
+                        <%= ready ? 'Pronto' : 'Pendente' %>
+                      </span>
+                    </div>
+                    <p class="mt-1 text-sm leading-6 text-slate-500"><%= detail %></p>
+                  </div>
+                  <%= link_to 'Abrir', path, class: 'whitespace-nowrap text-[13px] font-semibold text-blue-700 transition hover:text-blue-900' %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+          <div class="workspace-surface">
+            <div class="workspace-surface-header">
+              <p class="workspace-surface-title"><%= t('home.workspace.recent_searches') %></p>
+              <%= link_to t('home.workspace.open_search'), supplier_discovery_searches_path, class: 'text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 transition hover:text-blue-700' %>
+            </div>
+
+          <% if @recent_searches.any? %>
+            <div class="overflow-x-auto">
+              <table class="workspace-table">
+                <thead>
+                  <tr>
+                    <th>Busca</th>
+                    <th>Segmento</th>
+                    <th>Região</th>
+                    <th>Importáveis</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @recent_searches.each do |search| %>
+                    <tr>
+                      <td><span class="workspace-compact-code"><%= search.display_code %></span></td>
+                      <td class="font-medium text-slate-700"><%= search.segment_name %></td>
+                      <td class="font-medium text-slate-700"><%= search.region.presence || 'Sem filtro' %></td>
+                      <td class="font-medium text-slate-700"><%= search.valid_supplier_candidates.size %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <div class="px-4 py-10 text-sm text-slate-500">
+              <%= t('home.workspace.empty_searches') %>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="workspace-surface">
+          <div class="workspace-surface-header">
+            <p class="workspace-surface-title">Conta</p>
+            <p class="workspace-surface-meta"><%= current_user.validation_account_id.presence || 'não provisionada' %></p>
+          </div>
+
+          <div class="grid gap-px bg-slate-200">
+            <div class="grid gap-4 bg-white px-4 py-4 md:grid-cols-[220px_1fr]">
+              <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500">Empresa</p>
+              <p class="text-sm font-semibold text-slate-900"><%= current_user.validation_company_name_value %></p>
+            </div>
+            <div class="grid gap-4 bg-white px-4 py-4 md:grid-cols-[220px_1fr]">
+              <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500">Nome falado pela IA</p>
+              <p class="text-sm font-semibold text-slate-900"><%= current_user.validation_spoken_company_name_value %></p>
+            </div>
+            <div class="grid gap-4 bg-white px-4 py-4 md:grid-cols-[220px_1fr]">
+              <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500">Responsável</p>
+              <p class="text-sm font-semibold text-slate-900"><%= @welcome_contact_name %> · <%= current_user.validation_owner_email_value %></p>
+            </div>
+            <div class="grid gap-4 bg-white px-4 py-4 md:grid-cols-[220px_1fr]">
+              <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500">Registros processados</p>
+              <p class="text-sm font-semibold text-slate-900"><%= number_with_delimiter(@dashboard_insights[:total_records]) %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%= render 'shared/workspace_tutorial', steps: workspace_tutorial_steps(:home) %>
+<% else %>
+<% signal_points = [
+  ['Busca por segmento e região', 'Abra o recorte inicial e gere o lote que realmente vale revisão.'],
+  ['Validação por voz', 'A IA confirma empresa, segmento e retorno comercial antes da abordagem.'],
+  ['Resultado para revisão', 'O lote volta com status, observação e exportação pronta para consulta.']
+] %>
+<% feature_panels = [
+  {
+    title: 'Busca com recorte definido',
+    body: 'Comece por uma busca de fornecedores com segmento e região, ou suba uma planilha própria, para montar o lote inicial.',
+    chips: ['Segmento e região', 'Busca web', 'Importação de planilha'],
+    modifier: 'left'
+  },
+  {
+    title: 'Validação por voz do contato',
+    body: 'No fluxo de segmento, a IA confirma se o contato pertence à empresa, se ela fornece o segmento e se pode receber retorno comercial.',
+    chips: ['Empresa confirmada', 'Segmento confirmado', 'Retorno comercial'],
+    modifier: 'center'
+  },
+  {
+    title: 'Retorno para revisão e exportação',
+    body: 'O sistema devolve o lote com status, observação da validação e histórico da conversa para consulta, auditoria e exportação.',
+    chips: ['Status por registro', 'Observação', 'Exportação CSV'],
+    modifier: 'right'
+  }
+] %>
+<% route_steps = [
+  ['Defina o recorte', 'Escolha segmento e região na busca, ou suba uma planilha própria, para iniciar o lote.'],
+  ['Forme o lote inicial', 'O LeadPulse reúne os registros encontrados ou importados em uma base única para revisão e envio à validação.'],
+  ['Valide por voz', 'Na validação de segmento, a IA confirma empresa, aderência ao segmento e abertura para retorno comercial.'],
+  ['Revise e exporte', 'O lote volta com status, observação e histórico da validação, pronto para consulta, auditoria e exportação.']
+] %>
+
+<section id="inicio" class="home-hero public-pulse-hero px-5 pb-18 pt-28 sm:px-8 sm:pb-24 lg:px-10 lg:pt-32">
+  <div class="home-orb home-orb--blue -left-16 top-16 h-56 w-56 sm:h-72 sm:w-72"></div>
+  <div class="home-orb home-orb--orange right-[-60px] top-12 h-56 w-56 sm:h-72 sm:w-72"></div>
+  <div class="home-bolt home-bolt--soft left-[8%] top-36 hidden h-24 w-14 lg:block"></div>
+  <div class="home-bolt right-[10%] top-24 hidden h-28 w-16 lg:block"></div>
+
+  <div class="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
+    <div class="relative z-10">
+      <div class="inline-flex items-center gap-3 rounded-md border border-blue-100 bg-white/90 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.26em] text-blue-700 shadow-sm backdrop-blur">
+        <span class="text-orange-500">⚡</span>
+        Mais pulso para a sua operação comercial
+      </div>
+
+      <h1 class="mt-8 max-w-3xl text-5xl font-black leading-[0.94] tracking-tight text-slate-950 sm:text-6xl lg:text-[4.7rem]">
+        Abra o mercado certo
+        <span class="block text-blue-600">e valide os contatos</span>
+        <span class="block">antes da abordagem.</span>
+      </h1>
+
+      <p class="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
+        O LeadPulse pode começar por uma busca de fornecedores ou por uma planilha própria, validar contatos por voz e devolver o lote com status e observação para revisão e exportação.
+      </p>
+
+      <div class="mt-8 flex flex-wrap gap-4">
+        <%= link_to 'Criar conta', new_user_registration_path,
+            class: 'rounded-md bg-blue-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5 hover:bg-blue-700' %>
+        <%= link_to 'Ver recursos', root_path(anchor: 'recursos'),
+            class: 'rounded-md border border-orange-200 bg-white px-6 py-3.5 text-sm font-bold text-orange-500 shadow-sm transition-all hover:-translate-y-0.5 hover:border-orange-400 hover:text-orange-600' %>
+      </div>
+
+      <div class="mt-10 grid gap-3 sm:grid-cols-3">
+        <% signal_points.each do |title, body| %>
+          <div class="border border-slate-200 bg-white/94 px-4 py-4 shadow-sm">
+            <p class="text-[11px] font-black uppercase tracking-[0.24em] text-slate-500"><%= title %></p>
+            <p class="mt-2 text-sm leading-6 text-slate-600"><%= body %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="public-signal-stage relative z-10 mx-auto w-full max-w-3xl">
+      <div class="public-signal-stage__glow"></div>
+      <div class="public-signal-stage__shell">
+        <%= image_tag 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1700&q=80',
+            alt: 'Planeta Terra à noite com pontos de luz representando conexões entre mercados',
+            class: 'public-signal-stage__image',
+            loading: 'eager',
+            referrerpolicy: 'no-referrer' %>
+        <div class="public-signal-stage__mesh"></div>
+        <div class="public-signal-stage__beam public-signal-stage__beam--one"></div>
+        <div class="public-signal-stage__beam public-signal-stage__beam--two"></div>
+        <span class="public-signal-stage__node public-signal-stage__node--one"></span>
+        <span class="public-signal-stage__node public-signal-stage__node--two"></span>
+        <span class="public-signal-stage__node public-signal-stage__node--three"></span>
+
+        <div class="public-signal-stage__panel public-signal-stage__panel--top">
+          <p class="text-xs font-bold uppercase tracking-[0.24em] text-blue-100">Busca web</p>
+          <p class="mt-3 text-2xl font-black text-white">Segmento e região definem o lote inicial.</p>
+          <p class="mt-2 text-sm leading-6 text-slate-100/88">A busca começa com o recorte que você quer revisar antes de levar o lote para validação.</p>
+        </div>
+
+        <div class="public-signal-stage__panel public-signal-stage__panel--left">
+          <p class="text-xs font-bold uppercase tracking-[0.22em] text-orange-200">Validação de segmento</p>
+          <div class="mt-4 space-y-3 text-sm leading-6 text-slate-100/88">
+            <p>O número pertence à empresa?</p>
+            <p>Ela fornece esse segmento?</p>
+            <p>Pode receber retorno comercial?</p>
+          </div>
+        </div>
+
+        <div class="public-signal-stage__panel public-signal-stage__panel--right">
+          <p class="text-xs font-bold uppercase tracking-[0.22em] text-blue-100">Resultado do lote</p>
+          <p class="mt-3 text-2xl font-black text-white">Cada registro volta com leitura objetiva para revisão.</p>
+
+          <div class="mt-5 space-y-3 text-sm text-slate-100/88">
+            <p>Status por registro no lote.</p>
+            <p>Observação da validação.</p>
+            <p>Arquivo pronto para exportação.</p>
+          </div>
+        </div>
+
+        <div class="public-signal-stage__panel public-signal-stage__panel--bottom">
+          <p class="text-xs font-bold uppercase tracking-[0.24em] text-orange-200">Auditoria da validação</p>
+          <p class="mt-3 text-2xl font-black text-white">O histórico da conversa fica disponível para consulta depois da validação.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- FEATURES -->
-<section id="recursos" class="bg-slate-100 py-20 px-8">
-  <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-
-    <!-- Card 1 -->
-    <div class="bg-white rounded-2xl p-9 shadow-sm text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-      <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5">🔍</div>
-      <h3 class="text-lg font-bold text-blue-600 mb-2">Escaneamento</h3>
-      <p class="text-sm text-gray-500 leading-relaxed">Analise e valide automaticamente sua lista de fornecedores com precisão e rapidez.</p>
+<section class="border-y border-slate-200 bg-white px-5 py-8 sm:px-8 lg:px-10">
+  <div class="mx-auto max-w-7xl">
+    <div class="public-signal-band">
+      <div class="public-signal-band__line"></div>
+      <div class="public-signal-band__copy">
+        <p>Busca por segmento</p>
+        <p>Validação por voz</p>
+        <p>Status por registro</p>
+        <p>Exportação em CSV</p>
+      </div>
     </div>
-
-    <!-- Card 2 -->
-    <div class="bg-white rounded-2xl p-9 shadow-sm text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-      <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-content text-3xl mx-auto mb-5 flex items-center justify-center">🤖</div>
-      <h3 class="text-lg font-bold text-orange-500 mb-2">Auditoria por Voz</h3>
-      <p class="text-sm text-gray-500 leading-relaxed">IA realiza chamadas automatizadas para confirmar dados de contato em tempo real.</p>
-    </div>
-
-    <!-- Card 3 -->
-    <div class="bg-white rounded-2xl p-9 shadow-sm text-center hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
-      <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5">📊</div>
-      <h3 class="text-lg font-bold text-purple-600 mb-2">Enriquecimento</h3>
-      <p class="text-sm text-gray-500 leading-relaxed">Complemente e atualize os dados dos fornecedores com informações confiáveis e atuais.</p>
-    </div>
-
   </div>
 </section>
+
+<section id="recursos" class="public-atlas px-5 py-24 sm:px-8 lg:px-10">
+  <div class="mx-auto max-w-7xl">
+    <div class="relative z-10 mx-auto max-w-4xl text-center">
+      <p class="text-xs font-bold uppercase tracking-[0.32em] text-orange-300">Recursos</p>
+      <h2 class="mt-5 text-4xl font-black tracking-tight text-white sm:text-5xl">
+        Encontre o mercado certo, valide a conexão e devolva um lote utilizável.
+      </h2>
+      <p class="mx-auto mt-5 max-w-3xl text-base leading-8 text-slate-300 sm:text-lg">
+        Em vez de separar busca, validação e revisão em etapas soltas, o LeadPulse organiza o fluxo: monta o lote inicial, valida contatos por voz e devolve o resultado para consulta, auditoria e exportação.
+      </p>
+    </div>
+
+    <div class="public-atlas__earth"></div>
+
+    <div class="relative z-10 mt-14 grid gap-6 lg:grid-cols-3 lg:items-start">
+      <% feature_panels.each do |panel| %>
+        <article class="public-atlas-card public-atlas-card--<%= panel[:modifier] %>">
+          <div class="public-atlas-card__mark"></div>
+          <h3 class="mt-10 text-3xl font-black text-slate-950"><%= panel[:title] %></h3>
+          <p class="mt-5 text-base leading-8 text-slate-600"><%= panel[:body] %></p>
+
+          <div class="mt-8 flex flex-wrap gap-2">
+            <% panel[:chips].each do |chip| %>
+              <span class="rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-600"><%= chip %></span>
+            <% end %>
+          </div>
+
+          <div class="mt-10 flex items-center gap-5 text-sm font-semibold">
+            <span class="rounded-full bg-orange-500 px-5 py-3 text-white">Ver fluxo</span>
+            <span class="text-slate-600">Fluxo contínuo entre busca, validação e revisão</span>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<section id="sobre" class="home-hero px-5 py-20 sm:px-8 lg:px-10">
+  <div class="home-orb home-orb--blue -left-20 top-16 h-56 w-56 sm:h-72 sm:w-72"></div>
+  <div class="home-orb home-orb--orange right-[-60px] top-24 h-56 w-56 sm:h-72 sm:w-72"></div>
+  <div class="home-bolt left-[7%] top-24 hidden h-24 w-14 lg:block"></div>
+  <div class="home-bolt home-bolt--soft right-[11%] top-20 hidden h-20 w-12 lg:block"></div>
+
+  <div class="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+    <div class="relative z-10">
+      <p class="text-xs font-bold uppercase tracking-[0.3em] text-blue-600">Como funciona</p>
+      <h2 class="mt-4 max-w-xl text-4xl font-black leading-tight text-slate-950">
+        Uma rota clara entre busca, validação e decisão.
+      </h2>
+      <p class="mt-5 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
+        O produto trabalha em sequência: monta o lote inicial, valida contatos por voz e devolve o resultado com leitura objetiva para revisão. O time recebe menos volume bruto e mais clareza sobre o que foi confirmado.
+      </p>
+
+      <div class="mt-10 inline-flex items-center gap-3 rounded-full border border-blue-100 bg-white/82 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-blue-700 shadow-sm backdrop-blur">
+        <span class="text-orange-500">⚡</span>
+        O pulso liga descoberta, checagem e retorno
+      </div>
+    </div>
+
+    <div class="public-route relative z-10">
+      <div class="public-route__line"></div>
+      <% route_steps.each_with_index do |(title, body), index| %>
+        <article class="public-route__step public-route__step--<%= index % 4 %>">
+          <span class="public-route__index"><%= format('%02d', index + 1) %></span>
+          <h3 class="mt-4 text-2xl font-black text-slate-950"><%= title %></h3>
+          <p class="mt-3 text-sm leading-7 text-slate-600"><%= body %></p>
+        </article>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<section id="planos" class="bg-white px-5 py-20 sm:px-8 lg:px-10">
+  <div class="mx-auto max-w-7xl">
+    <div class="mx-auto max-w-2xl text-center">
+      <p class="text-xs font-bold uppercase tracking-[0.3em] text-orange-500">Planos</p>
+      <h2 class="mt-4 text-3xl font-black text-slate-950 sm:text-4xl">Comece com um lote piloto e evolua para uma rotina contínua.</h2>
+      <p class="mt-4 text-base leading-8 text-slate-600">Primeiro valide o recorte e o retorno operacional. Depois escale descoberta e revisão em ciclos recorrentes.</p>
+    </div>
+
+    <div class="mt-12 grid gap-6 lg:grid-cols-3">
+      <div class="rounded-[2rem] border border-slate-200 bg-slate-50 p-8 shadow-sm">
+        <p class="text-sm font-bold uppercase tracking-[0.24em] text-blue-600">Starter</p>
+        <h3 class="mt-4 text-2xl font-black text-slate-950">Piloto de descoberta e validação</h3>
+        <p class="mt-3 text-sm leading-7 text-slate-500">Para provar o recorte, testar a validação por voz e sentir o formato de retorno sem atrito.</p>
+        <p class="mt-8 text-4xl font-black text-slate-950">R$ 0</p>
+        <p class="mt-1 text-sm text-slate-400">100 validações mensais</p>
+      </div>
+
+      <div class="rounded-[2rem] border border-blue-200 bg-blue-600 p-8 text-white shadow-xl shadow-blue-200">
+        <p class="text-sm font-bold uppercase tracking-[0.24em] text-orange-300">Growth</p>
+        <h3 class="mt-4 text-2xl font-black">Operação recorrente</h3>
+        <p class="mt-3 text-sm leading-7 text-blue-100">Para equipes que abrem mercado, validam contatos e revisam fornecedores com frequência.</p>
+        <p class="mt-8 text-4xl font-black">Sob consulta</p>
+        <p class="mt-1 text-sm text-blue-100">Recomendado para uso recorrente</p>
+      </div>
+
+      <div class="rounded-[2rem] border border-orange-200 bg-orange-50 p-8 shadow-sm">
+        <p class="text-sm font-bold uppercase tracking-[0.24em] text-orange-500">Enterprise</p>
+        <h3 class="mt-4 text-2xl font-black text-slate-950">Arquitetura sob medida</h3>
+        <p class="mt-3 text-sm leading-7 text-slate-500">Para operações com maior volume, regras próprias de validação e integração com sistemas internos.</p>
+        <p class="mt-8 text-4xl font-black text-slate-950">Custom</p>
+        <p class="mt-1 text-sm text-slate-400">Implantação orientada</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contato" class="bg-slate-950 px-5 py-20 text-white sm:px-8 lg:px-10">
+  <div class="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.96fr_1.04fr] lg:items-center">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.3em] text-orange-300">Contato</p>
+      <h2 class="mt-4 text-3xl font-black sm:text-4xl">Quer ver esse fluxo no seu segmento?</h2>
+      <p class="mt-5 max-w-xl text-base leading-8 text-slate-300 sm:text-lg">
+        Podemos montar uma demonstração com a sua base atual ou com um recorte novo para mostrar como o lote entra para validação e volta com status, observação e histórico da conversa.
+      </p>
+    </div>
+
+    <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur sm:p-8">
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <p class="text-sm font-bold uppercase tracking-[0.2em] text-orange-300">Email</p>
+          <p class="mt-3 text-lg font-semibold">contato@leadpulse.com</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <p class="text-sm font-bold uppercase tracking-[0.2em] text-orange-300">WhatsApp</p>
+          <p class="mt-3 text-lg font-semibold">(19) 99999-9999</p>
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-4">
+        <%= link_to 'Criar conta', new_user_registration_path,
+            class: 'rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-orange-400' %>
+        <%= link_to 'Fazer login', new_user_session_path,
+            class: 'rounded-xl border border-white/20 px-6 py-3 text-sm font-semibold text-white transition-all hover:border-orange-300 hover:text-orange-200' %>
+      </div>
+    </div>
+  </div>
+</section>
+<% end %>

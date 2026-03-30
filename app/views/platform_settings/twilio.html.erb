@@ -1,0 +1,68 @@
+<div class="settings-shell min-h-screen px-5 pb-16 pt-28 sm:px-8 lg:px-10">
+  <div class="home-orb home-orb--blue -left-20 top-24 h-56 w-56 sm:h-72 sm:w-72"></div>
+  <div class="home-orb home-orb--orange right-[-70px] top-10 h-56 w-56 sm:h-72 sm:w-72"></div>
+  <div class="home-bolt left-[8%] top-32 hidden h-24 w-14 lg:block"></div>
+  <div class="home-bolt home-bolt--soft right-[10%] top-28 hidden h-20 w-12 lg:block"></div>
+
+  <div class="mx-auto max-w-5xl">
+    <%= turbo_frame_tag 'platform_settings_content' do %>
+      <section class="settings-page-intro mb-8">
+        <p class="settings-panel-kicker">Integração</p>
+        <h1 class="settings-panel-title">Twilio</h1>
+        <div class="home-energy-line mt-4 h-[3px] w-28 rounded-full"></div>
+      </section>
+
+      <%= render 'nav' %>
+
+      <div class="settings-panel p-6 sm:p-8 lg:p-10">
+        <% settings_notice = flash[:notice].presence || flash.now[:notice].presence %>
+        <% settings_alert = flash.now[:alert].presence || flash[:alert].presence %>
+
+        <%= form_with model: current_user, url: twilio_platform_settings_path, method: :patch, local: true, class: 'space-y-8' do |f| %>
+          <% if settings_notice.present? %>
+            <div class="settings-feedback settings-feedback--notice"><%= settings_notice %></div>
+          <% end %>
+
+          <% if settings_alert.present? %>
+            <div class="settings-feedback settings-feedback--alert"><%= settings_alert %></div>
+          <% end %>
+
+          <div class="settings-form-note">Campos marcados com * são obrigatórios para conectar a Twilio e habilitar as chamadas.</div>
+
+          <div class="settings-form-grid grid gap-6 md:grid-cols-2" data-tutorial-id="twilio-credentials">
+            <div>
+              <%= render 'field_label', form: f, field: :validation_twilio_account_sid, text: 'Account SID', help: 'Identificador principal da sua conta Twilio.', required: true %>
+              <%= f.text_field :validation_twilio_account_sid, class: 'settings-input', required: true %>
+            </div>
+
+            <div>
+              <%= render 'field_label', form: f, field: :validation_twilio_auth_token, text: 'Auth Token', help: 'Chave secreta usada para autenticar as requisições da Twilio.', required: true %>
+              <%= f.password_field :validation_twilio_auth_token, value: current_user.validation_twilio_auth_token, class: 'settings-input', required: true %>
+            </div>
+          </div>
+
+          <div>
+            <%= render 'field_label', form: f, field: :validation_twilio_webhook_base_url, text: 'Webhook base URL', help: 'Endereço público que a Twilio usa para enviar eventos de chamada e abrir o fluxo de voz.', required: true %>
+            <%= f.text_field :validation_twilio_webhook_base_url, class: 'settings-input', required: true %>
+          </div>
+
+          <div data-tutorial-id="twilio-numbers">
+            <%= render 'field_label', form: f, field: :validation_twilio_phone_numbers_text, text: 'Números Twilio ativos', help: 'Lista dos números habilitados para originar chamadas, um por linha.', required: true %>
+            <%= f.text_area :validation_twilio_phone_numbers_text,
+                value: current_user.validation_twilio_phone_numbers_text,
+                rows: 5,
+                placeholder: "13527176703
+13520000000",
+                class: 'settings-textarea', required: true %>
+          </div>
+
+          <div class="flex justify-end">
+            <%= f.submit 'Salvar Twilio', class: 'settings-submit', data: { tutorial_id: 'twilio-submit' } %>
+          </div>
+        <% end %>
+      </div>
+
+      <%= render 'shared/workspace_tutorial', steps: workspace_tutorial_steps(:platform_settings_twilio) %>
+    <% end %>
+  </div>
+</div>

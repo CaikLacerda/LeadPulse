@@ -1,23 +1,21 @@
 <%# app/views/devise/sessions/new.html.erb %>
 
-<div class="flex min-h-screen">
-
+<div class="auth-shell auth-shell--login flex min-h-[calc(100vh-4rem)] flex-col md:min-h-screen md:flex-row" data-controller="auth-transition" data-auth-transition-direction="forward">
   <!-- LADO ESQUERDO - Banner azul -->
-  <div class="hidden md:flex w-1/2 bg-blue-600 flex-col justify-between p-14 relative overflow-hidden">
+  <div class="auth-copy auth-banner hidden md:flex w-1/2 bg-blue-600 flex-col justify-between p-14 relative overflow-hidden">
 
     <!-- Círculos decorativos -->
-    <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500 rounded-full opacity-40"></div>
-    <div class="absolute -top-24 -right-24 w-72 h-72 bg-blue-700 rounded-full opacity-30"></div>
+    <div class="auth-orb auth-orb--slow absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500 rounded-full opacity-40"></div>
+    <div class="auth-orb auth-orb--delay auth-orb--reverse absolute -top-24 -right-24 w-72 h-72 bg-blue-700 rounded-full opacity-30"></div>
 
     <!-- Logo -->
     <a href="/" class="flex items-center gap-2 font-extrabold text-xl text-white z-10">
-      <span>⚡</span>
-      <span>LeadPulse</span>
+      <%# <span>⚡</span>
+      <span>LeadPulse</span> %>
     </a>
 
     <!-- Conteúdo central -->
     <div class="z-10">
-      <p class="text-orange-400 text-xs font-bold tracking-widest uppercase mb-5">Acesso Restrito</p>
       <h1 class="text-7xl font-black text-white leading-none">BEM-VINDO</h1>
       <h1 class="text-7xl font-black text-orange-500 leading-none mb-8">DE VOLTA.</h1>
       <p class="text-blue-100 text-lg leading-relaxed max-w-sm">
@@ -40,8 +38,14 @@
   </div>
 
   <!-- LADO DIREITO - Formulário -->
-  <div class="flex-1 flex items-center justify-center px-8 md:px-20 bg-white">
-    <div class="w-full max-w-md">
+  <div class="auth-card flex-1 bg-white px-5 py-10 sm:px-8 md:flex md:items-center md:justify-center md:px-20">
+    <div class="auth-card-bolts">
+      <div class="home-bolt left-[12%] top-[13%] hidden h-24 w-14 md:block"></div>
+      <div class="home-bolt home-bolt--soft right-[14%] top-[22%] hidden h-20 w-12 md:block"></div>
+      <div class="home-bolt right-[10%] bottom-[18%] hidden h-28 w-16 md:block"></div>
+      <div class="home-bolt home-bolt--soft left-[20%] bottom-[12%] hidden h-20 w-12 md:block"></div>
+    </div>
+    <div class="mx-auto w-full max-w-md">
 
       <!-- Título -->
       <h2 class="text-4xl font-black text-gray-900 mb-1">Entrar</h2>
@@ -96,10 +100,14 @@
       <% end %>
 
       <!-- Link cadastro -->
-      <p class="text-center text-sm text-gray-500 mt-8">
+      <p class="relative z-10 text-center text-sm text-gray-500 mt-8">
         Novo por aqui?
         <%= link_to "Crie sua conta gratuita", new_registration_path(resource_name),
-            class: "font-bold text-blue-600 hover:underline" %>
+            class: "font-bold text-blue-600 hover:underline",
+            data: {
+              action: "click->auth-transition#rememberDirection",
+              auth_transition_direction: "forward"
+            } %>
       </p>
 
     </div>

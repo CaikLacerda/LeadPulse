@@ -1,0 +1,135 @@
+<% import_form_values = (@import_form_values || {}).symbolize_keys %>
+<% import_modal_alert = @open_import_modal ? flash[:alert].presence : nil %>
+<% modal_scope = 'supplier_imports.modal' %>
+
+<div id="supplier-import-modal"
+     data-import-modal-target="modal"
+     class="fixed inset-0 z-[70] <%= @open_import_modal ? '' : 'hidden' %>">
+  <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-sm" data-action="click->import-modal#close"></div>
+
+  <div class="relative flex min-h-full items-center justify-center px-4 py-10">
+    <div id="supplier-import-modal-panel"
+         data-import-modal-target="panel modalPanel"
+         tabindex="-1"
+         class="workspace-modal workspace-modal--blue relative w-full max-w-3xl p-5 sm:p-6">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.26em] text-blue-600"><%= t("#{modal_scope}.eyebrow") %></p>
+          <h2 class="mt-2 text-2xl font-black tracking-[-0.04em] text-slate-950"><%= t("#{modal_scope}.title") %></h2>
+          <p class="mt-2 text-sm leading-6 text-slate-500"><%= t("#{modal_scope}.description") %></p>
+        </div>
+
+        <button type="button"
+                data-action="import-modal#close"
+                aria-label="<%= I18n.t("#{modal_scope}.close") %>"
+                class="inline-flex h-9 w-9 items-center justify-center border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-900">
+          ✕
+        </button>
+      </div>
+
+      <% if import_modal_alert.present? %>
+        <div class="mt-5 border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700">
+          <%= import_modal_alert %>
+        </div>
+      <% end %>
+
+      <%= form_with url: create_import_supplier_imports_path, method: :post, multipart: true, local: true, class: 'mt-6 space-y-5' do |f| %>
+        <div>
+          <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400"><%= t("#{modal_scope}.type_label") %></p>
+          <div class="import-workflow-grid">
+            <label class="import-workflow-option cursor-pointer">
+              <%= radio_button_tag :workflow_kind, SupplierImport::WORKFLOW_KIND_CADASTRAL, import_form_values[:workflow_kind] != SupplierImport::WORKFLOW_KIND_SUPPLIER, class: 'peer hidden', id: 'workflow_cadastral', data: { import_modal_target: 'cadastralRadio', action: 'change->import-modal#workflowChanged' } %>
+              <div id="workflow-cadastral-card"
+                   data-import-modal-target="cadastralCard"
+                   class="workspace-choice border-2 peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                <p class="text-sm font-black text-slate-950"><%= t("#{modal_scope}.workflow.cadastral.title") %></p>
+                <p class="mt-1.5 text-[13px] leading-5 text-slate-500"><%= t("#{modal_scope}.workflow.cadastral.description") %></p>
+              </div>
+            </label>
+
+            <label class="import-workflow-option cursor-pointer">
+              <%= radio_button_tag :workflow_kind, SupplierImport::WORKFLOW_KIND_SUPPLIER, import_form_values[:workflow_kind] == SupplierImport::WORKFLOW_KIND_SUPPLIER, class: 'peer hidden', id: 'workflow_segmento', data: { import_modal_target: 'supplierRadio', action: 'change->import-modal#workflowChanged' } %>
+              <div id="workflow-segmento-card"
+                   data-import-modal-target="supplierCard"
+                   class="workspace-choice border-2 peer-checked:border-orange-400 peer-checked:bg-orange-50">
+                <p class="text-sm font-black text-slate-950"><%= t("#{modal_scope}.workflow.supplier.title") %></p>
+                <p class="mt-1.5 text-[13px] leading-5 text-slate-500"><%= t("#{modal_scope}.workflow.supplier.description") %></p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div id="import-dropzone"
+               data-import-modal-target="dropzone"
+               data-action="click->import-modal#pickFile keydown.enter->import-modal#pickFile keydown.space->import-modal#pickFile dragover->import-modal#dragOver dragleave->import-modal#dragLeave drop->import-modal#drop"
+               class="workspace-dropzone cursor-pointer border-2 border-dashed border-blue-300"
+               tabindex="0"
+               role="button"
+               aria-controls="importFileInput">
+          <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center bg-blue-100 text-2xl text-blue-600">↑</div>
+          <p id="import-dropzone-label" data-import-modal-target="label" class="mb-1 text-base font-bold text-slate-800"><%= t("#{modal_scope}.upload.label") %></p>
+          <p id="import-dropzone-helper" data-import-modal-target="helper" class="text-[13px] leading-5 text-slate-400"><%= t("#{modal_scope}.upload.cadastral_helper") %></p>
+        </div>
+        <%= f.file_field :file, id: 'importFileInput', accept: '.csv,.xlsx,.json', class: 'sr-only', required: true, data: { import_modal_target: 'fileInput', action: 'change->import-modal#fileChanged' } %>
+
+        <div class="import-preview hidden" data-import-modal-target="previewSection">
+          <div class="import-preview__header">
+            <div>
+              <p class="import-preview__eyebrow"><%= t("#{modal_scope}.preview.eyebrow") %></p>
+              <p class="import-preview__title"><%= t("#{modal_scope}.preview.title") %></p>
+            </div>
+            <p class="import-preview__meta" data-import-modal-target="previewMeta"></p>
+          </div>
+
+          <div class="import-preview__state hidden" data-import-modal-target="previewState"></div>
+          <div class="import-preview__summary hidden" data-import-modal-target="previewSummary"></div>
+
+          <div class="import-preview__section hidden" data-import-modal-target="previewMetadataSection">
+            <p class="import-preview__section-title"><%= t("#{modal_scope}.preview.sections.metadata") %></p>
+            <div class="import-preview__chips" data-import-modal-target="previewMetadata"></div>
+          </div>
+
+          <div class="import-preview__section hidden" data-import-modal-target="previewColumnsSection">
+            <p class="import-preview__section-title"><%= t("#{modal_scope}.preview.sections.columns") %></p>
+            <div class="import-preview__chips" data-import-modal-target="previewColumns"></div>
+          </div>
+
+          <div class="import-preview__section hidden" data-import-modal-target="previewSamplesSection">
+            <p class="import-preview__section-title"><%= t("#{modal_scope}.preview.sections.sample") %></p>
+            <div class="overflow-x-auto">
+              <table class="import-preview__table">
+                <thead data-import-modal-target="previewTableHead"></thead>
+                <tbody data-import-modal-target="previewTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="import-preview__section hidden" data-import-modal-target="previewInvalidsSection">
+            <p class="import-preview__section-title"><%= t("#{modal_scope}.preview.sections.invalid_rows") %></p>
+            <div class="import-preview__invalid-list" data-import-modal-target="previewInvalids"></div>
+          </div>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-[200px_1fr] sm:items-end">
+          <div class="max-w-[220px]">
+            <label for="file_separator" class="settings-label"><%= t("#{modal_scope}.separator") %></label>
+            <%= f.text_field :separator, value: ',', id: 'file_separator', class: 'settings-input', data: { import_modal_target: 'separatorInput', action: 'input->import-modal#separatorChanged change->import-modal#separatorChanged' } %>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <button type="button"
+                  data-action="import-modal#close"
+                  class="workspace-button workspace-button--secondary">
+            <%= t("#{modal_scope}.cancel") %>
+          </button>
+          <%= f.submit t("#{modal_scope}.submit.cadastral"),
+              id: 'importSubmit',
+              data: { import_modal_target: 'submit' },
+              disabled: true,
+              class: 'workspace-button workspace-button--disabled' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
