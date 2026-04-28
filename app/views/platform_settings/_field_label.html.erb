@@ -1,0 +1,13 @@
+<div class="settings-label-row">
+  <%= form.label field, class: 'settings-label settings-label--inline' do %>
+    <span><%= text %></span>
+    <% if local_assigns[:required] %>
+      <span class="settings-required-mark" aria-hidden="true">*</span>
+      <span class="sr-only"><%= t('platform_settings.required_field') %></span>
+    <% end %>
+  <% end %>
+  <span class="settings-help-group" tabindex="0" aria-label="<%= help %>">
+    <span class="settings-help-trigger" aria-hidden="true">?</span>
+    <span class="settings-help-tooltip"><%= help %></span>
+  </span>
+</div>

@@ -1,0 +1,135 @@
+<div class="settings-shell min-h-screen px-5 pb-16 pt-28 sm:px-8 lg:px-10">
+  <div class="home-orb home-orb--blue -left-20 top-24 h-56 w-56 sm:h-72 sm:w-72"></div>
+  <div class="home-orb home-orb--orange right-[-70px] top-12 h-56 w-56 sm:h-72 sm:w-72"></div>
+  <div class="home-bolt left-[7%] top-36 hidden h-24 w-14 lg:block"></div>
+  <div class="home-bolt home-bolt--soft right-[12%] top-24 hidden h-20 w-12 lg:block"></div>
+
+  <div class="workspace-content mx-auto max-w-7xl">
+    <section class="mb-8 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+      <div class="max-w-3xl">
+        <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-blue-700"><%= t('.kicker') %></p>
+        <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl"><%= t('.title') %></h1>
+        <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
+          <%= t('.description') %>
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <%= link_to supplier_imports_path,
+            class: 'workspace-button workspace-button--secondary' do %>
+          <%= t('.validation_cta') %>
+        <% end %>
+      </div>
+    </section>
+
+    <%= form_with url: validation_audits_path, method: :get, local: true do |f| %>
+      <div class="workspace-toolbar mb-6" data-tutorial-id="audit-filters">
+        <div class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
+          <%= f.text_field :q, value: params[:q],
+              placeholder: t('.filters.query'),
+              class: 'settings-input' %>
+
+          <div class="flex gap-2">
+            <%= link_to validation_audits_path,
+                class: 'workspace-button workspace-button--secondary' do %>
+              <%= t('.filters.clear') %>
+            <% end %>
+
+            <button type="submit"
+                    class="workspace-button workspace-button--primary">
+              <%= t('.filters.submit') %>
+            </button>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="workspace-surface" data-tutorial-id="audit-results">
+      <div class="workspace-surface-header">
+        <p class="workspace-surface-title"><%= t('.table.title') %></p>
+        <p class="workspace-surface-meta"><%= t('.table.count', count: @audit_total_count) %></p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="workspace-table">
+          <thead>
+            <tr>
+              <th><%= t('.table.headers.lot') %></th>
+              <th><%= t('.table.headers.datetime') %></th>
+              <th><%= t('.table.headers.action') %></th>
+              <th><%= t('.table.headers.result') %></th>
+              <th><%= t('.table.headers.conversation') %></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% if @audit_entries.any? %>
+              <% @audit_entries.each do |entry| %>
+                <tr>
+                  <td class="min-w-[180px]">
+                    <span class="workspace-compact-code"><%= entry.lot_code %></span>
+                    <div class="mt-2 text-sm font-semibold text-slate-800"><%= entry.supplier_name %></div>
+                  </td>
+
+                  <td class="min-w-[140px]">
+                    <% if entry.occurred_at.present? %>
+                      <div class="font-medium text-slate-800"><%= workspace_date(entry.occurred_at) %></div>
+                      <div class="mt-0.5 text-[11px] text-slate-400"><%= workspace_time(entry.occurred_at) %></div>
+                    <% else %>
+                      <div class="font-medium text-slate-400">-</div>
+                    <% end %>
+                  </td>
+
+                  <td class="min-w-[180px] font-medium text-slate-700">
+                    <%= audit_action_label(entry.workflow_kind) %>
+                  </td>
+
+                  <td class="min-w-[220px]">
+                    <%= audit_result_tag(entry.result_code) %>
+                    <% if entry.observation.present? %>
+                      <div class="workspace-result-note mt-3"><%= truncate(entry.observation, length: 120) %></div>
+                    <% end %>
+                  </td>
+
+                  <td class="min-w-[360px]">
+                    <details class="workspace-audit-details" data-tutorial-id="audit-transcripts">
+                      <summary class="workspace-audit-summary">
+                        <span class="workspace-audit-summary__toggle"><%= t('.table.view_transcripts') %></span>
+                      </summary>
+
+                      <div class="workspace-audit-details__body">
+                        <div class="workspace-audit-details__section">
+                          <p class="workspace-audit-details__heading"><%= t('.table.customer_label') %></p>
+                          <div class="workspace-transcript-block">
+                            <%= entry.customer_transcript.presence || t('.table.missing_customer') %>
+                          </div>
+                        </div>
+
+                        <div class="workspace-audit-details__section">
+                          <p class="workspace-audit-details__heading"><%= t('.table.assistant_label') %></p>
+                          <div class="workspace-transcript-block workspace-transcript-block--agent">
+                            <%= entry.assistant_transcript.presence || t('.table.missing_assistant') %>
+                          </div>
+                        </div>
+                      </div>
+                    </details>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="5" class="px-4 py-12 text-center text-sm text-slate-500">
+                  <%= t('.table.empty') %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <%= render 'shared/pagination', current_page: @audit_page, total_pages: @audit_total_pages %>
+    </div>
+  </div>
+
+  <%= render 'shared/workspace_tutorial', steps: workspace_tutorial_steps(:validation_audits) %>
+</div>

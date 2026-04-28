@@ -1,0 +1,61 @@
+<% return if steps.blank? %>
+<% first_step = steps.first %>
+
+<%= content_tag :div,
+    class: 'workspace-tutorial',
+    data: {
+      controller: 'page-tutorial',
+      page_tutorial_steps_json_value: steps.to_json,
+      page_tutorial_next_label_value: t('shared.tutorial.next'),
+      page_tutorial_finish_label_value: t('shared.tutorial.finish')
+    } do %>
+  <button type="button"
+          class="workspace-tutorial__launcher"
+          data-action="page-tutorial#start">
+    <span aria-hidden="true">?</span>
+    <span><%= t('shared.tutorial.launcher') %></span>
+  </button>
+
+  <div class="workspace-tutorial__overlay hidden"
+       data-page-tutorial-target="overlay"
+       data-action="click->page-tutorial#dismissOnBackdrop"
+       aria-hidden="true">
+    <div class="workspace-tutorial__spotlight" data-page-tutorial-target="spotlight" aria-hidden="true"></div>
+
+    <div class="workspace-tutorial__dialog"
+         data-page-tutorial-target="dialog"
+         tabindex="-1"
+         role="dialog"
+         aria-modal="true"
+         aria-label="<%= t('shared.tutorial.dialog_label') %>">
+      <p class="workspace-tutorial__eyebrow"><%= t('shared.tutorial.eyebrow') %></p>
+      <p class="workspace-tutorial__progress" data-page-tutorial-target="progress">1 / <%= steps.length %></p>
+      <h2 class="workspace-tutorial__title" data-page-tutorial-target="title"><%= first_step[:title] %></h2>
+      <p class="workspace-tutorial__body" data-page-tutorial-target="body"><%= first_step[:body] %></p>
+
+      <div class="workspace-tutorial__actions">
+        <button type="button"
+                class="workspace-button workspace-button--secondary"
+                data-action="page-tutorial#close">
+          <%= t('shared.tutorial.close') %>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button type="button"
+                  class="workspace-button workspace-button--secondary"
+                  data-page-tutorial-target="backButton"
+                  data-action="page-tutorial#previous">
+            <%= t('shared.tutorial.previous') %>
+          </button>
+
+          <button type="button"
+                  class="workspace-button workspace-button--accent"
+                  data-page-tutorial-target="nextButton"
+                  data-action="page-tutorial#next">
+            <%= t('shared.tutorial.next') %>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

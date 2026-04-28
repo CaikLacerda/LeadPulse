@@ -1,0 +1,127 @@
+<% marketing_items = [
+  [t('shared.header.marketing.home'), root_path(anchor: 'inicio')],
+  [t('shared.header.marketing.resources'), root_path(anchor: 'recursos')],
+  [t('shared.header.marketing.plans'), root_path(anchor: 'planos')],
+  [t('shared.header.marketing.about'), root_path(anchor: 'sobre')],
+  [t('shared.header.marketing.contact'), root_path(anchor: 'contato')]
+] %>
+<% workspace_items = [
+  [:home, t('shared.header.workspace.home'), root_path(anchor: 'inicio')],
+  [:search, t('shared.header.workspace.search'), supplier_discovery_searches_path],
+  [:validation, t('shared.header.workspace.validation'), supplier_imports_path]
+] %>
+<% workspace_account_items = [
+  [:audit, t('shared.header.workspace.audit'), validation_audits_path],
+  [:settings, t('shared.header.workspace.settings'), company_platform_settings_path],
+  [:developer_docs, t('shared.header.workspace.developer_docs'), developer_docs_path]
+] %>
+<% nav_items = current_user ? workspace_items : marketing_items %>
+<% auth_page = local_assigns.fetch(:auth_page, false) %>
+<% current_path = request.path %>
+<% workspace_section_active = lambda do |key|
+  case key
+  when :home
+    current_path == '/'
+  when :search
+    current_path.start_with?(supplier_discovery_searches_path)
+  when :validation
+    current_path.start_with?(supplier_imports_path)
+  when :audit
+    current_path.start_with?(validation_audits_path)
+  when :settings
+    current_path.start_with?('/configuracoes')
+  when :developer_docs
+    current_page?(developer_docs_path)
+  else
+    false
+  end
+end %>
+<% account_menu_active = current_user && workspace_account_items.any? { |key, _, _| workspace_section_active.call(key) } %>
+
+<header class="app-header-shell fixed top-0 left-0 right-0 z-50">
+  <div class="<%= auth_page ? 'w-full px-4 sm:px-6 lg:px-10' : 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8' %>" data-controller="nav">
+    <div class="app-header-inner flex min-h-[4.75rem] items-center gap-3 lg:gap-8">
+      <%= link_to root_path(anchor: 'inicio'), class: 'app-brand flex shrink-0 items-center gap-3' do %>
+        <span class="app-brand-mark">⚡</span>
+        <span class="text-lg font-black tracking-tight"><span class="text-orange-500">Lead</span><span class="text-blue-600">Pulse</span></span>
+      <% end %>
+
+      <nav class="hidden items-center gap-1 lg:flex">
+        <% nav_items.each do |item| %>
+          <% key, label, path = current_user ? item : [nil, item[0], item[1]] %>
+          <% active = current_user ? workspace_section_active.call(key) : current_page?(path) %>
+          <%= link_to label, path, class: "app-top-link #{active ? 'app-top-link--active' : ''}" %>
+        <% end %>
+      </nav>
+
+      <div class="ml-auto hidden items-center gap-3 lg:flex">
+        <% if current_user %>
+          <details data-controller="action-menu" class="relative inline-block">
+            <summary class="app-account-summary <%= 'app-account-summary--active' if account_menu_active %>">
+              <span class="app-account-summary__name"><%= current_user.validation_owner_name_value.split.first %></span>
+              <span class="app-account-summary__chevron" aria-hidden="true">⌄</span>
+            </summary>
+
+            <div class="app-account-menu workspace-menu absolute right-0 top-[calc(100%+0.35rem)] z-20 w-56 p-1.5">
+              <div class="app-account-menu__header">
+                <p class="app-account-menu__title"><%= current_user.validation_company_name_value %></p>
+                <p class="app-account-menu__subtitle"><%= current_user.validation_owner_email_value %></p>
+              </div>
+
+              <% workspace_account_items.each do |key, label, path| %>
+                <%= link_to label, path, class: "workspace-menu-item #{workspace_section_active.call(key) ? 'workspace-menu-item--active' : ''}" %>
+              <% end %>
+
+              <%= button_to destroy_user_session_path,
+                  method: :delete,
+                  form: { class: 'w-full' },
+                  class: 'workspace-menu-item workspace-menu-item--danger workspace-menu-item--button' do %>
+                <%= t('shared.header.session.sign_out') %>
+              <% end %>
+            </div>
+          </details>
+        <% elsif !auth_page %>
+          <%= link_to t('shared.header.session.sign_in'), new_user_session_path,
+              class: 'app-utility-link app-utility-link--primary' %>
+        <% end %>
+      </div>
+
+      <button type="button"
+              class="app-mobile-toggle ml-auto inline-flex lg:hidden"
+              aria-label="<%= t('shared.header.session.open_menu') %>"
+              aria-expanded="false"
+              data-nav-target="button"
+              data-action="click->nav#toggle">
+        <span class="text-xl leading-none">☰</span>
+      </button>
+    </div>
+
+    <div class="app-mobile-panel hidden lg:hidden" data-nav-target="panel">
+      <nav class="flex flex-col gap-2">
+        <% nav_items.each do |item| %>
+          <% key, label, path = current_user ? item : [nil, item[0], item[1]] %>
+          <% active = current_user ? workspace_section_active.call(key) : current_page?(path) %>
+          <%= link_to label, path,
+              class: "app-mobile-link #{active ? 'app-mobile-link--active' : ''}",
+              data: { action: 'click->nav#close' } %>
+        <% end %>
+
+        <% if current_user %>
+          <% workspace_account_items.each do |key, label, path| %>
+            <%= link_to label, path,
+                class: "app-mobile-link #{workspace_section_active.call(key) ? 'app-mobile-link--active' : ''}",
+                data: { action: 'click->nav#close' } %>
+          <% end %>
+
+          <%= link_to t('shared.header.session.sign_out'), destroy_user_session_path,
+              data: { turbo_method: :delete, action: 'click->nav#close' },
+              class: 'app-mobile-link app-mobile-link--ghost' %>
+        <% elsif !auth_page %>
+          <%= link_to t('shared.header.session.sign_in'), new_user_session_path,
+              class: 'app-mobile-link app-mobile-link--active',
+              data: { action: 'click->nav#close' } %>
+        <% end %>
+      </nav>
+    </div>
+  </div>
+</header>

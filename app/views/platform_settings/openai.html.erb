@@ -1,0 +1,68 @@
+<div class="settings-shell min-h-screen px-5 pb-16 pt-28 sm:px-8 lg:px-10">
+  <div class="home-orb home-orb--blue -left-20 top-24 h-56 w-56 sm:h-72 sm:w-72"></div>
+  <div class="home-orb home-orb--orange right-[-70px] top-12 h-56 w-56 sm:h-72 sm:w-72"></div>
+  <div class="home-bolt left-[8%] top-32 hidden h-24 w-14 lg:block"></div>
+  <div class="home-bolt home-bolt--soft right-[12%] top-24 hidden h-20 w-12 lg:block"></div>
+
+  <div class="mx-auto max-w-5xl">
+    <%= turbo_frame_tag 'platform_settings_content' do %>
+      <section class="settings-page-intro mb-8">
+        <p class="settings-panel-kicker">Integração</p>
+        <h1 class="settings-panel-title">OpenAI</h1>
+        <div class="home-energy-line mt-4 h-[3px] w-28 rounded-full"></div>
+      </section>
+
+      <%= render 'nav' %>
+
+      <div class="settings-panel p-6 sm:p-8 lg:p-10">
+        <% settings_notice = flash[:notice].presence || flash.now[:notice].presence %>
+        <% settings_alert = flash.now[:alert].presence || flash[:alert].presence %>
+
+        <%= form_with model: current_user, url: openai_platform_settings_path, method: :patch, local: true, class: 'space-y-8' do |f| %>
+          <% if settings_notice.present? %>
+            <div class="settings-feedback settings-feedback--notice"><%= settings_notice %></div>
+          <% end %>
+
+          <% if settings_alert.present? %>
+            <div class="settings-feedback settings-feedback--alert"><%= settings_alert %></div>
+          <% end %>
+
+          <div class="settings-form-note">Campos marcados com * são obrigatórios para salvar o perfil de voz e habilitar a IA conversacional.</div>
+
+          <div data-tutorial-id="openai-api-key">
+            <%= render 'field_label', form: f, field: :validation_openai_api_key, text: 'API Key', help: 'Chave da OpenAI usada pela IA conversacional, voz e classificação.', required: true %>
+            <%= f.password_field :validation_openai_api_key, value: current_user.validation_openai_api_key, class: 'settings-input', required: true %>
+          </div>
+
+          <div class="settings-form-grid grid gap-6 md:grid-cols-3" data-tutorial-id="openai-profile">
+            <div>
+              <%= render 'field_label', form: f, field: :validation_openai_realtime_model, text: 'Modelo', help: 'Modelo de realtime usado nas conversas por voz.', required: true %>
+              <%= f.text_field :validation_openai_realtime_model, class: 'settings-input', required: true %>
+            </div>
+
+            <div>
+              <%= render 'field_label', form: f, field: :validation_openai_realtime_voice, text: 'Voz', help: 'Nome da voz padrão usada nas chamadas geradas pela IA.', required: true %>
+              <%= f.text_field :validation_openai_realtime_voice, class: 'settings-input', required: true %>
+            </div>
+
+            <div>
+              <%= render 'field_label', form: f, field: :validation_openai_realtime_output_speed, text: 'Velocidade', help: 'Controla o ritmo da fala da IA. Valores menores deixam a voz mais calma.', required: true %>
+              <%= f.number_field :validation_openai_realtime_output_speed, step: 0.01, min: 0.25, max: 1.5, class: 'settings-input', required: true %>
+            </div>
+          </div>
+
+          <div>
+            <%= render 'field_label', form: f, field: :validation_openai_style_instructions, text: 'Instruções de estilo', help: 'Orientações de tom, postura e comportamento da IA durante a conversa.' %>
+            <%= f.text_area :validation_openai_style_instructions, rows: 6, class: 'settings-textarea' %>
+          </div>
+
+          <div class="flex justify-end">
+            <%= f.submit 'Salvar OpenAI', class: 'settings-submit', data: { tutorial_id: 'openai-submit' } %>
+          </div>
+        <% end %>
+      </div>
+
+      <%= render 'shared/workspace_tutorial', steps: workspace_tutorial_steps(:platform_settings_openai) %>
+    <% end %>
+  </div>
+</div>

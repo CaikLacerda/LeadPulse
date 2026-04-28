@@ -1,0 +1,16 @@
+<% tabs = [
+  [t('platform_settings.tabs.company'), company_platform_settings_path],
+  [t('platform_settings.tabs.twilio'), twilio_platform_settings_path],
+  [t('platform_settings.tabs.openai'), openai_platform_settings_path],
+  [t('platform_settings.tabs.api_token'), api_token_platform_settings_path]
+] %>
+
+<div class="mb-8 overflow-x-auto pb-1" data-tutorial-id="settings-tabs">
+  <div class="settings-tab-rail inline-flex min-w-full gap-2 rounded-[1.85rem] p-2 sm:min-w-0">
+    <% tabs.each do |label, path| %>
+      <%= link_to label, path,
+          class: "settings-tab #{current_page?(path) ? 'settings-tab--active' : ''}",
+          data: { turbo_frame: 'platform_settings_content' } %>
+    <% end %>
+  </div>
+</div>

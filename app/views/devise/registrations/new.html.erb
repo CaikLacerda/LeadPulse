@@ -1,10 +1,15 @@
 <%# app/views/devise/registrations/new.html.erb %>
 
-<div class="flex min-h-screen">
-
+<div class="auth-shell auth-shell--register flex min-h-[calc(100vh-4rem)] flex-col-reverse md:min-h-screen md:flex-row" data-controller="auth-transition" data-auth-transition-direction="backward">
   <!-- LADO ESQUERDO - Formulário -->
-  <div class="flex-1 flex items-start justify-center px-8 md:px-16 pt-12 pb-8 bg-white overflow-y-auto">
-    <div class="w-full max-w-md">
+  <div class="auth-card flex-1 overflow-y-auto bg-white px-5 pb-10 pt-8 sm:px-8 md:flex md:items-start md:justify-center md:px-16 md:pt-12">
+    <div class="auth-card-bolts">
+      <div class="home-bolt left-[10%] top-[11%] hidden h-24 w-14 md:block"></div>
+      <div class="home-bolt home-bolt--soft right-[10%] top-[18%] hidden h-20 w-12 md:block"></div>
+      <div class="home-bolt right-[16%] bottom-[18%] hidden h-28 w-16 md:block"></div>
+      <div class="home-bolt home-bolt--soft left-[18%] bottom-[10%] hidden h-20 w-12 md:block"></div>
+    </div>
+    <div class="mx-auto w-full max-w-md">
 
       <!-- Voltar -->
       <%= link_to "← Voltar para Início", root_path,
@@ -83,18 +88,22 @@
       <p class="text-center text-sm text-gray-500 mt-7">
         Já é um cliente?
         <%= link_to "Fazer login", new_session_path(resource_name),
-            class: "font-bold text-orange-500 hover:underline" %>
+            class: "font-bold text-orange-500 hover:underline",
+            data: {
+              action: "click->auth-transition#rememberDirection",
+              auth_transition_direction: "backward"
+            } %>
       </p>
 
     </div>
   </div>
 
   <!-- LADO DIREITO - Banner laranja -->
-  <div class="hidden md:flex w-1/2 bg-orange-500 flex-col justify-center p-14 relative overflow-hidden">
+  <div class="auth-copy auth-banner hidden md:flex w-1/2 flex-col justify-center overflow-hidden bg-orange-500 p-14 relative">
 
     <!-- Círculos decorativos -->
-    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-orange-400 rounded-full opacity-40"></div>
-    <div class="absolute -top-24 -left-24 w-72 h-72 bg-orange-600 rounded-full opacity-30"></div>
+    <div class="auth-orb auth-orb--slow absolute -bottom-32 -right-32 w-96 h-96 bg-orange-400 rounded-full opacity-40"></div>
+    <div class="auth-orb auth-orb--delay auth-orb--reverse absolute -top-24 -left-24 w-72 h-72 bg-orange-600 rounded-full opacity-30"></div>
 
     <div class="z-10">
       <p class="text-blue-900 text-xs font-bold tracking-widest uppercase mb-6">Junte-se a nós</p>
