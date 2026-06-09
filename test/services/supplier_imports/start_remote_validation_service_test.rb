@@ -54,10 +54,9 @@ module SupplierImports
       end.new(fake_response)
 
       service = StartRemoteValidationService.new(user: user, supplier_import: supplier_import)
+      service.define_singleton_method(:create_remote_batch_service) { fake_remote_service }
 
-      service.stub(:create_remote_batch_service, fake_remote_service) do
-        service.call
-      end
+      service.call
 
       supplier_import.reload
       assert_equal SupplierImport::LOCAL_STATUS_PROCESSING, supplier_import.status

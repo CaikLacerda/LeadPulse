@@ -16,7 +16,8 @@ module SupplierImports
       "notes" => "Observação",
       "segment_name" => "Segmento",
       "callback_phone" => "Telefone de retorno",
-      "callback_contact_name" => "Contato de retorno"
+      "callback_contact_name" => "Contato de retorno",
+      "expected_result" => "Resultado esperado"
     }.freeze
 
     def initialize(file:, separator: ",", workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL)
@@ -86,7 +87,12 @@ module SupplierImports
     def sample_headers(parsed)
       sample = parsed.records.first(SAMPLE_LIMIT)
       headers = sample.flat_map(&:keys).uniq
-      preferred_headers = supplier_validation? ? %w[external_id supplier_name phone city state notes] : %w[external_id client_name cnpj phone email]
+      preferred_headers =
+        if supplier_validation?
+          %w[external_id supplier_name phone city state notes expected_result]
+        else
+          %w[external_id client_name cnpj phone email expected_result]
+        end
 
       ordered = preferred_headers.select { |header| headers.include?(header.to_sym) || headers.include?(header) }
       remaining = headers.map(&:to_s) - ordered
@@ -118,7 +124,7 @@ module SupplierImports
     end
 
     def summarize_invalid_data(data)
-      visible = data.slice("client_name", "phone", "cnpj", "segment_name", "callback_phone", "callback_contact_name")
+      visible = data.slice("client_name", "phone", "cnpj", "segment_name", "callback_phone", "callback_contact_name", "expected_result")
       source = visible.presence || data
 
       source.filter_map do |key, value|

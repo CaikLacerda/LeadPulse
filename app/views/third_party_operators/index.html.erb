@@ -1,0 +1,96 @@
+<%= platform_settings_page(title: 'Operadores e terceiros', kicker: 'LGPD', description: 'Documente provedores envolvidos no tratamento: telefonia, IA, mapas, e-mail, armazenamento e integrações.', max_width: 'max-w-6xl') do %>
+  <div class="mb-6 flex flex-wrap gap-2">
+    <%= link_to 'Voltar para LGPD', lgpd_platform_settings_path, class: workspace_button_class(:secondary) %>
+    <%= link_to 'Solicitações LGPD', privacy_requests_path, class: workspace_button_class(:secondary) %>
+    <%= link_to 'Trilha de auditoria', privacy_audit_events_path, class: workspace_button_class(:secondary) %>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+    <%= settings_panel(classes: 'p-6 sm:p-8') do %>
+      <h2 class="text-xl font-black text-slate-950">Novo operador/terceiro</h2>
+
+      <%= form_with model: @operator, url: third_party_operators_path, local: true, class: 'mt-6 grid gap-4' do |f| %>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="settings-label">Nome</label>
+            <%= f.text_field :name, class: 'settings-input', required: true, placeholder: 'Twilio, OpenAI, Google Maps...' %>
+          </div>
+          <div>
+            <label class="settings-label">Tipo de serviço</label>
+            <%= f.select :service_type, ThirdPartyOperator::SERVICE_TYPES.map { |value, label| [label, value] }, {}, class: 'settings-input appearance-none' %>
+          </div>
+        </div>
+
+        <div>
+          <label class="settings-label">Dados compartilhados</label>
+          <%= f.text_area :data_shared, rows: 3, class: 'settings-input', placeholder: 'Telefone, áudio, transcrição, localização, e-mail...' %>
+        </div>
+
+        <div>
+          <label class="settings-label">Finalidade</label>
+          <%= f.text_area :purpose, rows: 3, class: 'settings-input', placeholder: 'Realizar chamada, transcrever áudio, geocodificar fornecedor...' %>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="settings-label">País/processamento</label>
+            <%= f.text_field :country, class: 'settings-input' %>
+          </div>
+          <div>
+            <label class="settings-label">Responsável técnico</label>
+            <%= f.text_field :technical_owner, class: 'settings-input' %>
+          </div>
+        </div>
+
+        <div>
+          <label class="settings-label">Contrato/referência</label>
+          <%= f.text_field :contract_reference, class: 'settings-input' %>
+        </div>
+
+        <label class="flex items-start gap-3 border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-600">
+          <%= f.check_box :active, class: 'mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-blue-600' %>
+          <span>Integração ativa.</span>
+        </label>
+
+        <%= f.submit 'Registrar operador', class: workspace_submit_class(:primary) %>
+      <% end %>
+    <% end %>
+
+    <%= settings_panel(classes: 'p-0') do %>
+      <div class="border-b border-slate-200 p-5">
+        <h2 class="text-xl font-black text-slate-950">Operadores cadastrados</h2>
+      </div>
+
+      <div class="grid gap-px bg-slate-200">
+        <% if @operators.any? %>
+          <% @operators.each do |operator| %>
+            <article class="bg-white p-5">
+              <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="text-base font-black text-slate-950"><%= operator.name %></p>
+                    <span class="workspace-status <%= operator.active? ? 'workspace-status--success' : 'workspace-status--warning' %>"><%= operator.active? ? 'Ativo' : 'Inativo' %></span>
+                  </div>
+                  <p class="mt-1 text-sm font-semibold text-slate-500"><%= operator.service_type_label %></p>
+                </div>
+
+                <% if operator.active? %>
+                  <%= button_to 'Desativar', third_party_operator_path(operator), method: :delete, class: workspace_button_class(:secondary), data: { turbo_confirm: 'Desativar este operador?' } %>
+                <% end %>
+              </div>
+
+              <dl class="mt-4 grid gap-3 text-sm md:grid-cols-2">
+                <div><dt class="font-black text-slate-500">Dados</dt><dd class="mt-1 text-slate-700"><%= operator.data_shared.presence || '-' %></dd></div>
+                <div><dt class="font-black text-slate-500">Finalidade</dt><dd class="mt-1 text-slate-700"><%= operator.purpose.presence || '-' %></dd></div>
+                <div><dt class="font-black text-slate-500">País</dt><dd class="mt-1 text-slate-700"><%= operator.country.presence || '-' %></dd></div>
+                <div><dt class="font-black text-slate-500">Contrato</dt><dd class="mt-1 text-slate-700"><%= operator.contract_reference.presence || '-' %></dd></div>
+              </dl>
+            </article>
+          <% end %>
+        <% else %>
+          <div class="bg-white p-5 text-sm text-slate-500">Nenhum operador/terceiro cadastrado ainda.</div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

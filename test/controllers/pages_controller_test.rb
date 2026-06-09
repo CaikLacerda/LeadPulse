@@ -6,7 +6,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h1", text: /Abra o mercado certo/
-    assert_select "*", text: /Descoberta, validação e retorno no mesmo fluxo/
+    assert_select "*", text: /Abra o mercado certo e valide os contatos/
     assert_select "a", text: "Criar conta"
   end
 end

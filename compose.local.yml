@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: leadpulse-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: leadpulse_development
+      POSTGRES_USER: clacerda
+      POSTGRES_PASSWORD: "123456"
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - leadpulse_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clacerda -d leadpulse_development"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  leadpulse_postgres_data:
+    name: leadpulse_postgres_data

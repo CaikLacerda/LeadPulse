@@ -25,7 +25,8 @@ module SupplierImports
 
       {
         filename: @supplier_import.export_filename,
-        content: content
+        content: content,
+        content_type: 'text/csv; charset=utf-8'
       }
     end
 
@@ -130,6 +131,8 @@ module SupplierImports
     end
 
     def result_label(record)
+      return translate_value(:results, 'privacy_refusal') if record['privacy_refusal_detected'].present?
+
       code =
         if @supplier_import.supplier_validation?
           normalized_supplier_validation(record)['outcome'].presence ||

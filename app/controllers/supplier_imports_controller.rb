@@ -5,11 +5,23 @@ class SupplierImportsController < ApplicationController
   PER_PAGE = 5
 
   before_action :authenticate_user!
-  before_action :set_import, only: [:start_validation, :sync_status, :export_result, :destroy]
+  before_action :set_import, only: [:show, :start_validation, :sync_status, :anonymize_evidence, :export_result, :privacy_report, :destroy]
 
   def index
     load_imports
     assign_import_modal_state
+  end
+
+  def show
+    if current_user.can_view_evidence?
+      PrivacyAudit::Logger.log!(
+        user: current_user,
+        action: 'supplier_import_evidence_viewed',
+        supplier_import: @import,
+        resource: @import,
+        metadata: { page: 'supplier_import_show' }
+      )
+    end
   end
 
   def export
@@ -21,6 +33,8 @@ class SupplierImportsController < ApplicationController
   end
 
   def create_import
+    return redirect_to supplier_imports_path, alert: 'Seu perfil não possui permissão para importar bases.' unless current_user.can_import_data?
+
     if params[:file].blank?
       return redirect_to(
         supplier_imports_path(import_modal_redirect_params),
@@ -39,6 +53,17 @@ class SupplierImportsController < ApplicationController
     ).call
 
     if result.success?
+      PrivacyAudit::Logger.log!(
+        user: current_user,
+        action: 'supplier_import_created',
+        supplier_import: result.import,
+        resource: result.import,
+        metadata: {
+          file_name: result.import.file_name,
+          total_rows: result.import.total_rows,
+          legal_basis: result.import.request_payload.dig('privacy_notice', 'legal_basis') || result.import.request_payload.dig(:privacy_notice, :legal_basis)
+        }
+      )
       redirect_to supplier_imports_path, notice: I18n.t('supplier_imports.messages.imported_success')
     else
       redirect_to supplier_imports_path(import_modal_redirect_params), alert: result.error_message
@@ -46,6 +71,8 @@ class SupplierImportsController < ApplicationController
   end
 
   def preview_import
+    return render json: { success: false, error_message: 'Seu perfil não possui permissão para importar bases.' }, status: :forbidden unless current_user.can_import_data?
+
     if params[:file].blank?
       return render json: {
         success: false,
@@ -66,12 +93,33 @@ class SupplierImportsController < ApplicationController
     end
   end
 
+  def academic_report
+    return redirect_to supplier_imports_path, alert: 'Seu perfil não possui permissão para exportar relatórios.' unless current_user.can_export_data?
+
+    export = SupplierImports::AcademicReportService.new(imports: current_user.supplier_imports.order(created_at: :desc)).call
+    PrivacyAudit::Logger.log!(
+      user: current_user,
+      action: 'academic_report_exported',
+      metadata: { format: 'csv', imports_count: current_user.supplier_imports.count }
+    )
+    send_data export[:content], filename: export[:filename], type: export[:content_type]
+  end
+
   def start_validation
+    return redirect_to supplier_imports_path, alert: 'Seu perfil não possui permissão para iniciar validações.' unless current_user.can_start_validation?
+
     SupplierImports::StartRemoteValidationService.new(
       user: current_user,
       supplier_import: @import
     ).call
 
+    PrivacyAudit::Logger.log!(
+      user: current_user,
+      action: 'supplier_import_validation_started',
+      supplier_import: @import,
+      resource: @import,
+      metadata: { remote_batch_id: @import.remote_batch_id }
+    )
     redirect_to supplier_imports_path, notice: I18n.t('supplier_imports.messages.started_success')
   rescue ValidationApi::Error => e
     redirect_to supplier_imports_path, alert: e.message
@@ -92,15 +140,64 @@ class SupplierImportsController < ApplicationController
     redirect_to supplier_imports_path, alert: e.message
   end
 
+  def anonymize_evidence
+    return redirect_to supplier_import_path(@import), alert: 'Seu perfil não possui permissão para anonimizar evidências.' unless current_user.can_anonymize_evidence?
+
+    SupplierImports::AnonymizeEvidenceService.new(
+      user: current_user,
+      supplier_import: @import
+    ).call
+
+    PrivacyAudit::Logger.log!(
+      user: current_user,
+      action: 'supplier_import_evidence_anonymized',
+      supplier_import: @import,
+      resource: @import,
+      metadata: { remote_batch_id: @import.remote_batch_id }
+    )
+    redirect_to supplier_import_path(@import), notice: I18n.t('supplier_imports.messages.evidence_anonymized')
+  rescue ValidationApi::Error => e
+    redirect_to supplier_import_path(@import), alert: e.message
+  end
+
   def export_result
+    return redirect_to supplier_imports_path, alert: 'Seu perfil não possui permissão para exportar resultados.' unless current_user.can_export_data?
+
     unless @import.ready_to_export?
       return redirect_to supplier_imports_path, alert: I18n.t('supplier_imports.messages.not_ready_to_export')
     end
 
-    export = SupplierImports::ExportResultCsvService.new(supplier_import: @import).call
-    send_data export[:content], filename: export[:filename], type: 'text/csv; charset=utf-8'
-  rescue SupplierImports::ExportResultCsvService::Error => e
+    export =
+      if params[:format].to_s == 'xlsx'
+        SupplierImports::ExportResultXlsxService.new(supplier_import: @import).call
+      else
+        SupplierImports::ExportResultCsvService.new(supplier_import: @import).call
+      end
+
+    PrivacyAudit::Logger.log!(
+      user: current_user,
+      action: 'supplier_import_result_exported',
+      supplier_import: @import,
+      resource: @import,
+      metadata: { filename: export[:filename], format: params[:format].presence || 'csv' }
+    )
+    send_data export[:content], filename: export[:filename], type: export[:content_type]
+  rescue SupplierImports::ExportResultCsvService::Error, SupplierImports::ExportResultXlsxService::Error => e
     redirect_to supplier_imports_path, alert: e.message
+  end
+
+  def privacy_report
+    return redirect_to supplier_import_path(@import), alert: 'Seu perfil não possui permissão para exportar relatórios LGPD.' unless current_user.can_export_data?
+
+    export = SupplierImports::PrivacyReportService.new(supplier_import: @import).call
+    PrivacyAudit::Logger.log!(
+      user: current_user,
+      action: 'supplier_import_privacy_report_exported',
+      supplier_import: @import,
+      resource: @import,
+      metadata: { filename: export[:filename] }
+    )
+    send_data export[:content], filename: export[:filename], type: export[:content_type]
   end
 
   def destroy

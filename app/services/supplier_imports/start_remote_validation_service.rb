@@ -59,12 +59,18 @@ module SupplierImports
     def normalized_request_payload
       payload = @supplier_import.request_payload.deep_stringify_keys
       payload['batch_id'] = refreshed_batch_id(payload['batch_id'])
-      payload['callback_phone'] = SupplierImports::ValueNormalizer.identifier(payload['callback_phone'])
+      payload['privacy_notice'] = SupplierImports::PrivacyNoticePayload.build(
+        workflow_kind: @supplier_import.workflow_kind,
+        user: @user,
+        overrides: payload['privacy_notice'].presence ||
+          @supplier_import.import_metadata['privacy_notice'].presence
+      ).stringify_keys
+      payload['callback_phone'] = SupplierImports::PhoneStandard.e164(payload['callback_phone'])
 
       payload['records'] = Array(payload['records']).map do |record|
         normalized = record.deep_stringify_keys
         normalized['external_id'] = SupplierImports::ValueNormalizer.identifier(normalized['external_id'])
-        normalized['phone'] = SupplierImports::ValueNormalizer.identifier(normalized['phone'])
+        normalized['phone'] = SupplierImports::PhoneStandard.e164(normalized['phone'])
         normalized['cnpj'] = SupplierImports::ValueNormalizer.identifier(normalized['cnpj'])
         normalized
       end

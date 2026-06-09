@@ -2,6 +2,13 @@ require 'csv'
 
 module SupplierDiscoverySearches
   class CreateRemoteSearchService
+    LOCATION_FIELD_ALIASES = {
+      'address' => %w[formatted_address full_address address street_address location_address google_address],
+      'latitude' => %w[latitude lat],
+      'longitude' => %w[longitude lng lon long],
+      'google_maps_url' => %w[google_maps_url google_maps_uri googleMapsUri maps_url place_url]
+    }.freeze
+
     Result = Struct.new(:success?, :search, :error_message, keyword_init: true)
 
     def initialize(user:, params:)
@@ -52,7 +59,8 @@ module SupplierDiscoverySearches
         region: @params[:region].presence,
         callback_phone: @params[:callback_phone],
         callback_contact_name: @params[:callback_contact_name].presence,
-        max_suppliers: @params[:max_suppliers].presence || 10
+        max_suppliers: @params[:max_suppliers].presence || 10,
+        include_locations: true
       }.compact
     end
 
@@ -85,8 +93,12 @@ module SupplierDiscoverySearches
         supplier_name
         phone
         website
+        address
         city
         state
+        latitude
+        longitude
+        google_maps_url
         source_urls
         discovery_confidence
         notes
@@ -105,8 +117,12 @@ module SupplierDiscoverySearches
             supplier['supplier_name'],
             supplier['phone'],
             supplier['website'],
+            supplier_location_value(supplier, 'address'),
             supplier['city'],
             supplier['state'],
+            supplier_location_value(supplier, 'latitude'),
+            supplier_location_value(supplier, 'longitude'),
+            supplier_location_value(supplier, 'google_maps_url'),
             Array(supplier['source_urls']).join(' | '),
             supplier['discovery_confidence'],
             supplier['notes'],
@@ -120,6 +136,13 @@ module SupplierDiscoverySearches
         body: content,
         filename: search.download_filename
       }
+    end
+
+    def supplier_location_value(supplier, key)
+      location = supplier['location'].is_a?(Hash) ? supplier['location'] : {}
+      LOCATION_FIELD_ALIASES.fetch(key, [key]).filter_map do |field|
+        supplier[field].presence || location[field].presence
+      end.first
     end
   end
 end

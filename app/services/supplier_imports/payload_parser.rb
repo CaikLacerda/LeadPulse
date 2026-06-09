@@ -16,7 +16,9 @@ module SupplierImports
       notes: %w[notes observacao observacoes descricao],
       segment_name: %w[segment_name segmento],
       callback_phone: %w[callback_phone telefone_retorno telefone_callback],
-      callback_contact_name: %w[callback_contact_name contato_retorno nome_contato_retorno]
+      callback_contact_name: %w[callback_contact_name contato_retorno nome_contato_retorno],
+      expected_result: %w[expected_result resultado_esperado resultado_manual classificacao_manual status_manual],
+      manual_validation_seconds: %w[manual_validation_seconds manual_duration_seconds tempo_manual_segundos tempo_manual_seconds]
     }.freeze
 
     Result = Struct.new(:records, :invalid_rows, :total_rows, :metadata, :headers, keyword_init: true)
@@ -34,6 +36,7 @@ module SupplierImports
       invalid_rows = []
       logical_index = 0
       metadata = {}
+      seen_phones = {}
 
       rows.each do |row|
         next if blank_row?(row)
@@ -54,6 +57,17 @@ module SupplierImports
           next
         end
 
+        phone_key = deduplication_key(normalized[:phone])
+        if phone_key.present? && seen_phones.key?(phone_key)
+          invalid_rows << {
+            row_number: logical_index,
+            errors: ["Telefone duplicado no arquivo (primeira ocorrência na linha #{seen_phones[phone_key]})"],
+            data: normalized.transform_keys(&:to_s)
+          }
+          next
+        end
+
+        seen_phones[phone_key] = logical_index if phone_key.present?
         valid_records << build_record(normalized, logical_index)
       end
 
@@ -130,7 +144,9 @@ module SupplierImports
         notes: SupplierImports::ValueNormalizer.text(value_for(row_hash, :notes)),
         segment_name: SupplierImports::ValueNormalizer.text(value_for(row_hash, :segment_name)),
         callback_phone: SupplierImports::ValueNormalizer.identifier(value_for(row_hash, :callback_phone)),
-        callback_contact_name: SupplierImports::ValueNormalizer.text(value_for(row_hash, :callback_contact_name))
+        callback_contact_name: SupplierImports::ValueNormalizer.text(value_for(row_hash, :callback_contact_name)),
+        expected_result: SupplierImports::ValueNormalizer.text(value_for(row_hash, :expected_result)),
+        manual_validation_seconds: SupplierImports::ValueNormalizer.identifier(value_for(row_hash, :manual_validation_seconds))
       }
     end
 
@@ -138,7 +154,9 @@ module SupplierImports
       base = {
         external_id: normalized[:external_id].presence || logical_index.to_s,
         phone: normalized[:phone],
-        email: normalized[:email].presence
+        email: normalized[:email].presence,
+        expected_result: normalized[:expected_result].presence,
+        manual_validation_seconds: normalized[:manual_validation_seconds].presence
       }
 
       if supplier_validation?
@@ -191,6 +209,14 @@ module SupplierImports
 
     def blank_row?(row)
       row.to_h.values.all? { |value| value.to_s.strip.blank? }
+    end
+
+    def deduplication_key(phone)
+      digits = phone.to_s.gsub(/\D/, '')
+      return if digits.blank?
+
+      digits = digits.delete_prefix('55') if digits.start_with?('55') && digits.length > 11
+      digits
     end
   end
 end

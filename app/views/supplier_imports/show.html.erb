@@ -1,0 +1,163 @@
+<% records = supplier_import_detail_records(@import) %>
+<% timeline_events = [
+  [@import.created_at, t('.timeline.imported'), @import.file_name.presence || @import.source_label],
+  [@import.validation_started_at, t('.timeline.started'), @import.remote_batch_id],
+  [@import.last_synced_at, t('.timeline.synced'), translated_remote_batch_status(@import.remote_batch_status)],
+  [@import.finished_at, t('.timeline.finished'), local_status_label(@import.status)]
+].select { |occurred_at, _title, _detail| occurred_at.present? } %>
+<% labeled_count = Array(@import.import_metadata['reference_labels']).size %>
+<% privacy_notice = supplier_import_privacy_notice(@import) %>
+<% recording_count = supplier_import_recording_count(@import) %>
+<% privacy_refusal_count = supplier_import_privacy_refusal_count(@import) %>
+<% evidence_expires_at = supplier_import_evidence_expires_at(@import) %>
+<% evidence_anonymized = supplier_import_evidence_anonymized?(@import) %>
+
+<%= workspace_page do %>
+  <%= workspace_page_header(
+    kicker: t('.kicker'),
+    title: @import.display_code,
+    description: t('.description')
+  ) do %>
+    <%= workspace_link_button t('.back'), supplier_imports_path %>
+
+    <% if @import.ready_to_export? %>
+      <%= workspace_link_button t('.export_csv'), export_result_supplier_import_path(@import), data: { turbo: false } %>
+      <%= workspace_link_button t('.export_xlsx'), export_result_supplier_import_path(@import, format: :xlsx), variant: :primary, data: { turbo: false } %>
+    <% end %>
+    <%= workspace_link_button 'Relatório LGPD', privacy_report_supplier_import_path(@import), data: { turbo: false } if current_user.can_export_data? %>
+  <% end %>
+
+  <%= portlet_form(t('.summary.title'), workspace_status_tag(@import.status), class: 'mb-6', body_class: 'workspace-portlet-body--flush') do %>
+    <div class="grid gap-px bg-slate-200 md:grid-cols-4">
+      <%= workspace_metric_cell(label: t('.summary.total'), value: @import.total_rows) %>
+      <%= workspace_metric_cell(label: t('.summary.valid'), value: @import.valid_rows, value_class: 'text-emerald-600') %>
+      <%= workspace_metric_cell(label: t('.summary.invalid'), value: @import.invalid_rows, value_class: 'text-rose-500') %>
+      <%= workspace_metric_cell(label: t('.summary.labeled'), value: labeled_count, value_class: 'text-blue-700') %>
+    </div>
+
+    <div class="grid gap-px border-t border-slate-200 bg-slate-200 md:grid-cols-3">
+      <%= workspace_definition_row(label: t('.summary.type'), value: @import.workflow_kind_label) %>
+      <%= workspace_definition_row(label: t('.summary.remote_batch'), value: @import.remote_batch_id.presence || '-') %>
+      <%= workspace_definition_row(label: t('.summary.phone_standard'), value: @import.import_metadata['phone_standard'].presence || t('.summary.default_phone_standard')) %>
+    </div>
+  <% end %>
+
+  <section class="grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
+    <%= portlet_form(t('.timeline.title'), content_tag(:span, timeline_events.size, class: 'workspace-portlet-meta'), body_class: 'workspace-portlet-body--flush') do %>
+      <div class="divide-y divide-slate-200">
+        <% if timeline_events.any? %>
+          <% timeline_events.each do |occurred_at, title, detail| %>
+            <div class="p-4">
+              <p class="text-sm font-black text-slate-950"><%= title %></p>
+              <p class="mt-1 text-xs font-semibold text-slate-500"><%= workspace_datetime(occurred_at) %></p>
+              <% if detail.present? %>
+                <p class="mt-2 text-sm leading-6 text-slate-600"><%= detail %></p>
+              <% end %>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="p-4 text-sm text-slate-500"><%= t('.timeline.empty') %></div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= portlet_form(t('.evidence.title'), content_tag(:span, t(".evidence.status.#{evidence_anonymized ? 'anonymized' : 'active'}"), class: 'workspace-portlet-meta')) do %>
+      <div class="grid gap-px overflow-hidden border border-slate-200 bg-slate-200 md:grid-cols-2">
+        <%= workspace_definition_row(label: t('.evidence.legal_basis'), value: privacy_notice['legal_basis'].presence || t('.evidence.legal_basis_default')) %>
+        <%= workspace_definition_row(label: t('.evidence.purpose'), value: privacy_notice['purpose'].presence || t('.evidence.purpose_default')) %>
+        <%= workspace_definition_row(label: t('.evidence.retention'), value: privacy_notice['evidence_retention_days'].present? ? t('.evidence.retention_days', count: privacy_notice['evidence_retention_days']) : '-') %>
+        <%= workspace_definition_row(label: t('.evidence.expires_at'), value: evidence_expires_at.present? ? workspace_datetime(evidence_expires_at) : '-') %>
+        <%= workspace_definition_row(label: t('.evidence.recordings'), value: recording_count) %>
+        <%= workspace_definition_row(label: t('.evidence.refusals'), value: privacy_refusal_count) %>
+      </div>
+
+      <div class="mt-4 border border-slate-200 bg-slate-50 p-4">
+        <p class="text-xs font-black uppercase tracking-[0.12em] text-slate-500"><%= t('.evidence.notice_script') %></p>
+        <p class="mt-2 text-sm leading-6 text-slate-700"><%= privacy_notice['notice_script'].presence || t('.evidence.notice_default') %></p>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <% if evidence_anonymized %>
+          <span class="workspace-status workspace-status--info"><%= t('.evidence.anonymized') %></span>
+        <% else %>
+          <%= button_to t('.evidence.anonymize'),
+              anonymize_evidence_supplier_import_path(@import),
+              method: :post,
+              class: workspace_button_class(:accent),
+              data: { turbo_confirm: t('.evidence.anonymize_confirm') } %>
+        <% end %>
+      </div>
+
+      <% if @import.error_message.present? %>
+        <div class="mt-4 border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-600">
+          <%= @import.error_message %>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+
+  <%= portlet_form(t('.records.title'), content_tag(:span, t('.records.count', count: records.size), class: 'workspace-portlet-meta'), class: 'mt-6', body_class: 'workspace-portlet-body--flush') do %>
+    <div class="overflow-x-auto">
+      <table class="workspace-table">
+        <thead>
+          <tr>
+            <th><%= t('.records.headers.record') %></th>
+            <th><%= t('.records.headers.company') %></th>
+            <th><%= t('.records.headers.phone') %></th>
+            <th><%= t('.records.headers.result') %></th>
+            <th><%= t('.records.headers.calls') %></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% if records.any? %>
+            <% records.each do |record| %>
+              <% attempts = supplier_import_record_attempts(record) %>
+              <tr>
+                <td class="font-semibold text-slate-700"><%= record['external_id'].presence || '-' %></td>
+                <td class="font-semibold text-slate-800"><%= supplier_import_record_name(record) %></td>
+                <td class="font-medium text-slate-700"><%= supplier_import_record_phone(record) %></td>
+                <td><%= audit_result_tag(supplier_import_record_result_code(record)) %></td>
+                <td class="min-w-[260px]">
+                  <% if attempts.any? %>
+                    <div class="space-y-3">
+                      <% attempts.each do |attempt| %>
+                        <div class="border border-slate-200 bg-slate-50 p-3">
+                          <p class="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+                            <%= t('.records.attempt', number: attempt['attempt_number'].presence || '-') %>
+                          </p>
+                          <p class="mt-1 text-xs font-semibold text-slate-600">
+                            <%= t('.records.provider_call', id: attempt['provider_call_id'].presence || '-') %>
+                          </p>
+                          <p class="mt-1 text-xs font-semibold text-slate-600">
+                            <%= t('.records.duration', duration: supplier_import_attempt_duration(attempt)) %>
+                          </p>
+                          <% if attempt['recording_url'].present? && current_user.can_view_evidence? %>
+                            <p class="mt-2 text-xs font-bold text-blue-700">
+                              <%= link_to t('.records.recording'), attempt['recording_url'], target: '_blank', rel: 'noopener' %>
+                            </p>
+                          <% elsif attempt['recording_url'].present? %>
+                            <p class="mt-2 text-xs font-bold text-slate-500">Gravação protegida por perfil.</p>
+                          <% end %>
+                          <% if attempt['privacy_refusal_detected'].present? || record['privacy_refusal_detected'].present? %>
+                            <p class="mt-2 text-xs font-bold text-rose-600">
+                              <%= t('.records.privacy_refusal') %>
+                            </p>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <span class="text-sm text-slate-400"><%= t('.records.no_calls') %></span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <%= workspace_empty_table_row(colspan: 5, message: t('.records.empty')) %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+<% end %>

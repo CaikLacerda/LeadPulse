@@ -1,0 +1,107 @@
+<%= platform_settings_page(title: 'Solicitações LGPD', kicker: 'Governança', description: 'Registre e acompanhe pedidos de acesso, correção, exclusão, anonimização e informação sobre compartilhamento.', max_width: 'max-w-6xl') do %>
+  <div class="mb-6 flex flex-wrap gap-2">
+    <%= link_to 'Voltar para LGPD', lgpd_platform_settings_path, class: workspace_button_class(:secondary) %>
+    <%= link_to 'Operadores e terceiros', third_party_operators_path, class: workspace_button_class(:secondary) %>
+    <%= link_to 'Trilha de auditoria', privacy_audit_events_path, class: workspace_button_class(:secondary) %>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+    <%= settings_panel(classes: 'p-6 sm:p-8') do %>
+      <h2 class="text-xl font-black text-slate-950">Nova solicitação</h2>
+      <p class="mt-2 text-sm leading-6 text-slate-500">Use esta tela para formalizar pedidos feitos por titular, representante ou área interna.</p>
+
+      <%= form_with model: @privacy_request, url: privacy_requests_path, local: true, class: 'mt-6 grid gap-4' do |f| %>
+        <div>
+          <label class="settings-label">Tipo</label>
+          <%= f.select :request_type, PrivacyRequest::REQUEST_TYPES.map { |value, label| [label, value] }, {}, class: 'settings-input appearance-none' %>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="settings-label">Nome do solicitante/titular</label>
+            <%= f.text_field :subject_name, class: 'settings-input', required: true %>
+          </div>
+          <div>
+            <label class="settings-label">Contato</label>
+            <%= f.text_field :subject_contact, class: 'settings-input', required: true %>
+          </div>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="settings-label">Fornecedor relacionado</label>
+            <%= f.text_field :supplier_name, class: 'settings-input' %>
+          </div>
+          <div>
+            <label class="settings-label">Telefone relacionado</label>
+            <%= f.text_field :phone, class: 'settings-input' %>
+          </div>
+        </div>
+
+        <div>
+          <label class="settings-label">Lote relacionado</label>
+          <%= f.collection_select :supplier_import_id,
+              current_user.supplier_imports.order(created_at: :desc),
+              :id,
+              :display_code,
+              { include_blank: 'Nenhum lote específico' },
+              class: 'settings-input appearance-none' %>
+        </div>
+
+        <div>
+          <label class="settings-label">Descrição</label>
+          <%= f.text_area :description, rows: 4, class: 'settings-input' %>
+        </div>
+
+        <%= f.submit 'Registrar solicitação', class: workspace_submit_class(:primary) %>
+      <% end %>
+    <% end %>
+
+    <%= settings_panel(classes: 'p-0') do %>
+      <div class="border-b border-slate-200 p-5">
+        <h2 class="text-xl font-black text-slate-950">Solicitações registradas</h2>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="workspace-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Titular</th>
+              <th>Status</th>
+              <th>Tratativa</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @privacy_requests.any? %>
+              <% @privacy_requests.each do |request| %>
+                <tr>
+                  <td><%= workspace_datetime_cell(request.requested_at) %></td>
+                  <td><%= request.request_type_label %></td>
+                  <td>
+                    <div class="font-bold text-slate-900"><%= request.subject_name %></div>
+                    <div class="text-sm text-slate-500"><%= request.subject_contact %></div>
+                    <% if request.supplier_import.present? %>
+                      <div class="mt-1"><%= workspace_code_tag(request.supplier_import.display_code) %></div>
+                    <% end %>
+                  </td>
+                  <td><span class="workspace-status workspace-status--info"><%= request.status_label %></span></td>
+                  <td class="min-w-[280px]">
+                    <%= form_with model: request, url: privacy_request_path(request), method: :patch, local: true, class: 'grid gap-2' do |f| %>
+                      <%= f.select :status, PrivacyRequest::STATUSES.map { |value, label| [label, value] }, {}, class: 'settings-input appearance-none' %>
+                      <%= f.text_area :resolution, value: request.resolution, rows: 2, placeholder: 'Tratativa, justificativa ou resposta enviada.', class: 'settings-input' %>
+                      <%= f.submit 'Atualizar', class: workspace_submit_class(:secondary) %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <%= workspace_empty_table_row(colspan: 5, message: 'Nenhuma solicitação LGPD registrada ainda.') %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </div>
+<% end %>

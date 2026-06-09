@@ -14,7 +14,12 @@ module SupplierImports
       :summary,
       :provider_call_id,
       :attempt_number,
+      :recording_url,
+      :privacy_refusal_detected,
+      :privacy_refusal_reason,
+      :evidence_anonymized,
       :record_external_id,
+      :review,
       keyword_init: true
     )
 
@@ -23,6 +28,8 @@ module SupplierImports
     end
 
     def call
+      preload_reviews
+
       @user.supplier_imports.order(created_at: :desc).flat_map do |supplier_import|
         entries_for_import(supplier_import)
       end.sort_by { |entry| entry.occurred_at || Time.zone.at(0) }.reverse
@@ -58,7 +65,12 @@ module SupplierImports
         summary: attempt['transcript_summary'].presence || record['transcript_summary'].presence || record['observation'].presence,
         provider_call_id: attempt['provider_call_id'],
         attempt_number: attempt['attempt_number'],
-        record_external_id: record['external_id']
+        recording_url: attempt['recording_url'],
+        privacy_refusal_detected: attempt['privacy_refusal_detected'].presence || record['privacy_refusal_detected'].presence,
+        privacy_refusal_reason: attempt['privacy_refusal_reason'].presence || record['privacy_refusal_reason'].presence,
+        evidence_anonymized: attempt['evidence_anonymized'].presence || record['evidence_anonymized'].presence,
+        record_external_id: record['external_id'],
+        review: review_for(supplier_import, record['external_id'], attempt['provider_call_id'], attempt['attempt_number'])
       )
     end
 
@@ -84,8 +96,32 @@ module SupplierImports
         summary: record['transcript_summary'].presence || record['observation'].presence,
         provider_call_id: nil,
         attempt_number: nil,
-        record_external_id: record['external_id']
+        recording_url: nil,
+        privacy_refusal_detected: record['privacy_refusal_detected'],
+        privacy_refusal_reason: record['privacy_refusal_reason'],
+        evidence_anonymized: record['evidence_anonymized'],
+        record_external_id: record['external_id'],
+        review: review_for(supplier_import, record['external_id'], nil, nil)
       )
+    end
+
+    def preload_reviews
+      @reviews_by_key = @user.audit_reviews.includes(:supplier_import).index_by do |review|
+        review_key(review.supplier_import_id, review.record_external_id, review.provider_call_id, review.attempt_number)
+      end
+    end
+
+    def review_for(supplier_import, record_external_id, provider_call_id, attempt_number)
+      @reviews_by_key[review_key(supplier_import.id, record_external_id, provider_call_id, attempt_number)]
+    end
+
+    def review_key(supplier_import_id, record_external_id, provider_call_id, attempt_number)
+      [
+        supplier_import_id.to_s,
+        record_external_id.to_s,
+        provider_call_id.to_s,
+        attempt_number.to_s
+      ].join(':')
     end
 
     def supplier_name_for(record)

@@ -13,6 +13,9 @@ development:
   sync_supplier_import_statuses:
     command: "SupplierImports::SyncAllRemoteStatusesService.new.call"
     schedule: every hour at minute 7
+  apply_lgpd_retention:
+    command: "SupplierImports::ApplyRetentionService.new.call"
+    schedule: every day at 3am
 
 production:
   clear_solid_queue_finished_jobs:
@@ -22,3 +25,6 @@ production:
   sync_supplier_import_statuses:
     command: "SupplierImports::SyncAllRemoteStatusesService.new.call"
     schedule: every hour at minute 7
+  apply_lgpd_retention:
+    command: "SupplierImports::ApplyRetentionService.new.call"
+    schedule: every day at 3am

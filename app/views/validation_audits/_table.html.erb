@@ -1,0 +1,140 @@
+<% table_meta = content_tag(:span, t('validation_audits.index.table.count', count: @audit_total_count), class: 'workspace-portlet-meta') %>
+
+<%= portlet_form(t('validation_audits.index.table.title'), table_meta, data: { tutorial_id: 'audit-results' }, body_class: 'workspace-portlet-body--flush') do %>
+  <div class="overflow-x-auto">
+    <table class="workspace-table">
+      <thead>
+        <tr>
+          <th><%= t('validation_audits.index.table.headers.lot') %></th>
+          <th><%= t('validation_audits.index.table.headers.datetime') %></th>
+          <th><%= t('validation_audits.index.table.headers.action') %></th>
+          <th><%= t('validation_audits.index.table.headers.result') %></th>
+          <th><%= t('validation_audits.index.table.headers.conversation') %></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if @audit_entries.any? %>
+          <% @audit_entries.each do |entry| %>
+            <tr>
+              <td class="min-w-[180px]">
+                <%= workspace_code_tag(entry.lot_code) %>
+                <div class="mt-2 text-sm font-semibold text-slate-800"><%= entry.supplier_name %></div>
+              </td>
+
+              <td class="min-w-[140px]"><%= workspace_datetime_cell(entry.occurred_at) %></td>
+              <td class="min-w-[180px] font-medium text-slate-700"><%= audit_action_label(entry.workflow_kind) %></td>
+
+              <td class="min-w-[220px]">
+                <%= audit_result_tag(entry.result_code) %>
+                <% if entry.privacy_refusal_detected.present? %>
+                  <div class="mt-2">
+                    <span class="workspace-status workspace-status--danger"><%= t('validation_audits.index.table.privacy_refusal') %></span>
+                  </div>
+                <% end %>
+                <% if entry.observation.present? %>
+                  <div class="workspace-result-note mt-3"><%= truncate(entry.observation, length: 120) %></div>
+                <% end %>
+              </td>
+
+              <td class="min-w-[360px]">
+                <% if current_user.can_view_evidence? %>
+                  <details class="workspace-audit-details" data-tutorial-id="audit-transcripts">
+                    <summary class="workspace-audit-summary">
+                      <span class="workspace-audit-summary__toggle"><%= t('validation_audits.index.table.view_transcripts') %></span>
+                    </summary>
+
+                    <div class="workspace-audit-details__body">
+                    <div class="workspace-audit-details__section">
+                      <p class="workspace-audit-details__heading"><%= t('validation_audits.index.table.evidence_label') %></p>
+                      <div class="space-y-2 text-sm leading-6 text-slate-700">
+                        <% if entry.recording_url.present? %>
+                          <p><%= link_to t('validation_audits.index.table.recording_link'), entry.recording_url, target: '_blank', rel: 'noopener', class: 'font-bold text-blue-700' %></p>
+                        <% else %>
+                          <p><%= t('validation_audits.index.table.missing_recording') %></p>
+                        <% end %>
+
+                        <% if entry.privacy_refusal_detected.present? %>
+                          <p class="font-bold text-rose-600"><%= entry.privacy_refusal_reason.presence || t('validation_audits.index.table.privacy_refusal') %></p>
+                        <% end %>
+
+                        <% if entry.evidence_anonymized.present? %>
+                          <p class="font-bold text-slate-600"><%= t('validation_audits.index.table.evidence_anonymized') %></p>
+                        <% end %>
+                      </div>
+                    </div>
+
+                    <div class="workspace-audit-details__section">
+                      <p class="workspace-audit-details__heading"><%= t('validation_audits.index.table.customer_label') %></p>
+                      <div class="workspace-transcript-block">
+                        <%= entry.customer_transcript.presence || t('validation_audits.index.table.missing_customer') %>
+                      </div>
+                    </div>
+
+                    <div class="workspace-audit-details__section">
+                      <p class="workspace-audit-details__heading"><%= t('validation_audits.index.table.assistant_label') %></p>
+                      <div class="workspace-transcript-block workspace-transcript-block--agent">
+                        <%= entry.assistant_transcript.presence || t('validation_audits.index.table.missing_assistant') %>
+                      </div>
+                    </div>
+
+                    <div class="workspace-audit-details__section">
+                      <p class="workspace-audit-details__heading"><%= t('validation_audits.index.review.title') %></p>
+
+                      <% if entry.review.present? %>
+                        <div class="mb-3 border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-700">
+                          <span class="font-bold"><%= t('validation_audits.index.review.saved_status') %>:</span>
+                          <%= I18n.t("validation_audits.index.results.#{entry.review.reviewed_result}", default: entry.review.reviewed_result.tr('_-', ' ').capitalize) %>
+                          <% if entry.review.review_note.present? %>
+                            <div class="mt-1 text-emerald-800"><%= entry.review.review_note %></div>
+                          <% end %>
+                        </div>
+                      <% end %>
+
+                      <%= form_with url: validation_audit_reviews_path, scope: :audit_review, method: :post, local: true, class: 'grid gap-3' do |f| %>
+                        <%= f.hidden_field :supplier_import_id, value: entry.lot_id %>
+                        <%= f.hidden_field :record_external_id, value: entry.record_external_id %>
+                        <%= f.hidden_field :provider_call_id, value: entry.provider_call_id %>
+                        <%= f.hidden_field :attempt_number, value: entry.attempt_number %>
+                        <%= f.hidden_field :original_result, value: entry.result_code %>
+
+                        <div class="grid gap-3 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto] md:items-end">
+                          <div>
+                            <label class="settings-label"><%= t('validation_audits.index.review.result_label') %></label>
+                            <%= f.select :reviewed_result,
+                                audit_review_result_options,
+                                { selected: entry.review&.reviewed_result || entry.result_code },
+                                class: 'settings-input appearance-none' %>
+                          </div>
+
+                          <div>
+                            <label class="settings-label"><%= t('validation_audits.index.review.note_label') %></label>
+                            <%= f.text_field :review_note,
+                                value: entry.review&.review_note,
+                                placeholder: t('validation_audits.index.review.note_placeholder'),
+                                class: 'settings-input' %>
+                          </div>
+
+                          <%= f.submit t('validation_audits.index.review.submit'), class: workspace_submit_class(:primary) %>
+                        </div>
+                      <% end %>
+                    </div>
+                    </div>
+                  </details>
+                <% else %>
+                  <div class="workspace-result-note">Evidências protegidas pelo perfil de acesso.</div>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <%= workspace_empty_table_row(colspan: 5, message: t('validation_audits.index.table.empty')) %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="border-t border-slate-200 px-4 py-3">
+    <%= render 'shared/pagination', current_page: @audit_page, total_pages: @audit_total_pages %>
+  </div>
+<% end %>

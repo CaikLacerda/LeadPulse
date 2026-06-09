@@ -1,0 +1,65 @@
+<% table_meta = content_tag(:span, t('supplier_discovery_searches.index.table.count', count: @searches_total_count), class: 'workspace-portlet-meta') %>
+
+<%= portlet_form(t('supplier_discovery_searches.index.table.title'), table_meta, data: { tutorial_id: 'search-results' }, body_class: 'workspace-portlet-body--flush') do %>
+  <div class="overflow-x-auto overflow-y-visible">
+    <table class="workspace-table">
+      <thead>
+        <tr>
+          <th><%= t('supplier_discovery_searches.index.table.headers.search') %></th>
+          <th><%= t('supplier_discovery_searches.index.table.headers.segment') %></th>
+          <th><%= t('supplier_discovery_searches.index.table.headers.region') %></th>
+          <th><%= t('supplier_discovery_searches.index.table.headers.generated_at') %></th>
+          <th><%= t('supplier_discovery_searches.index.table.headers.found') %></th>
+          <th><%= t('supplier_discovery_searches.index.table.headers.actions') %></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if @searches.any? %>
+          <% @searches.each do |search| %>
+            <tr>
+              <td><%= workspace_code_tag(search.display_code) %></td>
+              <td class="font-medium text-slate-800"><%= search.segment_name %></td>
+              <td class="font-medium text-slate-700"><%= search.region.presence || t('supplier_discovery_searches.index.table.no_region') %></td>
+              <td><%= workspace_datetime_cell(search.generated_at || search.created_at) %></td>
+              <td class="font-medium text-slate-700"><%= search.total_suppliers %></td>
+              <td class="whitespace-nowrap">
+                <details data-controller="action-menu" class="relative inline-block">
+                  <summary class="workspace-summary-button">
+                    <%= t('supplier_discovery_searches.index.actions.label') %>
+                  </summary>
+
+                  <div class="workspace-menu absolute right-0 top-[calc(100%+0.25rem)] z-20 w-36 p-1">
+                    <%= link_to download_results_supplier_discovery_search_path(search),
+                        class: "workspace-menu-item #{search.download_ready? ? '' : 'pointer-events-none !text-slate-300'}" do %>
+                      <%= t('supplier_discovery_searches.index.actions.download') %>
+                    <% end %>
+
+                    <%= button_to create_segment_import_supplier_discovery_search_path(search),
+                        method: :post,
+                        class: 'workspace-menu-item',
+                        form_class: 'workspace-menu-item--button' do %>
+                      <%= t('supplier_discovery_searches.index.actions.import') %>
+                    <% end %>
+                  </div>
+                </details>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <%= workspace_empty_table_row(colspan: 6, message: t('supplier_discovery_searches.index.table.empty')) do %>
+            <button type="button"
+                    data-action="search-modal#open"
+                    class="<%= workspace_button_class(:primary) %>">
+              <%= t('supplier_discovery_searches.index.new_search') %>
+            </button>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="border-t border-slate-200 px-4 py-3">
+    <%= render 'shared/pagination', current_page: @searches_page, total_pages: @searches_total_pages %>
+  </div>
+<% end %>

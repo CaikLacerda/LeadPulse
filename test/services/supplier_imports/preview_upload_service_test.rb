@@ -40,5 +40,24 @@ module SupplierImports
       assert_equal false, result.preview[:import_allowed]
       assert_includes result.preview[:warnings], "Para lote de segmento, a planilha precisa trazer segmento e telefone de retorno."
     end
+
+    test "marks duplicated phones as invalid rows" do
+      file = Struct.new(:original_filename, :read).new(
+        "duplicados.csv",
+        <<~CSV
+          empresa,cnpj,telefone
+          Alfa Comercio,12.345.678/0001-95,5519999999999
+          Alfa Filial,12.345.678/0002-76,19999999999
+        CSV
+      )
+
+      result = PreviewUploadService.new(file: file, workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL).call
+
+      assert result.success?
+      assert_equal 2, result.preview[:total_rows]
+      assert_equal 1, result.preview[:valid_rows]
+      assert_equal 1, result.preview[:invalid_rows]
+      assert_match(/Telefone duplicado/, result.preview[:invalid_rows_preview].first[:errors].join(" "))
+    end
   end
 end

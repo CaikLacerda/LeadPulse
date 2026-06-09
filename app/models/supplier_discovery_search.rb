@@ -1,6 +1,13 @@
 class SupplierDiscoverySearch < ApplicationRecord
   include HasDisplayCode
 
+  LOCATION_FIELD_ALIASES = {
+    'address' => %w[formatted_address full_address address street_address location_address google_address],
+    'latitude' => %w[latitude lat],
+    'longitude' => %w[longitude lng lon long],
+    'google_maps_url' => %w[google_maps_url google_maps_uri googleMapsUri maps_url place_url]
+  }.freeze
+
   LOCAL_STATUS_COMPLETED = 'concluido'.freeze
   LOCAL_STATUS_ERROR = 'erro'.freeze
 
@@ -70,10 +77,21 @@ class SupplierDiscoverySearch < ApplicationRecord
   def compact_custom_fields(supplier)
     fields = {
       'website' => supplier['website'].presence,
+      'address' => supplier_location_value(supplier, 'address'),
       'source_urls' => Array(supplier['source_urls']).presence&.join(' | '),
-      'discovery_confidence' => supplier['discovery_confidence']
+      'discovery_confidence' => supplier['discovery_confidence'],
+      'latitude' => supplier_location_value(supplier, 'latitude'),
+      'longitude' => supplier_location_value(supplier, 'longitude'),
+      'google_maps_url' => supplier_location_value(supplier, 'google_maps_url')
     }.compact
 
     fields.presence
+  end
+
+  def supplier_location_value(supplier, key)
+    location = supplier['location'].is_a?(Hash) ? supplier['location'] : {}
+    LOCATION_FIELD_ALIASES.fetch(key, [key]).filter_map do |field|
+      supplier[field].presence || location[field].presence
+    end.first
   end
 end

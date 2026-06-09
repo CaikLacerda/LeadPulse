@@ -1,8 +1,73 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+APP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$APP_ROOT"
+
+if [[ -f "$APP_ROOT/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$APP_ROOT/.env"
+  set +a
+fi
+
+export ASDF_RUBY_VERSION="3.3.8"
+export BUNDLE_PATH="$APP_ROOT/.bundle/local"
+export BUNDLE_DISABLE_SHARED_GEMS="true"
+export LEADPULSE_DB_HOST="127.0.0.1"
+export LEADPULSE_DB_PORT="55432"
+export LEADPULSE_DB_NAME="leadpulse_development"
+export LEADPULSE_DB_USER="clacerda"
+export LEADPULSE_DB_PASSWORD="123456"
+export DATABASE_URL="postgresql://${LEADPULSE_DB_USER}:${LEADPULSE_DB_PASSWORD}@${LEADPULSE_DB_HOST}:${LEADPULSE_DB_PORT}/${LEADPULSE_DB_NAME}"
+
+if ! docker info >/dev/null 2>&1; then
+  echo "Docker não está disponível. Abra o Docker Desktop e execute bin/dev novamente."
+  exit 1
+fi
+
+echo "Iniciando o PostgreSQL local persistente..."
+docker compose -f compose.local.yml up -d db
+
+echo "Aguardando o PostgreSQL..."
+for attempt in {1..30}; do
+  if docker compose -f compose.local.yml exec -T db \
+    pg_isready -U "$LEADPULSE_DB_USER" -d "$LEADPULSE_DB_NAME" >/dev/null 2>&1; then
+    break
+  fi
+
+  if [[ "$attempt" -eq 30 ]]; then
+    echo "O PostgreSQL não ficou pronto no tempo esperado."
+    exit 1
+  fi
+
+  sleep 1
+done
+
+if ! bundle check >/dev/null 2>&1; then
+  echo "Instalando dependências Ruby no projeto..."
+  bundle install
+fi
 
 if ! gem list foreman -i --silent; then
-  echo "Installing foreman..."
+  echo "Instalando foreman..."
   gem install foreman
+fi
+
+echo "Preparando o banco de dados..."
+bundle exec rails db:prepare
+
+SERVER_PID_FILE="$APP_ROOT/tmp/pids/server.pid"
+if [[ -f "$SERVER_PID_FILE" ]]; then
+  existing_pid="$(cat "$SERVER_PID_FILE")"
+
+  if [[ -n "$existing_pid" ]] && kill -0 "$existing_pid" >/dev/null 2>&1; then
+    echo "O LeadPulse já está rodando no processo $existing_pid."
+    exit 1
+  fi
+
+  rm -f "$SERVER_PID_FILE"
 fi
 
 # Default to port 3000 if not specified

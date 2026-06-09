@@ -1,0 +1,14 @@
+<%= portlet_search(data: { tutorial_id: 'audit-filters' }) do %>
+  <%= form_with url: validation_audits_path, method: :get, local: true do |f| %>
+    <div class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
+      <%= f.text_field :q, value: params[:q],
+          placeholder: t('validation_audits.index.filters.query'),
+          class: 'settings-input' %>
+
+      <div class="flex gap-2">
+        <%= workspace_link_button t('validation_audits.index.filters.clear'), validation_audits_path %>
+        <%= workspace_button_tag t('validation_audits.index.filters.submit'), type: :submit %>
+      </div>
+    </div>
+  <% end %>
+<% end %>

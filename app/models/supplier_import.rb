@@ -23,6 +23,7 @@ class SupplierImport < ApplicationRecord
   belongs_to :user
   has_many :suppliers
   has_many :supplier_import_versions
+  has_many :audit_reviews, dependent: :destroy
 
   scope :active_remote, -> { where(status: LOCAL_STATUS_PROCESSING).where.not(remote_batch_id: [nil, '']) }
   display_code_prefix 'LD'
@@ -77,5 +78,64 @@ class SupplierImport < ApplicationRecord
 
   def export_filename
     "lote-#{display_number}-resultado.csv"
+  end
+
+  def export_xlsx_filename
+    "lote-#{display_number}-resultado.xlsx"
+  end
+
+  def segment_name
+    @segment_name.presence || import_metadata['segment_name'].presence || request_payload['segment_name'].presence
+  end
+
+  def segment_name=(value)
+    @segment_name = value
+    self.import_metadata = (import_metadata || {}).merge('segment_name' => value) if value.present?
+  end
+
+  def callback_phone
+    @callback_phone.presence || import_metadata['callback_phone'].presence || request_payload['callback_phone'].presence
+  end
+
+  def callback_phone=(value)
+    @callback_phone = value
+    self.import_metadata = (import_metadata || {}).merge('callback_phone' => value) if value.present?
+  end
+
+  def callback_contact_name
+    @callback_contact_name.presence || import_metadata['callback_contact_name'].presence || request_payload['callback_contact_name'].presence
+  end
+
+  def callback_contact_name=(value)
+    @callback_contact_name = value
+    self.import_metadata = (import_metadata || {}).merge('callback_contact_name' => value) if value.present?
+  end
+
+  def privacy_notice
+    response_notice = response_payload['privacy_notice'] if response_payload.is_a?(Hash)
+    metadata_notice = import_metadata['privacy_notice'] if import_metadata.is_a?(Hash)
+    request_notice = request_payload['privacy_notice'] if request_payload.is_a?(Hash)
+
+    notice = response_notice.presence || metadata_notice.presence || request_notice.presence || {}
+    notice.respond_to?(:deep_stringify_keys) ? notice.deep_stringify_keys : {}
+  end
+
+  def evidence_expires_at
+    value = privacy_notice['evidence_expires_at']
+    return if value.blank?
+
+    Time.zone.parse(value.to_s)
+  rescue ArgumentError, TypeError
+    nil
+  end
+
+  def evidence_anonymized?
+    import_metadata['evidence_anonymized_at'].present? ||
+      privacy_notice['evidence_anonymized_at'].present? ||
+      Array(response_payload['records']).any? { |record| record['evidence_anonymized'].present? }
+  end
+
+  def evidence_retention_expired?(now = Time.current)
+    evidence_expires_at.present? && evidence_expires_at <= now && !evidence_anonymized?
   end
 end

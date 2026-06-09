@@ -1,0 +1,154 @@
+<%= platform_settings_page(title: t('.title'), kicker: t('.kicker'), description: t('.description'), max_width: 'max-w-6xl', tutorial_key: :platform_settings_lgpd) do %>
+  <div class="grid gap-6">
+    <div data-tutorial-id="lgpd-policy">
+      <%= settings_panel(classes: 'p-6 sm:p-8') do %>
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.24em] text-blue-600">Política da conta</p>
+            <h2 class="mt-3 text-2xl font-black tracking-[-0.03em] text-slate-950">Regras usadas em todos os lotes</h2>
+            <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-500">
+              Estes valores são o padrão operacional do LeadPulse. Ao importar uma base, o sistema aplica automaticamente base legal, finalidade, aviso de chamada, retenção e tratamento de recusa.
+            </p>
+          </div>
+
+          <details data-controller="action-menu" class="relative inline-block self-start">
+            <summary class="workspace-summary-button">Governança LGPD</summary>
+            <div class="workspace-menu absolute right-0 top-[calc(100%+0.35rem)] z-20 w-56 p-1">
+              <%= link_to 'Solicitações LGPD', privacy_requests_path, class: 'workspace-menu-item' %>
+              <%= link_to 'Operadores e terceiros', third_party_operators_path, class: 'workspace-menu-item' %>
+              <%= link_to 'Trilha de auditoria', privacy_audit_events_path, class: 'workspace-menu-item' %>
+            </div>
+          </details>
+        </div>
+
+        <div class="mt-6 grid gap-3 md:grid-cols-3">
+          <div class="settings-data-card p-4">
+            <p class="text-sm font-black text-slate-950">Aviso na chamada</p>
+            <p class="mt-2 text-sm leading-6 text-slate-500">A IA informa que a ligação é automatizada e pode ser gravada/transcrita, conforme a política salva.</p>
+          </div>
+          <div class="settings-data-card p-4">
+            <p class="text-sm font-black text-slate-950">Retenção das evidências</p>
+            <p class="mt-2 text-sm leading-6 text-slate-500">Áudio, transcrição e registros ficam vinculados ao lote até o prazo operacional configurado.</p>
+          </div>
+          <div class="settings-data-card p-4">
+            <p class="text-sm font-black text-slate-950">Recusa e interrupção</p>
+            <p class="mt-2 text-sm leading-6 text-slate-500">Quando habilitado, recusas bloqueiam novas chamadas automáticas para o número.</p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div data-tutorial-id="lgpd-form">
+      <%= settings_panel(classes: 'p-6 sm:p-8') do %>
+        <%= form_with model: current_user, url: lgpd_platform_settings_path, method: :patch, local: true, class: 'grid gap-6' do |f| %>
+          <div class="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+            <div class="settings-data-card p-5">
+              <p class="text-xs font-bold uppercase tracking-[0.22em] text-orange-500">Responsabilidade</p>
+              <p class="mt-3 text-sm leading-7 text-slate-500">
+                Use esta coluna para registrar quem opera a conta e quem responde administrativamente pela política.
+              </p>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+              <div>
+                <%= render 'field_label', form: f, field: :role, text: 'Perfil do usuário', help: 'Controla permissões de importação, exportação, evidências e gestão LGPD.', required: true %>
+                <%= f.select :role,
+                    User::ROLES.map { |value, label| [label, value] },
+                    {},
+                    class: 'settings-input appearance-none' %>
+              </div>
+
+              <div>
+                <%= render 'field_label', form: f, field: :lgpd_legal_basis, text: 'Base legal padrão', help: 'Hipótese legal aplicada automaticamente aos lotes importados pela conta.', required: true %>
+                <%= f.select :lgpd_legal_basis,
+                    SupplierImports::PrivacyNoticePayload::LEGAL_BASIS_OPTIONS.map { |value, label| [label, value] },
+                    {},
+                    class: 'settings-input appearance-none' %>
+              </div>
+
+              <div>
+                <%= render 'field_label', form: f, field: :lgpd_controller_name, text: 'Controlador/responsável', help: 'Nome exibido nos registros internos de governança.', required: false %>
+                <%= f.text_field :lgpd_controller_name, class: 'settings-input' %>
+              </div>
+
+              <div>
+                <%= render 'field_label', form: f, field: :lgpd_controller_email, text: 'E-mail do controlador/responsável', help: 'Canal administrativo para solicitações e incidentes.', required: false %>
+                <%= f.email_field :lgpd_controller_email, class: 'settings-input' %>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+            <div class="settings-data-card p-5">
+              <p class="text-xs font-bold uppercase tracking-[0.22em] text-blue-600">Uso dos dados</p>
+              <p class="mt-3 text-sm leading-7 text-slate-500">
+                A finalidade e o aviso são enviados para a API e aparecem na auditoria do lote.
+              </p>
+            </div>
+
+            <div class="grid gap-4">
+              <div>
+                <%= render 'field_label', form: f, field: :lgpd_purpose, text: 'Finalidade padrão', help: 'Finalidade operacional aplicada aos lotes importados.', required: true %>
+                <%= f.text_field :lgpd_purpose, class: 'settings-input' %>
+              </div>
+
+              <div>
+                <%= render 'field_label', form: f, field: :lgpd_notice_script, text: 'Aviso falado pela IA', help: 'Mensagem que a IA deve dizer no início da chamada automatizada.', required: false %>
+                <%= f.text_area :lgpd_notice_script, value: current_user.lgpd_notice_script_value, rows: 4, class: 'settings-input' %>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+            <div class="settings-data-card p-5">
+              <p class="text-xs font-bold uppercase tracking-[0.22em] text-emerald-600">Evidências</p>
+              <p class="mt-3 text-sm leading-7 text-slate-500">
+                Defina por quanto tempo a conta mantém gravações/transcrições e como o sistema reage a recusas.
+              </p>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+              <div>
+                <%= render 'field_label', form: f, field: :lgpd_evidence_retention_days, text: 'Retenção das evidências em dias', help: 'Após esse prazo, o job de retenção anonimiza transcrições e referências de gravação.', required: true %>
+                <%= f.number_field :lgpd_evidence_retention_days, min: 1, max: 3650, class: 'settings-input' %>
+              </div>
+
+              <div class="grid gap-3">
+                <label class="flex items-start gap-3 border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-600">
+                  <%= f.check_box :lgpd_recording_allowed, class: 'mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-blue-600' %>
+                  <span>Permitir gravação/transcrição como evidência auditável.</span>
+                </label>
+
+                <label class="flex items-start gap-3 border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-600">
+                  <%= f.check_box :lgpd_stop_automatic_calls_on_refusal, class: 'mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-blue-600' %>
+                  <span>Bloquear novas chamadas automáticas quando houver recusa ou pedido de interrupção.</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end" data-tutorial-id="lgpd-save">
+            <%= f.submit 'Salvar política LGPD', class: workspace_submit_class(:primary) %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div data-tutorial-id="lgpd-principles">
+      <%= settings_panel(classes: 'p-6 sm:p-8') do %>
+        <div class="grid gap-4 md:grid-cols-2">
+          <% t('.items').each do |item| %>
+            <article class="border border-slate-200 bg-white p-5">
+              <p class="text-sm font-black text-slate-950"><%= item[:title] || item['title'] %></p>
+              <p class="mt-3 text-sm leading-7 text-slate-500"><%= item[:description] || item['description'] %></p>
+            </article>
+          <% end %>
+        </div>
+
+        <div class="settings-form-note mt-6">
+          <%= t('.operational_note') %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

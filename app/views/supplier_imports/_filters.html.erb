@@ -1,0 +1,29 @@
+<%= portlet_search(data: { tutorial_id: 'imports-filters' }) do %>
+  <%= form_with url: supplier_imports_path, method: :get, local: true do |f| %>
+    <div class="grid gap-3 xl:grid-cols-[minmax(0,1.35fr)_190px_190px_190px_auto]">
+      <%= f.text_field :q, value: params[:q],
+          placeholder: t('supplier_imports.index.filters.query'),
+          class: 'settings-input' %>
+
+      <%= f.select :periodo,
+          [[t('supplier_imports.index.filters.any_date'), ''], [t('supplier_imports.index.filters.last_7_days'), '7d'], [t('supplier_imports.index.filters.last_month'), '30d'], [t('supplier_imports.index.filters.last_year'), '1y']],
+          { selected: params[:periodo] },
+          class: 'settings-input appearance-none' %>
+
+      <%= f.select :status,
+          [[t('supplier_imports.index.filters.all_statuses'), 'todos'], [local_status_label(SupplierImport::LOCAL_STATUS_PENDING), 'pendente'], [local_status_label(SupplierImport::LOCAL_STATUS_PROCESSING), 'processando'], [local_status_label(SupplierImport::LOCAL_STATUS_COMPLETED), 'concluido'], [local_status_label(SupplierImport::LOCAL_STATUS_ERROR), 'erro']],
+          { selected: params[:status] },
+          class: 'settings-input appearance-none' %>
+
+      <%= f.select :workflow_kind,
+          [[t('supplier_imports.index.filters.all_types'), 'todos'], [t('supplier_imports.index.filters.cadastral'), SupplierImport::WORKFLOW_KIND_CADASTRAL], [t('supplier_imports.index.filters.supplier'), SupplierImport::WORKFLOW_KIND_SUPPLIER]],
+          { selected: params[:workflow_kind] },
+          class: 'settings-input appearance-none' %>
+
+      <div class="flex gap-2">
+        <%= workspace_link_button t('supplier_imports.index.filters.clear'), supplier_imports_path %>
+        <%= workspace_button_tag t('supplier_imports.index.filters.submit'), type: :submit %>
+      </div>
+    </div>
+  <% end %>
+<% end %>

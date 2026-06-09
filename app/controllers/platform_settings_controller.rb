@@ -5,6 +5,29 @@ class PlatformSettingsController < ApplicationController
   def twilio; end
   def openai; end
   def api_token; end
+  def lgpd; end
+
+  def update_lgpd
+    unless current_user.can_manage_lgpd?
+      return redirect_to lgpd_platform_settings_path, alert: 'Seu perfil não possui permissão para alterar LGPD.'
+    end
+
+    current_user.update!(lgpd_params)
+    PrivacyAudit::Logger.log!(
+      user: current_user,
+      action: 'lgpd_settings_updated',
+      metadata: {
+        legal_basis: current_user.lgpd_legal_basis,
+        purpose: current_user.lgpd_purpose,
+        retention_days: current_user.lgpd_evidence_retention_days,
+        recording_allowed: current_user.lgpd_recording_allowed
+      }
+    )
+    redirect_to lgpd_platform_settings_path, notice: 'Política LGPD atualizada.'
+  rescue ActiveRecord::RecordInvalid => e
+    flash.now[:alert] = e.record.errors.full_messages.to_sentence
+    render :lgpd, status: :unprocessable_entity
+  end
 
   def update_company
     if (missing_fields = missing_required_fields(company_params, {
@@ -170,6 +193,20 @@ class PlatformSettingsController < ApplicationController
       :validation_openai_realtime_voice,
       :validation_openai_realtime_output_speed,
       :validation_openai_style_instructions
+    )
+  end
+
+  def lgpd_params
+    params.require(:user).permit(
+      :role,
+      :lgpd_legal_basis,
+      :lgpd_purpose,
+      :lgpd_notice_script,
+      :lgpd_evidence_retention_days,
+      :lgpd_recording_allowed,
+      :lgpd_controller_name,
+      :lgpd_controller_email,
+      :lgpd_stop_automatic_calls_on_refusal
     )
   end
 

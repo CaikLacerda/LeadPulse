@@ -1,0 +1,56 @@
+<%= platform_settings_page(title: 'Trilha de auditoria LGPD', kicker: 'Prestação de contas', description: 'Histórico de eventos envolvendo importação, exportação, anonimização, revisão, solicitações e configuração LGPD.', max_width: 'max-w-6xl') do %>
+  <div class="mb-6 flex flex-wrap gap-2">
+    <%= link_to 'Voltar para LGPD', lgpd_platform_settings_path, class: workspace_button_class(:secondary) %>
+    <%= link_to 'Solicitações LGPD', privacy_requests_path, class: workspace_button_class(:secondary) %>
+    <%= link_to 'Operadores e terceiros', third_party_operators_path, class: workspace_button_class(:secondary) %>
+  </div>
+
+  <%= settings_panel(classes: 'p-0') do %>
+    <div class="border-b border-slate-200 p-5">
+      <h2 class="text-xl font-black text-slate-950">Eventos registrados</h2>
+      <p class="mt-1 text-sm text-slate-500"><%= @events_total_count %> evento(s)</p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="workspace-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Ação</th>
+            <th>Lote</th>
+            <th>Recurso</th>
+            <th>Detalhes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @events.any? %>
+            <% @events.each do |event| %>
+              <tr>
+                <td><%= workspace_datetime_cell(event.occurred_at) %></td>
+                <td class="font-bold text-slate-800"><%= event.action_label %></td>
+                <td><%= event.supplier_import.present? ? workspace_code_tag(event.supplier_import.display_code) : '-' %></td>
+                <td>
+                  <div class="font-semibold text-slate-700"><%= event.resource_type.presence || '-' %></div>
+                  <div class="text-sm text-slate-500"><%= event.resource_id.presence || '-' %></div>
+                </td>
+                <td class="min-w-[280px] text-sm text-slate-600">
+                  <% if event.metadata.present? %>
+                    <%= event.metadata.map { |key, value| "#{key}: #{value}" }.join(' · ') %>
+                  <% else %>
+                    -
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <%= workspace_empty_table_row(colspan: 5, message: 'Nenhum evento LGPD registrado ainda.') %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="border-t border-slate-200 px-4 py-3">
+      <%= render 'shared/pagination', current_page: @events_page, total_pages: @events_total_pages %>
+    </div>
+  <% end %>
+<% end %>

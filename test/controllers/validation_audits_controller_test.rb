@@ -10,7 +10,7 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
       password_confirmation: @password
     )
 
-    @user.supplier_imports.create!(
+    @supplier_import = @user.supplier_imports.create!(
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -56,5 +56,29 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
     assert_select "*", text: /Fornecedor Exemplo/
     assert_select "*", text: /Pode falar/
     assert_select "*", text: /Estamos validando o segmento/
+  end
+
+  test "creates human review for audit entry" do
+    post user_session_url, params: { user: { email: @user.email, password: @password } }
+
+    assert_difference -> { AuditReview.count }, 1 do
+      post validation_audit_reviews_url, params: {
+        audit_review: {
+          supplier_import_id: @supplier_import.id,
+          record_external_id: "1",
+          provider_call_id: "CA123",
+          attempt_number: 1,
+          original_result: "inconclusive",
+          reviewed_result: "qualified_supplier",
+          review_note: "Operador conferiu a transcrição."
+        }
+      }
+    end
+
+    review = AuditReview.last
+    assert_equal @user, review.user
+    assert_equal @supplier_import, review.supplier_import
+    assert_equal "qualified_supplier", review.reviewed_result
+    assert_redirected_to validation_audits_url
   end
 end

@@ -18,6 +18,7 @@ class PagesController < ApplicationController
     }
     @recent_imports = recent_imports_scope.limit(5)
     @recent_searches = searches_scope.recent_first.limit(5)
+    @recent_location_searches = searches_scope.recent_first.limit(12)
     @welcome_account_name = current_user.validation_company_name_value
     @welcome_contact_name = current_user.validation_owner_name_value
     @integration_flags = {

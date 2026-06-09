@@ -6,15 +6,16 @@ class DeveloperDocsController < ApplicationController
     @getting_started = [
       'Cadastre a empresa e gere o token dentro do LeadPulse.',
       'Guarde o bearer token com segurança no seu ERP, CRM ou backoffice.',
+      'Padronize telefones no formato E.164, como +55DDDNÚMERO, antes de enviar o lote.',
       'Envie lotes cadastrais ou de fornecedor para a API.',
       'Consulte o processamento dos lotes pelo batch_id retornado.',
-      'Consuma supplier discovery e endpoints mobile direto do seu sistema.'
+      'Consuma supplier discovery e resultados de validação direto do seu sistema.'
     ]
     @auth_modes = [
       {
         title: 'Autenticação da API',
         auth: 'Authorization: Bearer tkn_live_...',
-        description: 'É a autenticação usada pelo sistema do cliente para enviar lotes, consultar status, buscar fornecedores e consumir os endpoints mobile.'
+        description: 'É a autenticação usada pelo sistema do cliente para enviar lotes, consultar status, buscar fornecedores e ler resultados.'
       }
     ]
     @integration_types = [
@@ -31,8 +32,8 @@ class DeveloperDocsController < ApplicationController
         description: 'Busca fornecedores na web, estrutura o resultado e devolve planilha sem disparar chamadas automaticamente.'
       },
       {
-        title: 'Mobile insights',
-        description: 'Entrega dashboard e lista paginada de chamadas para apps mobile e painéis dedicados.'
+        title: 'Integração com ERP',
+        description: 'O ERP consome a API com bearer token emitido no SaaS, envia lotes e consulta resultados pelo batch_id.'
       }
     ]
     @public_endpoint_groups = [
@@ -55,7 +56,7 @@ class DeveloperDocsController < ApplicationController
                     "external_id": "1",
                     "client_name": "Fornecedor Alfa LTDA",
                     "cnpj": "11.222.333/0001-81",
-                    "phone": "5511999999999",
+                    "phone": "+5511999999999",
                     "email": "contato@fornecedor.com"
                   }
                 ]
@@ -104,13 +105,13 @@ class DeveloperDocsController < ApplicationController
                 "batch_id": "supplier_batch_20260328_001",
                 "source": "integracao_externa",
                 "segment_name": "Adubo",
-                "callback_phone": "5511999999999",
+                "callback_phone": "+5511999999999",
                 "callback_contact_name": "Comercial Agro Compras",
                 "records": [
                   {
                     "external_id": "1",
                     "supplier_name": "Fornecedor Adubo 1 LTDA",
-                    "phone": "5511988887777"
+                    "phone": "+5511988887777"
                   }
                 ]
               }
@@ -153,8 +154,8 @@ class DeveloperDocsController < ApplicationController
         ]
       },
       {
-        title: 'Supplier discovery e mobile',
-        description: 'Busca web estruturada e consumo de dados agregados para dashboards externos.',
+        title: 'Supplier discovery',
+        description: 'Busca web estruturada para formar lotes de fornecedores.',
         items: [
           {
             title: 'Buscar fornecedores na web',
@@ -165,10 +166,11 @@ class DeveloperDocsController < ApplicationController
             request: <<~JSON.strip,
               {
                 "segment_name": "Adubo",
-                "callback_phone": "5511999999999",
+                "callback_phone": "+5511999999999",
                 "callback_contact_name": "Comercial Agro Compras",
                 "region": "Campinas",
-                "max_suppliers": 10
+                "max_suppliers": 10,
+                "include_locations": true
               }
             JSON
             response: <<~JSON.strip
@@ -176,6 +178,18 @@ class DeveloperDocsController < ApplicationController
                 "search_id": "supplier_search_20260328150000_ab12cd",
                 "mode": "openai_web_search",
                 "total_suppliers": 3,
+                "suppliers": [
+                  {
+                    "supplier_name": "Agro Campinas",
+                    "phone": "+5519999999999",
+                    "city": "Campinas",
+                    "state": "SP",
+                    "address": "Campinas, SP",
+                    "latitude": -22.9056,
+                    "longitude": -47.0608,
+                    "google_maps_url": "https://www.google.com/maps/search/?api=1&query=Agro%20Campinas%2C%20Campinas%2C%20SP"
+                  }
+                ],
                 "downloadable_file_url": "/supplier-discovery/supplier_search_20260328150000_ab12cd/results.xlsx"
               }
             JSON
@@ -196,56 +210,9 @@ class DeveloperDocsController < ApplicationController
                 "suppliers": [
                   {
                     "supplier_name": "Fornecedor Exemplo LTDA",
-                    "phone": "5511999999999",
+                    "phone": "+5511999999999",
                     "website": "https://fornecedor.com.br",
                     "discovery_confidence": 0.82
-                  }
-                ]
-              }
-            JSON
-          },
-          {
-            title: 'Dashboard mobile',
-            method: 'GET',
-            path: '/mobile/dashboard?period=24h|week|month',
-            auth: 'Authorization: Bearer tkn_live_...',
-            description: 'Entrega agregados da conta autenticada para dashboards e apps mobile.',
-            request: <<~TEXT.strip,
-              period=week
-            TEXT
-            response: <<~JSON.strip
-              {
-                "period": "week",
-                "summary": {
-                  "total_batches": 4,
-                  "validated_phones": 31,
-                  "confirmed_numbers": 24,
-                  "average_call_duration_seconds": 18.4
-                }
-              }
-            JSON
-          },
-          {
-            title: 'Lista paginada de chamadas',
-            method: 'GET',
-            path: '/mobile/calls?period=24h|week|month&limit=50&offset=0',
-            auth: 'Authorization: Bearer tkn_live_...',
-            description: 'Retorna as tentativas de chamada da conta autenticada com paginação e transcrição resumida.',
-            request: <<~TEXT.strip,
-              period=month
-              limit=50
-              offset=0
-            TEXT
-            response: <<~JSON.strip
-              {
-                "period": "month",
-                "total": 3,
-                "items": [
-                  {
-                    "external_id": "3",
-                    "status": "not_answered",
-                    "duration_seconds": 0,
-                    "transcript_summary": "Ligacao nao atendida."
                   }
                 ]
               }

@@ -10,9 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_01_110000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_08_090300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "audit_reviews", force: :cascade do |t|
+    t.integer "attempt_number"
+    t.datetime "created_at", null: false
+    t.string "original_result"
+    t.string "provider_call_id"
+    t.string "record_external_id"
+    t.text "review_note"
+    t.datetime "reviewed_at", null: false
+    t.string "reviewed_result", null: false
+    t.bigint "supplier_import_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["supplier_import_id"], name: "index_audit_reviews_on_supplier_import_id"
+    t.index ["user_id", "supplier_import_id", "record_external_id", "provider_call_id", "attempt_number"], name: "index_audit_reviews_on_lookup", unique: true
+    t.index ["user_id"], name: "index_audit_reviews_on_user_id"
+  end
 
   create_table "plans", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -21,6 +38,42 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_110000) do
     t.datetime "updated_at", null: false
     t.integer "usage", default: 0, null: false
     t.decimal "value", default: "0.0", null: false
+  end
+
+  create_table "privacy_audit_events", force: :cascade do |t|
+    t.string "action", null: false
+    t.datetime "created_at", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "occurred_at", null: false
+    t.string "resource_id"
+    t.string "resource_type"
+    t.bigint "supplier_import_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["supplier_import_id"], name: "index_privacy_audit_events_on_supplier_import_id"
+    t.index ["user_id", "action"], name: "index_privacy_audit_events_on_user_id_and_action"
+    t.index ["user_id", "occurred_at"], name: "index_privacy_audit_events_on_user_id_and_occurred_at"
+    t.index ["user_id"], name: "index_privacy_audit_events_on_user_id"
+  end
+
+  create_table "privacy_requests", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "phone"
+    t.string "request_type", null: false
+    t.datetime "requested_at", null: false
+    t.text "resolution"
+    t.datetime "resolved_at"
+    t.string "status", default: "open", null: false
+    t.string "subject_contact"
+    t.string "subject_name"
+    t.bigint "supplier_import_id"
+    t.string "supplier_name"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["supplier_import_id"], name: "index_privacy_requests_on_supplier_import_id"
+    t.index ["user_id", "status"], name: "index_privacy_requests_on_user_id_and_status"
+    t.index ["user_id"], name: "index_privacy_requests_on_user_id"
   end
 
   create_table "supplier_discovery_searches", force: :cascade do |t|
@@ -99,14 +152,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_110000) do
     t.index ["supplier_import_id"], name: "index_suppliers_on_supplier_import_id"
   end
 
+  create_table "third_party_operators", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.string "contract_reference"
+    t.string "country"
+    t.datetime "created_at", null: false
+    t.text "data_shared"
+    t.string "name", null: false
+    t.text "purpose"
+    t.string "service_type", null: false
+    t.string "technical_owner"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "active"], name: "index_third_party_operators_on_user_id_and_active"
+    t.index ["user_id"], name: "index_third_party_operators_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
+    t.string "lgpd_controller_email"
+    t.string "lgpd_controller_name"
+    t.integer "lgpd_evidence_retention_days", default: 180, null: false
+    t.string "lgpd_legal_basis", default: "legitimate_interest", null: false
+    t.text "lgpd_notice_script"
+    t.string "lgpd_purpose", default: "qualificacao_de_fornecedores_por_chamada_automatizada", null: false
+    t.boolean "lgpd_recording_allowed", default: true, null: false
+    t.boolean "lgpd_stop_automatic_calls_on_refusal", default: true, null: false
     t.string "name", null: false
     t.datetime "remember_created_at"
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
+    t.string "role", default: "admin", null: false
     t.datetime "updated_at", null: false
     t.bigint "validation_account_id"
     t.jsonb "validation_account_response", default: {}, null: false
@@ -131,8 +209,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_110000) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "audit_reviews", "supplier_imports"
+  add_foreign_key "audit_reviews", "users"
+  add_foreign_key "privacy_audit_events", "supplier_imports"
+  add_foreign_key "privacy_audit_events", "users"
+  add_foreign_key "privacy_requests", "supplier_imports"
+  add_foreign_key "privacy_requests", "users"
   add_foreign_key "supplier_discovery_searches", "users"
   add_foreign_key "supplier_import_versions", "supplier_imports"
   add_foreign_key "supplier_imports", "users"
   add_foreign_key "suppliers", "supplier_imports"
+  add_foreign_key "third_party_operators", "users"
 end

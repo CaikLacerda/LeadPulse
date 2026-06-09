@@ -1,0 +1,44 @@
+<% points = Array(local_assigns[:points]) %>
+<% title = local_assigns[:title].presence || 'Mapa dos fornecedores' %>
+<% meta = local_assigns[:meta].presence || supplier_location_map_meta(points) %>
+<% empty_message = local_assigns[:empty_message].presence || 'Nenhum fornecedor com latitude e longitude exatas foi encontrado ainda.' %>
+
+<%= portlet_form(title, content_tag(:span, meta, class: 'workspace-portlet-meta'), body_class: 'workspace-portlet-body--flush', data: local_assigns[:data]) do %>
+  <% if points.any? %>
+    <div class="supplier-location-map">
+      <div class="supplier-location-map__canvas">
+        <iframe
+          class="supplier-location-map__iframe"
+          src="<%= google_maps_brazil_embed_url %>"
+          title="<%= title %>"
+          loading="eager"
+          referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+        <div class="supplier-location-map__overlay">
+          <% points.each_with_index do |point, index| %>
+            <% next if point[:x].blank? || point[:y].blank? %>
+
+            <%= link_to point[:google_maps_url],
+                class: 'supplier-location-map__pin',
+                style: "--x: #{point[:x]}%; --y: #{point[:y]}%; --pin-index: #{index};",
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                title: "#{point[:supplier_name]} - #{point[:location_label]}",
+                aria: { label: "Abrir #{point[:supplier_name]} no Google Maps" } do %>
+              <span class="supplier-location-map__dot"></span>
+              <span class="supplier-location-map__tooltip">
+                <strong><%= point[:supplier_name] %></strong>
+                <span><%= point[:location_label] %></span>
+                <em><%= point[:search_display_code] %></em>
+              </span>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="supplier-location-map__empty">
+      <p><%= empty_message %></p>
+    </div>
+  <% end %>
+<% end %>

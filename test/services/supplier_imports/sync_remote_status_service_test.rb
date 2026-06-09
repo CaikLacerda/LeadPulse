@@ -56,10 +56,9 @@ module SupplierImports
       end.new(fake_response)
 
       service = SyncRemoteStatusService.new(user: user, supplier_import: supplier_import)
+      service.define_singleton_method(:show_remote_batch_service) { fake_remote_service }
 
-      service.stub(:show_remote_batch_service, fake_remote_service) do
-        service.call
-      end
+      service.call
 
       supplier_import.reload
       assert_equal SupplierImport::LOCAL_STATUS_COMPLETED, supplier_import.status

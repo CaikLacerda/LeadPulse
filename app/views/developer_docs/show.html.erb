@@ -1,39 +1,31 @@
-<div class="settings-shell min-h-screen px-5 pb-16 pt-28 sm:px-8 lg:px-10">
-  <div class="home-orb home-orb--blue -left-16 top-24 h-56 w-56 sm:h-72 sm:w-72"></div>
-  <div class="home-orb home-orb--orange right-[-60px] top-12 h-56 w-56 sm:h-72 sm:w-72"></div>
-  <div class="home-bolt left-[7%] top-36 hidden h-24 w-14 lg:block"></div>
-  <div class="home-bolt home-bolt--soft right-[12%] top-24 hidden h-20 w-12 lg:block"></div>
+<%= workspace_page(max_width: 'max-w-6xl') do %>
+  <%= workspace_page_header(
+    kicker: 'For Devs',
+    title: 'Integre seu sistema direto com a API',
+    description: raw('O cadastro inicial da conta e a geração do token acontecem dentro do <span class="font-semibold text-slate-900">LeadPulse</span>. Depois disso, o cliente pode integrar o próprio ERP, CRM ou backoffice direto com a <span class="font-semibold text-slate-900">api_confaith_ai</span> usando somente <span class="font-semibold text-slate-900">Bearer token</span>.')
+  ) %>
 
-  <div class="relative z-10 mx-auto max-w-6xl">
-    <section class="settings-page-intro mb-8">
-      <p class="settings-panel-kicker">For Devs</p>
-      <h1 class="settings-panel-title">Integre seu sistema direto com a API</h1>
-      <div class="home-energy-line mt-4 h-[3px] w-28 rounded-full"></div>
-      <p class="mt-6 max-w-4xl text-base leading-8 text-slate-600 sm:text-lg">
-        O cadastro inicial da conta e a geração do token acontecem dentro do <span class="font-semibold text-slate-900">LeadPulse</span>. Depois disso, o cliente pode integrar o próprio ERP, CRM ou backoffice direto com a <span class="font-semibold text-slate-900">api_confaith_ai</span> usando somente <span class="font-semibold text-slate-900">Bearer token</span>.
-      </p>
-      <div class="mt-6 flex flex-wrap gap-3 text-sm font-semibold">
-        <span class="developer-chip">Base URL <code><%= @api_base_url %></code></span>
-        <span class="developer-chip">Conta atual <code><%= current_user.validation_account_id.presence || 'não provisionada' %></code></span>
-        <span class="developer-chip">API <code><%= current_user.validation_api_token_configured? ? 'token ativo' : 'token pendente' %></code></span>
-      </div>
-    </section>
+  <div class="mb-6 flex flex-wrap gap-3 text-sm font-semibold">
+    <span class="developer-chip">Base URL <code><%= @api_base_url %></code></span>
+    <span class="developer-chip">Conta atual <code><%= current_user.validation_account_id.presence || 'não provisionada' %></code></span>
+    <span class="developer-chip">API <code><%= current_user.validation_api_token_configured? ? 'token ativo' : 'token pendente' %></code></span>
+  </div>
 
-    <section class="grid gap-4 lg:grid-cols-2">
-      <% @auth_modes.each do |mode| %>
-        <article class="developer-surface-card">
-          <p class="text-xs font-bold uppercase tracking-[0.24em] text-blue-600"><%= mode[:title] %></p>
-          <p class="mt-3 text-lg font-black text-slate-950"><%= mode[:auth] %></p>
-          <p class="mt-3 text-sm leading-7 text-slate-500"><%= mode[:description] %></p>
-        </article>
-      <% end %>
-
+  <section class="grid gap-4 lg:grid-cols-2">
+    <% @auth_modes.each do |mode| %>
       <article class="developer-surface-card">
-        <p class="text-xs font-bold uppercase tracking-[0.24em] text-orange-500">Cadastro inicial</p>
-        <p class="mt-3 text-lg font-black text-slate-950">Feito dentro do LeadPulse</p>
-        <p class="mt-3 text-sm leading-7 text-slate-500">A plataforma cria a conta operacional, configura provedores e emite o token. A integração externa começa depois disso, já usando o bearer token da conta.</p>
+        <p class="text-xs font-bold uppercase tracking-[0.24em] text-blue-600"><%= mode[:title] %></p>
+        <p class="mt-3 text-lg font-black text-slate-950"><%= mode[:auth] %></p>
+        <p class="mt-3 text-sm leading-7 text-slate-500"><%= mode[:description] %></p>
       </article>
-    </section>
+    <% end %>
+
+    <article class="developer-surface-card">
+      <p class="text-xs font-bold uppercase tracking-[0.24em] text-orange-500">Cadastro inicial</p>
+      <p class="mt-3 text-lg font-black text-slate-950">Feito dentro do LeadPulse</p>
+      <p class="mt-3 text-sm leading-7 text-slate-500">A plataforma cria a conta operacional, configura provedores e emite o token. A integração externa começa depois disso, já usando o bearer token da conta.</p>
+    </article>
+  </section>
 
     <section class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       <% @integration_types.each do |integration| %>
@@ -45,22 +37,25 @@
     </section>
 
     <section class="settings-panel mt-8 p-6 sm:p-8 lg:p-10">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div class="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
-          <p class="text-xs font-bold uppercase tracking-[0.26em] text-orange-500">Fluxo recomendado</p>
-          <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-500">
-            Use o LeadPulse para provisionar a conta e gerar o token. A partir daí, o restante do tráfego segue direto do sistema do cliente para a API.
+          <p class="text-xs font-bold uppercase tracking-[0.26em] text-orange-500">Uso em produção</p>
+          <h2 class="mt-3 text-2xl font-black tracking-[-0.03em] text-slate-950">O LeadPulse configura a conta. A API roda a operação.</h2>
+          <p class="mt-3 text-sm leading-7 text-slate-500">
+            A tela serve como referência para times que precisam conectar ERP, CRM ou backoffice aos lotes de validação sem operar manualmente pela interface.
           </p>
         </div>
-        <div class="developer-chip">Integração externa <code>Bearer token</code></div>
-      </div>
-      <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <% @getting_started.each_with_index do |step, index| %>
-          <div class="developer-step-card">
-            <span class="developer-step-index"><%= index + 1 %></span>
-            <p class="mt-4 text-sm font-semibold leading-7 text-slate-600"><%= step %></p>
-          </div>
-        <% end %>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <article class="developer-surface-card">
+            <p class="text-sm font-black text-slate-950">Dentro do LeadPulse</p>
+            <p class="mt-3 text-sm leading-7 text-slate-500">Conta, provedores, token, política LGPD e parâmetros de voz ficam centralizados no SaaS.</p>
+          </article>
+          <article class="developer-surface-card">
+            <p class="text-sm font-black text-slate-950">No sistema externo</p>
+            <p class="mt-3 text-sm leading-7 text-slate-500">O integrador envia lotes, acompanha status e lê resultados usando bearer token.</p>
+          </article>
+        </div>
       </div>
     </section>
 
@@ -114,7 +109,14 @@
           <p class="text-sm font-black text-white">Supplier discovery hoje</p>
           <p class="mt-3 text-sm leading-7 text-slate-300">O supplier discovery público faz apenas a busca web estruturada. Ele ainda não dispara chamadas automaticamente, e o resultado fica em memória da aplicação.</p>
         </div>
+        <div class="developer-surface-card developer-surface-card--dark">
+          <p class="text-sm font-black text-white">Telefone E.164</p>
+          <p class="mt-3 text-sm leading-7 text-slate-300">No SaaS e na API, o padrão operacional é E.164 com sinal +, usando +55DDDNÚMERO. Entradas antigas sem + continuam aceitas e são normalizadas antes do envio.</p>
+        </div>
+        <div class="developer-surface-card developer-surface-card--dark">
+          <p class="text-sm font-black text-white">ERP</p>
+          <p class="mt-3 text-sm leading-7 text-slate-300">A integração com ERP é o consumo direto dos endpoints públicos por bearer token: envio de lote, consulta de status e leitura do resultado para atualizar o cadastro externo.</p>
+        </div>
       </div>
     </section>
-  </div>
-</div>
+<% end %>

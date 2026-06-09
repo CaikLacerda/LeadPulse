@@ -1,0 +1,304 @@
+<% proof_points = [
+  ['Lista mais limpa', 'Monte uma fila com empresas, telefones e contexto antes do primeiro contato comercial.'],
+  ['Ligação com evidência', 'A IA confirma dados essenciais por voz e guarda status, transcrição e observação.'],
+  ['Abordagem com prioridade', 'Seu time recebe quem faz sentido atacar agora, com menos ruído na operação.']
+] %>
+
+<% demo_steps = [
+  {
+    key: 'search',
+    title: 'Encontre empresas no recorte certo',
+    metric: '01',
+    body: 'Escolha segmento e região ou importe uma planilha. O LeadPulse organiza o lote e prepara os contatos para validação.',
+    signal: 'Segmento, região, telefone e origem'
+  },
+  {
+    key: 'voice',
+    title: 'Confirme por voz antes da abordagem',
+    metric: '02',
+    body: 'A IA liga, informa que é uma chamada automatizada, confirma aderência comercial e registra recusas sem bagunçar a fila.',
+    signal: 'Chamada, transcrição, status e LGPD'
+  },
+  {
+    key: 'prioritize',
+    title: 'Priorize quem merece atenção',
+    metric: '03',
+    body: 'A operação revisa o resultado, corrige quando necessário e exporta uma base com contexto para vendas, SDR ou compras.',
+    signal: 'Fila priorizada, auditoria e exportação'
+  }
+] %>
+
+<% use_cases = [
+  ['Prospecção B2B', 'Descubra empresas dentro do ICP e ligue só depois de confirmar dados básicos.'],
+  ['Pré-vendas', 'Entregue para SDRs uma fila menor, mais clara e com contexto de validação.'],
+  ['Compras e fornecedores', 'Valide se a empresa atende o segmento antes de gastar tempo com cotação.'],
+  ['Operação comercial', 'Mantenha status, histórico e exportação em um fluxo único de trabalho.']
+] %>
+
+<% outcomes = [
+  ['Menos desperdício', 'Reduza ligações para números errados, empresas fora do perfil e bases sem contexto.'],
+  ['Mais confiança', 'Cada contato validado volta com registro da conversa, status e observação revisável.'],
+  ['Mais cadência', 'Crie lotes recorrentes e alimente a equipe comercial com oportunidades já organizadas.']
+] %>
+
+<% faq_items = [
+  ['O LeadPulse substitui meu CRM?', 'Não. Ele prepara e valida a base antes da abordagem. Depois você exporta ou usa os resultados no seu fluxo comercial.'],
+  ['Preciso ter uma base pronta?', 'Não. Você pode começar por busca de segmento e região ou importar uma planilha própria.'],
+  ['A chamada avisa que é automatizada?', 'Sim. O fluxo de voz inclui aviso de chamada automatizada, finalidade e registro de recusa quando a pessoa não quiser continuar.'],
+  ['Consigo revisar o resultado?', 'Sim. A auditoria permite revisar status, transcrição, observação e evidências antes de exportar.']
+] %>
+
+<main class="landing-lp" data-controller="landing-pulse" data-action="pointermove@window->landing-pulse#track">
+  <section id="inicio" class="landing-hero" data-landing-pulse-target="hero">
+    <%= image_tag 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=82',
+        alt: 'Equipe comercial analisando oportunidades em uma mesa de trabalho',
+        class: 'landing-hero__image',
+        loading: 'eager',
+        referrerpolicy: 'no-referrer' %>
+    <div class="landing-hero__shade"></div>
+    <div class="landing-hero__grid"></div>
+
+    <div class="landing-hero__content">
+      <p class="landing-eyebrow">Prospecção B2B com validação por voz</p>
+      <h1 class="landing-title">Venda para empresas que já fazem sentido.</h1>
+      <p class="landing-subtitle">
+        O LeadPulse encontra contatos dentro do seu recorte, confirma por telefone se existe aderência comercial e entrega uma fila priorizada para o time abordar com contexto.
+      </p>
+
+      <div class="landing-actions">
+        <%= link_to 'Criar conta grátis', new_user_registration_path, class: 'landing-button landing-button--primary' %>
+        <%= link_to 'Ver como funciona', root_path(anchor: 'demo'), class: 'landing-button landing-button--ghost' %>
+      </div>
+
+      <p class="landing-hero-note">Sem comprar lista cega. Sem ligar no escuro. Sem perder o histórico.</p>
+
+      <div class="landing-proof-row" aria-label="Diferenciais do LeadPulse">
+        <% proof_points.each do |title, body| %>
+          <article class="landing-proof">
+            <p><%= title %></p>
+            <span><%= body %></span>
+          </article>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="landing-radar" data-landing-pulse-target="stage" aria-hidden="true">
+      <div class="landing-radar__ring landing-radar__ring--outer"></div>
+      <div class="landing-radar__ring landing-radar__ring--inner"></div>
+      <div class="landing-radar__beam landing-radar__beam--one"></div>
+      <div class="landing-radar__beam landing-radar__beam--two"></div>
+      <span class="landing-radar__node landing-radar__node--one"></span>
+      <span class="landing-radar__node landing-radar__node--two"></span>
+      <span class="landing-radar__node landing-radar__node--three"></span>
+      <div class="landing-radar__console">
+        <p>fila_validada</p>
+        <strong>+55 E.164</strong>
+        <span>LGPD ativo · recusa registrada · histórico revisável</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-strip" aria-label="Fluxo de valor">
+    <div class="landing-strip__track">
+      <span>Encontrar empresas</span>
+      <span>Confirmar telefone</span>
+      <span>Validar segmento</span>
+      <span>Registrar evidência</span>
+      <span>Priorizar abordagem</span>
+      <span>Exportar resultados</span>
+      <span>Encontrar empresas</span>
+      <span>Confirmar telefone</span>
+      <span>Validar segmento</span>
+      <span>Registrar evidência</span>
+      <span>Priorizar abordagem</span>
+      <span>Exportar resultados</span>
+    </div>
+  </section>
+
+  <section id="recursos" class="landing-product">
+    <div class="landing-section-heading">
+      <p class="landing-eyebrow landing-eyebrow--dark">O produto</p>
+      <h2>Uma central para transformar base fria em fila comercial.</h2>
+      <span>Do recorte inicial até a exportação, tudo fica visível para quem opera, revisa e decide o próximo contato.</span>
+    </div>
+
+    <div class="landing-product__layout">
+      <div class="landing-product__mock">
+        <div class="landing-window-bar">
+          <span></span><span></span><span></span>
+          <strong>LeadPulse / oportunidades</strong>
+        </div>
+        <div class="landing-product__toolbar">
+          <p>Fila de validação</p>
+          <span>Atualizado agora</span>
+        </div>
+        <div class="landing-product__table">
+          <div><strong>Empresa</strong><strong>Status</strong><strong>Próximo passo</strong></div>
+          <div><span>Metal Norte</span><em class="is-good">Confirmado</em><span>Enviar proposta</span></div>
+          <div><span>Alfa Embalagens</span><em class="is-warn">Revisar</em><span>Checar segmento</span></div>
+          <div><span>Log Prime</span><em class="is-good">Aceita contato</em><span>Acionar SDR</span></div>
+          <div><span>Delta Serviços</span><em class="is-muted">Recusou</em><span>Remover da fila</span></div>
+        </div>
+      </div>
+
+      <div class="landing-product__side">
+        <article>
+          <span>01</span>
+          <strong>Busca ou importação</strong>
+          <p>Monte o lote por segmento e região ou traga sua própria base para validação.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <strong>Voz automatizada</strong>
+          <p>A chamada confirma se a empresa atende o perfil e se pode receber retorno comercial.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <strong>Auditoria humana</strong>
+          <p>Revise o que a IA classificou, ajuste status e exporte uma lista pronta para ação.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="sobre" class="landing-drama">
+    <div class="landing-drama__copy">
+      <p class="landing-eyebrow">Antes e depois</p>
+      <h2>Chega de jogar vendedor contra planilha ruim.</h2>
+      <p>
+        Lista comprada, telefone errado, empresa fora do perfil e observação perdida viram custo invisível. O LeadPulse coloca uma camada de validação antes da abordagem, para o time entrar na conversa com motivo.
+      </p>
+    </div>
+    <div class="landing-compare">
+      <article>
+        <span>Antes</span>
+        <strong>Base fria e sem contexto</strong>
+        <p>Centenas de linhas, pouca certeza e muita energia gasta para descobrir o básico.</p>
+      </article>
+      <article>
+        <span>Depois</span>
+        <strong>Fila validada e rastreável</strong>
+        <p>Status claro, evidência revisável e prioridade para quem realmente pode virar conversa.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="demo" class="landing-demo">
+    <div class="landing-section-heading">
+      <p class="landing-eyebrow landing-eyebrow--dark">Demonstração interativa</p>
+      <h2>Veja a jornada que prepara a venda antes do primeiro pitch.</h2>
+      <span>Busca, voz e priorização funcionam como uma única rotina para reduzir atrito comercial.</span>
+    </div>
+
+    <div class="landing-demo__layout">
+      <div class="landing-demo__controls" role="tablist" aria-label="Fluxo LeadPulse">
+        <% demo_steps.each_with_index do |step, index| %>
+          <button class="landing-demo-tab <%= 'is-active' if index.zero? %>"
+                  type="button"
+                  role="tab"
+                  data-landing-pulse-target="tab"
+                  data-action="landing-pulse#select"
+                  data-index="<%= index %>">
+            <span><%= step[:metric] %></span>
+            <strong><%= step[:title] %></strong>
+          </button>
+        <% end %>
+      </div>
+
+      <div class="landing-demo__screen" data-landing-pulse-target="screen">
+        <% demo_steps.each_with_index do |step, index| %>
+          <article class="landing-demo-card <%= 'is-active' if index.zero? %>" data-landing-pulse-target="panel">
+            <p class="landing-demo-card__metric"><%= step[:metric] %></p>
+            <h3><%= step[:title] %></h3>
+            <p><%= step[:body] %></p>
+            <div class="landing-demo-card__signal">
+              <span></span>
+              <strong><%= step[:signal] %></strong>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-outcomes">
+    <div class="landing-section-heading">
+      <p class="landing-eyebrow landing-eyebrow--dark">Por que usar</p>
+      <h2>Menos volume inútil. Mais conversa com chance real.</h2>
+    </div>
+    <div class="landing-outcomes__grid">
+      <% outcomes.each do |title, body| %>
+        <article>
+          <strong><%= title %></strong>
+          <p><%= body %></p>
+        </article>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="landing-flow">
+    <div class="landing-flow__copy">
+      <p class="landing-eyebrow landing-eyebrow--dark">Casos de uso</p>
+      <h2>Para equipes que precisam descobrir, validar e agir rápido.</h2>
+      <p>
+        Use em operações B2B que dependem de contato certo, critério claro e uma fila que qualquer pessoa consiga revisar.
+      </p>
+    </div>
+
+    <div class="landing-flow__steps">
+      <% use_cases.each_with_index do |(title, body), index| %>
+        <article><span><%= index + 1 %></span><strong><%= title %></strong><p><%= body %></p></article>
+      <% end %>
+    </div>
+  </section>
+
+  <section id="planos" class="landing-plans">
+    <div class="landing-section-heading">
+      <p class="landing-eyebrow landing-eyebrow--dark">Comece simples</p>
+      <h2>Escolha o ritmo de validação da sua operação.</h2>
+      <span>Comece com um lote piloto, ajuste o recorte e escale quando a rotina fizer sentido para o time.</span>
+    </div>
+
+    <div class="landing-plans__grid">
+      <article>
+        <p>Piloto</p>
+        <h3>Primeiro lote validado</h3>
+        <span>Para testar um segmento, uma região ou uma base própria.</span>
+        <%= link_to 'Criar conta', new_user_registration_path, class: 'landing-plan-link' %>
+      </article>
+      <article class="is-featured">
+        <p>Growth</p>
+        <h3>Validação recorrente</h3>
+        <span>Para times que precisam alimentar vendas com filas validadas toda semana.</span>
+        <%= link_to 'Começar agora', new_user_registration_path, class: 'landing-plan-link' %>
+      </article>
+      <article>
+        <p>Operação</p>
+        <h3>Fluxos e regras sob medida</h3>
+        <span>Para bases maiores, critérios próprios e integração com processos internos.</span>
+        <%= link_to 'Falar com vendas', new_user_registration_path, class: 'landing-plan-link' %>
+      </article>
+    </div>
+  </section>
+
+  <section class="landing-faq">
+    <div class="landing-section-heading">
+      <p class="landing-eyebrow landing-eyebrow--dark">Perguntas frequentes</p>
+      <h2>Antes de colocar sua base para rodar.</h2>
+    </div>
+    <div class="landing-faq__list">
+      <% faq_items.each do |question, answer| %>
+        <details>
+          <summary><%= question %></summary>
+          <p><%= answer %></p>
+        </details>
+      <% end %>
+    </div>
+  </section>
+
+  <section id="contato" class="landing-close">
+    <h2>Troque listas frias por oportunidades validadas.</h2>
+    <p>Crie sua conta, monte o primeiro lote e entregue para o time uma fila com contexto comercial real.</p>
+    <%= link_to 'Criar conta no LeadPulse', new_user_registration_path, class: 'landing-button landing-button--primary' %>
+  </section>
+</main>

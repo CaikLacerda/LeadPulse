@@ -1,0 +1,104 @@
+<% table_meta = content_tag(:span, t('supplier_imports.index.table.count', count: @imports_total_count), class: 'workspace-portlet-meta') %>
+
+<%= portlet_form(t('supplier_imports.index.table.title'), table_meta, data: { tutorial_id: 'imports-results' }, body_class: 'workspace-portlet-body--flush') do %>
+  <div class="overflow-x-auto overflow-y-visible">
+    <table class="workspace-table">
+      <thead>
+        <tr>
+          <th><%= t('supplier_imports.index.table.headers.batch') %></th>
+          <th><%= t('supplier_imports.index.table.headers.date') %></th>
+          <th><%= t('supplier_imports.index.table.headers.source') %></th>
+          <th><%= t('supplier_imports.index.table.headers.type') %></th>
+          <th><%= t('supplier_imports.index.table.headers.total') %></th>
+          <th><%= t('supplier_imports.index.table.headers.valid') %></th>
+          <th><%= t('supplier_imports.index.table.headers.invalid') %></th>
+          <th><%= t('supplier_imports.index.table.headers.status') %></th>
+          <th><%= t('supplier_imports.index.table.headers.actions') %></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if @imports.any? %>
+          <% @imports.each do |import| %>
+            <tr>
+              <td><%= workspace_code_tag(import.display_code, supplier_import_path(import)) %></td>
+              <td><%= workspace_datetime_cell(import.created_at) %></td>
+              <td class="font-medium text-slate-700"><%= import.source_label %></td>
+              <td class="font-medium text-slate-700"><%= import.workflow_kind_label %></td>
+              <td class="font-medium text-slate-700"><%= import.total_rows %></td>
+              <td class="font-semibold text-emerald-600"><%= import.valid_rows %></td>
+              <td class="font-semibold text-rose-500"><%= import.invalid_rows %></td>
+              <td><%= workspace_status_tag(import.status) %></td>
+
+              <td class="whitespace-nowrap">
+                <details data-controller="action-menu" class="relative inline-block">
+                  <summary class="workspace-summary-button">
+                    <%= t('supplier_imports.index.actions.label') %>
+                  </summary>
+
+                  <div class="workspace-menu absolute right-0 top-[calc(100%+0.25rem)] z-20 w-44 p-1">
+                    <% if import.errored? %>
+                      <%= button_to start_validation_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
+                        <%= t('supplier_imports.index.actions.restart') %>
+                      <% end %>
+
+                      <%= button_to supplier_import_path(import),
+                          method: :delete,
+                          form: { data: { turbo_confirm: t('supplier_imports.index.confirm.message'), turbo_confirm_title: t('supplier_imports.index.confirm.title'), turbo_confirm_confirm_label: t('supplier_imports.index.confirm.confirm'), turbo_confirm_cancel_label: t('supplier_imports.index.confirm.cancel') } },
+                          class: 'workspace-menu-item workspace-menu-item--danger' do %>
+                        <%= t('supplier_imports.index.actions.delete') %>
+                      <% end %>
+                    <% else %>
+                      <% if import.pending? %>
+                        <%= button_to start_validation_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
+                          <%= t('supplier_imports.index.actions.start') %>
+                        <% end %>
+                      <% end %>
+
+                      <% if import.syncable? %>
+                        <%= button_to sync_status_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
+                          <%= t('supplier_imports.index.actions.sync') %>
+                        <% end %>
+                      <% end %>
+
+                      <% if import.ready_to_export? %>
+                        <%= link_to export_result_supplier_import_path(import), data: { turbo: false }, class: 'workspace-menu-item' do %>
+                          <%= t('supplier_imports.index.actions.export_csv') %>
+                        <% end %>
+
+                        <%= link_to export_result_supplier_import_path(import, format: :xlsx), data: { turbo: false }, class: 'workspace-menu-item' do %>
+                          <%= t('supplier_imports.index.actions.export_xlsx') %>
+                        <% end %>
+                      <% end %>
+
+                      <% if import.destroyable? %>
+                        <%= button_to supplier_import_path(import),
+                            method: :delete,
+                            form: { data: { turbo_confirm: t('supplier_imports.index.confirm.message'), turbo_confirm_title: t('supplier_imports.index.confirm.title'), turbo_confirm_confirm_label: t('supplier_imports.index.confirm.confirm'), turbo_confirm_cancel_label: t('supplier_imports.index.confirm.cancel') } },
+                            class: 'workspace-menu-item workspace-menu-item--danger' do %>
+                          <%= t('supplier_imports.index.actions.delete') %>
+                        <% end %>
+                      <% end %>
+                    <% end %>
+                  </div>
+                </details>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <%= workspace_empty_table_row(colspan: 9, message: t('supplier_imports.index.table.empty')) do %>
+            <button type="button"
+                    data-action="import-modal#open"
+                    class="<%= workspace_button_class(:primary) %>">
+              <%= t('supplier_imports.messages.import_ready') %>
+            </button>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="border-t border-slate-200 px-4 py-3">
+    <%= render 'shared/pagination', current_page: @imports_page, total_pages: @imports_total_pages %>
+  </div>
+<% end %>

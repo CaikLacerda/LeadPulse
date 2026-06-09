@@ -3,129 +3,30 @@
 <% validation_pending_alert = current_user.validation_ready? ? nil : t('.modal.validation_pending') %>
 
 <div data-controller="search-modal">
-<div class="settings-shell min-h-screen px-5 pb-16 pt-28 sm:px-8 lg:px-10">
-  <div class="home-orb home-orb--blue -left-20 top-24 h-56 w-56 sm:h-72 sm:w-72"></div>
-  <div class="home-orb home-orb--orange right-[-70px] top-12 h-56 w-56 sm:h-72 sm:w-72"></div>
-  <div class="home-bolt left-[7%] top-36 hidden h-24 w-14 lg:block"></div>
-  <div class="home-bolt home-bolt--soft right-[12%] top-24 hidden h-20 w-12 lg:block"></div>
-
-  <div class="workspace-content mx-auto max-w-7xl">
-    <section class="mb-8 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-      <div class="max-w-3xl">
-        <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-blue-700"><%= t('.kicker') %></p>
-        <h1 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl"><%= t('.title') %></h1>
-        <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
-          <%= t('.description') %>
-        </p>
-      </div>
-
-      <div class="flex flex-wrap gap-2" data-tutorial-id="search-create">
-        <button type="button"
-                data-action="search-modal#open"
-                class="settings-submit settings-submit--accent">
-          <%= t('.new_search') %>
-        </button>
-      </div>
-    </section>
-
-    <%= form_with url: supplier_discovery_searches_path, method: :get, local: true do |f| %>
-      <div class="workspace-toolbar mb-6" data-tutorial-id="search-filters">
-        <div class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
-          <%= f.text_field :q, value: params[:q],
-              placeholder: t('.filters.query'),
-              class: 'settings-input' %>
-
-          <div class="flex gap-2">
-            <%= link_to supplier_discovery_searches_path,
-                class: 'workspace-button workspace-button--secondary' do %>
-              <%= t('.filters.clear') %>
-            <% end %>
-
-            <button type="submit"
-                    class="workspace-button workspace-button--primary">
-              <%= t('.filters.submit') %>
-            </button>
-          </div>
-        </div>
-      </div>
+  <%= workspace_page do %>
+    <%= workspace_page_header(
+      kicker: t('.kicker'),
+      title: t('.title'),
+      description: t('.description'),
+      actions_data: { tutorial_id: 'search-create' }
+    ) do %>
+      <%= workspace_button_tag t('.new_search'),
+          type: :button,
+          variant: :accent,
+          data: { action: 'search-modal#open' } %>
     <% end %>
 
-    <div class="workspace-surface" data-tutorial-id="search-results">
-      <div class="workspace-surface-header">
-        <p class="workspace-surface-title"><%= t('.table.title') %></p>
-        <p class="workspace-surface-meta"><%= t('.table.count', count: @searches_total_count) %></p>
-      </div>
-
-      <div class="overflow-x-auto overflow-y-visible">
-        <table class="workspace-table">
-          <thead>
-            <tr>
-              <th><%= t('.table.headers.search') %></th>
-              <th><%= t('.table.headers.segment') %></th>
-              <th><%= t('.table.headers.region') %></th>
-              <th><%= t('.table.headers.generated_at') %></th>
-              <th><%= t('.table.headers.found') %></th>
-              <th><%= t('.table.headers.actions') %></th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <% if @searches.any? %>
-              <% @searches.each do |search| %>
-                <tr>
-                  <td>
-                    <span class="workspace-compact-code"><%= search.display_code %></span>
-                  </td>
-                  <td class="font-medium text-slate-800"><%= search.segment_name %></td>
-                  <td class="font-medium text-slate-700"><%= search.region.presence || t('.table.no_region') %></td>
-                  <td>
-                    <div class="font-medium text-slate-800"><%= workspace_date(search.generated_at || search.created_at) %></div>
-                    <div class="mt-0.5 text-[11px] text-slate-400"><%= workspace_time(search.generated_at || search.created_at) %></div>
-                  </td>
-                  <td class="font-medium text-slate-700"><%= search.total_suppliers %></td>
-                  <td class="whitespace-nowrap">
-                    <details data-controller="action-menu" class="relative inline-block">
-                      <summary class="workspace-summary-button">
-                        <%= t('.actions.label') %>
-                      </summary>
-
-                      <div class="workspace-menu absolute right-0 top-[calc(100%+0.25rem)] z-20 w-36 p-1">
-                        <%= link_to download_results_supplier_discovery_search_path(search),
-                            class: "workspace-menu-item #{search.download_ready? ? '' : 'pointer-events-none !text-slate-300'}" do %>
-                          <%= t('.actions.download') %>
-                        <% end %>
-
-                        <%= button_to create_segment_import_supplier_discovery_search_path(search),
-                            method: :post,
-                            class: 'workspace-menu-item',
-                            form_class: 'workspace-menu-item--button' do %>
-                          <%= t('.actions.import') %>
-                        <% end %>
-                      </div>
-                    </details>
-                  </td>
-                </tr>
-              <% end %>
-            <% else %>
-              <tr>
-                <td colspan="6" class="px-4 py-12 text-center text-sm text-slate-500">
-                  <%= t('.table.empty') %>
-                  <button type="button"
-                          data-action="search-modal#open"
-                          class="workspace-button workspace-button--primary ml-2">
-                    <%= t('.new_search') %>
-                  </button>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-
-      <%= render 'shared/pagination', current_page: @searches_page, total_pages: @searches_total_pages %>
+    <%= render 'filters' %>
+    <%= render 'table' %>
+    <% search_map_points = supplier_discovery_map_points(@searches, limit: 80) %>
+    <div class="mt-6">
+      <%= render 'shared/supplier_location_map',
+          points: search_map_points,
+          title: 'Mapa de fornecedores encontrados',
+          meta: supplier_location_map_meta(search_map_points),
+          empty_message: 'Faça uma busca com região ou aguarde fornecedores com localização para visualizar os pontos no mapa.' %>
     </div>
-  </div>
-</div>
+  <% end %>
 
 <div id="supplier-search-modal"
      data-search-modal-target="modal"
@@ -213,13 +114,13 @@
         </div>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <button type="button"
-                  data-action="search-modal#close"
-                  class="workspace-button workspace-button--secondary">
-            <%= t('.modal.cancel') %>
-          </button>
+          <%= workspace_button_tag t('.modal.cancel'),
+              type: :button,
+              variant: :secondary,
+              data: { action: 'search-modal#close' } %>
+
           <%= f.submit t('.modal.submit'),
-              class: 'workspace-button workspace-button--accent' %>
+              class: workspace_submit_class(:accent) %>
         </div>
       <% end %>
     </div>

@@ -172,6 +172,35 @@ module SupplierImports
       assert_equal "Não fornece o segmento", row["Resultado"]
     end
 
+    test "exports result xlsx with spreadsheet content type" do
+      supplier_import = SupplierImport.create!(
+        user: build_user("xlsx-export@example.com"),
+        status: SupplierImport::LOCAL_STATUS_COMPLETED,
+        workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
+        source: SupplierImport::SOURCE_UPLOAD,
+        total_rows: 1,
+        valid_rows: 1,
+        invalid_rows: 0,
+        response_payload: {
+          "records" => [
+            {
+              "external_id" => "1",
+              "client_name" => "Alfa Comercio",
+              "phone_original" => "19994110571",
+              "validated_phone" => "5519994110571",
+              "business_status" => "confirmed_by_call"
+            }
+          ]
+        }
+      )
+
+      export = ExportResultXlsxService.new(supplier_import: supplier_import).call
+
+      assert_equal "lote-#{supplier_import.display_number}-resultado.xlsx", export[:filename]
+      assert_equal ExportResultXlsxService::CONTENT_TYPE, export[:content_type]
+      assert_equal "PK", export[:content].byteslice(0, 2)
+    end
+
     private
 
     def build_user(email)

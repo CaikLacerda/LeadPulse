@@ -6,6 +6,14 @@ class ValidationAuditsController < ApplicationController
   before_action :authenticate_user!
 
   def index
+    if current_user.can_view_evidence?
+      PrivacyAudit::Logger.log!(
+        user: current_user,
+        action: 'validation_audit_evidence_viewed',
+        metadata: { query: params[:q].presence, page: params[:page].presence }
+      )
+    end
+
     entries = SupplierImports::AuditEntriesService.call(user: current_user)
     entries = filter_entries(entries)
 
