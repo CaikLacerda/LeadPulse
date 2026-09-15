@@ -7,7 +7,7 @@ module ValidationApi
 
       def call(external_account_id:, company_name:, spoken_company_name:, owner_name:, owner_email:)
         @client.post(
-          '/platform/accounts',
+          "/platform/accounts",
           headers: @client.admin_headers,
           body: {
             external_account_id: external_account_id,

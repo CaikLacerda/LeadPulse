@@ -2,9 +2,6 @@
 
 <div class="auth-shell auth-shell--login flex min-h-[calc(100vh-4rem)] flex-col md:min-h-screen md:flex-row">
   <div class="auth-copy auth-banner hidden w-1/2 flex-col justify-between overflow-hidden bg-blue-600 p-14 md:flex">
-    <div class="auth-orb auth-orb--slow absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-blue-500 opacity-40"></div>
-    <div class="auth-orb auth-orb--delay auth-orb--reverse absolute -right-24 -top-24 h-72 w-72 rounded-full bg-blue-700 opacity-30"></div>
-
     <a href="/" class="z-10 flex items-center gap-2 text-xl font-extrabold text-white"></a>
 
     <div class="z-10">
@@ -46,13 +43,13 @@
       <p class="mb-8 text-base text-gray-500">Digite o e-mail da sua conta para receber o link de redefinição.</p>
 
       <% if resource.errors.any? %>
-        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           <% resource.errors.full_messages.each do |msg| %>
             <p>• <%= msg %></p>
           <% end %>
         </div>
       <% elsif alert %>
-        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"><%= alert %></div>
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"><%= alert %></div>
       <% end %>
 
       <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
@@ -62,11 +59,11 @@
               autofocus: true,
               autocomplete: "email",
               placeholder: "voce@empresa.com",
-              class: "w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+              class: "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500" %>
         </div>
 
         <%= f.submit "Enviar instruções de redefinição",
-            class: "w-full cursor-pointer rounded-xl bg-blue-600 py-4 text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5 hover:bg-blue-700" %>
+            class: "w-full cursor-pointer rounded-lg bg-blue-600 py-4 text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5 hover:bg-blue-700" %>
       <% end %>
 
       <p class="mt-8 text-center text-sm text-gray-500">

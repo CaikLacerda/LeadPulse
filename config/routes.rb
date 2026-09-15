@@ -15,11 +15,11 @@ Rails.application.routes.draw do
     patch :lgpd, action: :update_lgpd
   end
 
-  resources :privacy_requests, path: "lgpd/solicitacoes", only: [:index, :create, :update]
-  resources :third_party_operators, path: "lgpd/operadores", only: [:index, :create, :update, :destroy]
-  resources :privacy_audit_events, path: "lgpd/auditoria", only: [:index]
+  resources :privacy_requests, path: "lgpd/solicitacoes", only: [ :index, :create, :update ]
+  resources :third_party_operators, path: "lgpd/operadores", only: [ :index, :create, :update, :destroy ]
+  resources :privacy_audit_events, path: "lgpd/auditoria", only: [ :index ]
 
-  resources :supplier_imports, path: "dados", only: [:index, :show, :destroy] do
+  resources :supplier_imports, path: "dados", only: [ :index, :show, :destroy ] do
     member do
       post :start_validation
       post :sync_status
@@ -29,25 +29,37 @@ Rails.application.routes.draw do
     end
 
     collection do
-      get :export
       get :import
       post :preview_import
       post :create_import
-      get :academic_report
     end
   end
 
-  resources :supplier_discovery_searches, path: "busca", only: [:index, :create] do
+  resources :supplier_discovery_searches, path: "busca", only: [ :index, :create ] do
+    collection do
+      get :progress
+    end
     member do
       get :download_results
       post :create_segment_import
+      post :retry_search
+    end
+  end
+
+  resources :commercial_opportunities, path: "comercial", only: [ :index, :show ] do
+    member do
+      post :start
+      post :sync_status
+      get :export
     end
   end
 
   get "auditoria", to: "validation_audits#index", as: :validation_audits
   post "auditoria/revisoes", to: "validation_audit_reviews#create", as: :validation_audit_reviews
 
-  get 'for-devs', to: 'developer_docs#show', as: :developer_docs
+  get "for-devs", to: "developer_docs#show", as: :developer_docs
+  get "termos", to: "pages#terms", as: :terms
+  get "privacidade", to: "pages#privacy", as: :privacy
 
   root "pages#home"
 end

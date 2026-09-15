@@ -1,0 +1,29 @@
+<%= workspace_page(max_width: 'max-w-4xl') do %>
+  <%= workspace_page_header(
+    kicker: 'Uso da plataforma',
+    title: 'Termos de Serviço',
+    description: 'Condições para utilização do LeadPulse e de suas integrações.'
+  ) %>
+
+  <section class="workspace-portlet">
+    <div class="workspace-portlet-body space-y-6 text-sm leading-7 text-slate-700">
+      <div>
+        <h2 class="text-base font-black text-slate-950">Finalidade do serviço</h2>
+        <p>O LeadPulse organiza buscas de fornecedores, importações de dados, validações automatizadas por voz, auditoria e exportação de resultados. Alguns recursos dependem de serviços externos configurados pela organização usuária.</p>
+      </div>
+      <div>
+        <h2 class="text-base font-black text-slate-950">Responsabilidade da organização</h2>
+        <p>A organização é responsável pela origem legítima das bases enviadas, pela configuração dos provedores, pela definição da finalidade do tratamento e pelo uso dos resultados. Telefones e demais dados devem ser mantidos corretos e usados de acordo com a legislação aplicável.</p>
+      </div>
+      <div>
+        <h2 class="text-base font-black text-slate-950">Chamadas e integrações</h2>
+        <p>As chamadas dependem da Twilio e da OpenAI Realtime. A busca geográfica pode depender do Google Maps Platform. Indisponibilidades, limites e cobranças desses provedores seguem também as condições contratadas pela organização com cada serviço.</p>
+      </div>
+      <div>
+        <h2 class="text-base font-black text-slate-950">Uso adequado</h2>
+        <p>Não é permitido usar a plataforma para contato abusivo, fraude, envio de dados obtidos ilicitamente, tentativa de acesso a contas de terceiros ou qualquer atividade que viole direitos de titulares.</p>
+      </div>
+      <p class="border-t border-slate-200 pt-5 text-xs text-slate-500">Última atualização: julho de 2026.</p>
+    </div>
+  </section>
+<% end %>

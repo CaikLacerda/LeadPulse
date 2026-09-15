@@ -22,12 +22,12 @@ module ValidationApi
 
     def persist_account_snapshot!(response)
       @user.update!(
-        validation_account_id: response['id'],
-        validation_external_account_id: response['external_account_id'].presence || @user.validation_external_account_reference,
-        validation_company_name: response['company_name'].presence || @user.validation_company_name,
-        validation_spoken_company_name: response['spoken_company_name'].presence || @user.validation_spoken_company_name,
-        validation_owner_name: response['owner_name'].presence || @user.validation_owner_name,
-        validation_owner_email: response['owner_email'].presence || @user.validation_owner_email,
+        validation_account_id: response["id"],
+        validation_external_account_id: response["external_account_id"].presence || @user.validation_external_account_reference,
+        validation_company_name: response["company_name"].presence || @user.validation_company_name,
+        validation_spoken_company_name: response["spoken_company_name"].presence || @user.validation_spoken_company_name,
+        validation_owner_name: response["owner_name"].presence || @user.validation_owner_name,
+        validation_owner_email: response["owner_email"].presence || @user.validation_owner_email,
         validation_account_response: response
       )
     end

@@ -6,15 +6,41 @@ module SupplierImports
 
     COLUMN_LABELS = {
       "external_id" => "Registro",
+      "search" => "Código da busca",
+      "search_id" => "Código da busca",
       "client_name" => "Empresa",
       "supplier_name" => "Empresa",
+      "empresa" => "Empresa",
       "cnpj" => "CNPJ",
       "phone" => "Telefone",
+      "telefone" => "Telefone",
       "email" => "E-mail",
       "city" => "Cidade",
+      "cidade" => "Cidade",
       "state" => "UF",
+      "estado" => "UF",
+      "uf" => "UF",
       "notes" => "Observação",
+      "observacao" => "Observação",
       "segment_name" => "Segmento",
+      "segmento" => "Segmento",
+      "region" => "Região",
+      "regiao" => "Região",
+      "website" => "Site",
+      "address" => "Endereço",
+      "endereco" => "Endereço",
+      "latitude" => "Latitude",
+      "longitude" => "Longitude",
+      "google_maps_url" => "Link do Google Maps",
+      "google_place" => "ID do Google Places",
+      "google_place_id" => "ID do Google Places",
+      "openstreetmap_url" => "Link do OpenStreetMap",
+      "osm_place" => "ID do OpenStreetMap",
+      "osm_place_id" => "ID do OpenStreetMap",
+      "location_provider" => "Fonte da localização",
+      "location_precision" => "Precisão da localização",
+      "source_urls" => "Fontes consultadas",
+      "discovery_confidence" => "Confiança da busca",
       "callback_phone" => "Telefone de retorno",
       "callback_contact_name" => "Contato de retorno",
       "expected_result" => "Resultado esperado"
@@ -77,8 +103,8 @@ module SupplierImports
       warnings = []
       warnings << "Nenhuma linha válida foi encontrada no arquivo." if parsed.records.empty?
 
-      if supplier_validation? && (metadata[:segment_name].blank? || metadata[:callback_phone].blank?)
-        warnings << "Para lote de segmento, a planilha precisa trazer segmento e telefone de retorno."
+      if supplier_validation? && metadata[:segment_name].blank?
+        warnings << "Para lote de segmento, a planilha precisa informar o segmento."
       end
 
       warnings

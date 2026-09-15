@@ -18,6 +18,6 @@ class PrivacyAuditEventsController < ApplicationController
   def require_lgpd_manager!
     return if current_user.can_manage_lgpd?
 
-    redirect_to root_path, alert: 'Seu perfil não possui permissão para consultar auditoria LGPD.'
+    redirect_to root_path, alert: "Seu perfil não possui permissão para consultar auditoria LGPD."
   end
 end

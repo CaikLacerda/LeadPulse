@@ -12,7 +12,7 @@ class CreatePrivacyAuditEvents < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :privacy_audit_events, [:user_id, :occurred_at]
-    add_index :privacy_audit_events, [:user_id, :action]
+    add_index :privacy_audit_events, [ :user_id, :occurred_at ]
+    add_index :privacy_audit_events, [ :user_id, :action ]
   end
 end

@@ -3,9 +3,10 @@ module ValidationApi
     class CreateSearchService < ValidationApi::AuthenticatedService
       def call(api_token:, payload:)
         authorized_post(
-          '/supplier-discovery',
+          "/supplier-discovery",
           api_token: api_token,
-          body: payload
+          body: payload,
+          timeout_ms: 120_000
         )
       end
     end

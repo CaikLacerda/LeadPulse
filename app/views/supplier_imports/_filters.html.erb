@@ -22,7 +22,9 @@
 
       <div class="flex gap-2">
         <%= workspace_link_button t('supplier_imports.index.filters.clear'), supplier_imports_path %>
-        <%= workspace_button_tag t('supplier_imports.index.filters.submit'), type: :submit %>
+        <%= workspace_button_tag type: :submit do %>
+          <%= workspace_icon(:filter) %><span><%= t('supplier_imports.index.filters.submit') %></span>
+        <% end %>
       </div>
     </div>
   <% end %>

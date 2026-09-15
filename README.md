@@ -1,105 +1,56 @@
-# 📞 Validador de Telefone de Fornecedores com IA Conversacional
+# LeadPulse
 
-> Trabalho de Conclusão de Curso (TCC) — Sistema web para validação de telefones de fornecedores utilizando IA conversacional.
+Plataforma web de prospecção B2B que encontra fornecedores por segmento e região, organiza lotes, valida contatos por chamadas automatizadas e devolve resultados auditáveis para a operação comercial.
 
----
+## Recursos
 
-## 📋 Sobre o Projeto
+- Busca de fornecedores com endereço, coordenadas e vínculo direto com o Google Maps.
+- Importação e conferência de planilhas cadastrais ou de qualificação de fornecedores.
+- Validação por voz com aviso de chamada automatizada, transcrição e tratamento de recusa.
+- Acompanhamento de status, auditoria humana, exportação e anonimização de evidências.
+- Política LGPD por conta, com base legal, finalidade e prazo de retenção.
+- Integração externa por Bearer token com a API de validação.
 
-Este projeto consiste em um sistema web que permite aos usuários validar telefones de fornecedores por meio de uma IA conversacional integrada. A plataforma oferece uma interface amigável para acesso ao serviço, com controle de autenticação de usuários e gestão de planos de assinatura.
+## Arquitetura
 
-O frontend é construído com **Vue.js integrado ao Rails**, sem separação em aplicação independente.
+O Rails é responsável pela experiência web, autenticação, organização dos lotes e espelhamento do estado operacional. A API `api_confaith_ai` mantém credenciais dos provedores, executa busca e validação, integra Twilio e OpenAI Realtime e processa eventos assíncronos por SQS.
 
----
+Em produção, a API usa PostgreSQL, migrations Alembic e o padrão outbox/inbox para publicação idempotente de eventos. O web usa PostgreSQL e sincroniza o status dos lotes periodicamente e sob demanda.
 
-## 🚀 Tecnologias Utilizadas
+## Stack
 
-- **Ruby on Rails** — Framework principal (backend e renderização de views)
-- **Vue.js** — Componentes interativos integrados ao Rails
-- **PostgreSQL** — Banco de dados relacional
-- **IA Conversacional** — Serviço externo integrado via API para validação dos telefones
+- Ruby on Rails 8, Hotwire, Stimulus e Tailwind CSS
+- PostgreSQL 16
+- FastAPI, SQLAlchemy e Alembic
+- Amazon SQS
+- Twilio Voice e Media Streams
+- OpenAI Realtime
+- Leaflet, OpenStreetMap e Nominatim para mapas e localização
 
----
-
-## ✨ Funcionalidades
-
-- [x] Autenticação e controle de acesso de usuários (login/logout/registro)
-- [ ] Gerenciamento de planos de assinatura *(em desenvolvimento)*
-- [ ] Integração com serviço de IA conversacional *(em desenvolvimento)*
-- [ ] Validação de telefones de fornecedores via chat com IA *(em desenvolvimento)*
-- [ ] Dashboard de histórico de validações *(em desenvolvimento)*
-- [ ] Relatórios e exportação de dados *(planejado)*
-
----
-
-## 🏗️ Arquitetura do Sistema
-
-```
-┌──────────────────────────────────┐        ┌──────────────────────┐
-│         Ruby on Rails            │ ──────▶│  Serviço de IA       │
-│  (Views + Vue.js + API interna)  │        │  Conversacional      │
-└──────────────────┬───────────────┘        └──────────────────────┘
-                   │
-          ┌────────▼────────┐
-          │   PostgreSQL    │
-          └─────────────────┘
-```
-
----
-
-## ⚙️ Como Executar o Projeto
-
-### Pré-requisitos
-
-- Ruby >= 3.3.10
-- Rails >= 8.1.2
-- Node.js >= 18.19.1
-- PostgreSQL >= 16.13
-- Yarn ou npm
-
-### Instalação
+## Execução local
 
 ```bash
-# Clone o repositório
-git clone https://github.com/CaikLacerda/leadpulse.git
-cd leadpulse
-```
-
-```bash
+docker compose -f compose.local.yml up -d db
 bundle install
-npm install        # ou yarn install
-cp .env.example .env   # configure as variáveis de ambiente
-rails db:create db:migrate db:seed
-rails server
+bin/rails db:prepare
+bin/dev
 ```
 
----
+Configure `VALIDATION_API_BASE_URL` no `.env` do web. Em produção, forneça também `RAILS_MASTER_KEY` pelo gerenciador de segredos da infraestrutura. As credenciais de Twilio e OpenAI pertencem à API e devem ser configuradas no ambiente da `api_confaith_ai`. O mapa usa OpenStreetMap e não exige chave no navegador.
 
-## 📁 Estrutura do Projeto
+### Busca assíncrona local
 
+No ambiente de desenvolvimento, a busca de fornecedores usa o `ActiveJob` com o adaptador `async` do Rails. Ao iniciar uma busca, o registro aparece imediatamente como **Na fila**, muda para **Processando** e a tela acompanha o estado até **Concluída** ou **Falhou**. O navegador permanece livre enquanto o job chama a API.
+
+Não é necessário iniciar um worker adicional: o job roda dentro do processo iniciado por `bin/dev`. Mantenha também a API `api_confaith_ai` em execução na URL definida por `VALIDATION_API_BASE_URL`. Como a fila local fica em memória, reiniciar o Rails durante uma busca interrompe esse job; em produção, o projeto usa uma fila persistente.
+
+## Verificação
+
+```bash
+bin/rails db:test:prepare test
+bin/rails test:system
+bin/rubocop
+bin/brakeman --no-pager
+bin/bundler-audit
+bin/importmap audit
 ```
-.
-├── app/
-│   ├── controllers/
-│   ├── models/
-│   ├── services/
-│   ├── views/
-│   └── javascript/       # Componentes Vue.js
-│       └── components/
-├── config/
-├── db/
-└── README.md
-```
-
----
-
-## 👤 Autor
-
-Desenvolvido como Trabalho de Conclusão de Curso.
-
-- **Responsável pelo sistema web:** Caik Lacerda
-- **Instituição:** FHO - Uniararas
-- **Curso:** Sistemas de Informacao
-- **Ano:** 2026
-
----

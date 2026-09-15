@@ -4,12 +4,13 @@ class ValidationAuditsController < ApplicationController
   PER_PAGE = 5
 
   before_action :authenticate_user!
+  before_action :require_evidence_access!
 
   def index
     if current_user.can_view_evidence?
       PrivacyAudit::Logger.log!(
         user: current_user,
-        action: 'validation_audit_evidence_viewed',
+        action: "validation_audit_evidence_viewed",
         metadata: { query: params[:q].presence, page: params[:page].presence }
       )
     end
@@ -26,6 +27,12 @@ class ValidationAuditsController < ApplicationController
 
   private
 
+  def require_evidence_access!
+    return if current_user.can_view_evidence?
+
+    redirect_to root_path, alert: "Seu perfil não possui permissão para visualizar auditorias."
+  end
+
   def filter_entries(entries)
     return entries if params[:q].blank?
 
@@ -40,7 +47,7 @@ class ValidationAuditsController < ApplicationController
         entry.summary,
         entry.customer_transcript,
         entry.assistant_transcript
-      ].compact.join(' ').downcase.include?(query)
+      ].compact.join(" ").downcase.include?(query)
     end
   end
 end

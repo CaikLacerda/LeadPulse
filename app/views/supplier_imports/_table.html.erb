@@ -1,6 +1,6 @@
 <% table_meta = content_tag(:span, t('supplier_imports.index.table.count', count: @imports_total_count), class: 'workspace-portlet-meta') %>
 
-<%= portlet_form(t('supplier_imports.index.table.title'), table_meta, data: { tutorial_id: 'imports-results' }, body_class: 'workspace-portlet-body--flush') do %>
+<%= portlet_form(t('supplier_imports.index.table.title'), table_meta, icon: :database, data: { tutorial_id: 'imports-results' }, body_class: 'workspace-portlet-body--flush') do %>
   <div class="overflow-x-auto overflow-y-visible">
     <table class="workspace-table">
       <thead>
@@ -21,7 +21,7 @@
         <% if @imports.any? %>
           <% @imports.each do |import| %>
             <tr>
-              <td><%= workspace_code_tag(import.display_code, supplier_import_path(import)) %></td>
+              <td><%= workspace_code_tag(import.display_code, current_user.can_view_evidence? ? supplier_import_path(import) : nil) %></td>
               <td><%= workspace_datetime_cell(import.created_at) %></td>
               <td class="font-medium text-slate-700"><%= import.source_label %></td>
               <td class="font-medium text-slate-700"><%= import.workflow_kind_label %></td>
@@ -31,37 +31,44 @@
               <td><%= workspace_status_tag(import.status) %></td>
 
               <td class="whitespace-nowrap">
+                <% can_act =
+                  (import.startable? || import.syncable?) && current_user.can_start_validation? ||
+                  import.ready_to_export? && current_user.can_export_data? ||
+                  import.destroyable? && current_user.can_import_data? %>
+                <% if can_act %>
                 <details data-controller="action-menu" class="relative inline-block">
                   <summary class="workspace-summary-button">
                     <%= t('supplier_imports.index.actions.label') %>
                   </summary>
 
                   <div class="workspace-menu absolute right-0 top-[calc(100%+0.25rem)] z-20 w-44 p-1">
-                    <% if import.errored? %>
+                    <% if import.errored? && current_user.can_start_validation? %>
                       <%= button_to start_validation_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
                         <%= t('supplier_imports.index.actions.restart') %>
                       <% end %>
 
-                      <%= button_to supplier_import_path(import),
+                      <% if current_user.can_import_data? %>
+                        <%= button_to supplier_import_path(import),
                           method: :delete,
                           form: { data: { turbo_confirm: t('supplier_imports.index.confirm.message'), turbo_confirm_title: t('supplier_imports.index.confirm.title'), turbo_confirm_confirm_label: t('supplier_imports.index.confirm.confirm'), turbo_confirm_cancel_label: t('supplier_imports.index.confirm.cancel') } },
                           class: 'workspace-menu-item workspace-menu-item--danger' do %>
-                        <%= t('supplier_imports.index.actions.delete') %>
+                          <%= t('supplier_imports.index.actions.delete') %>
+                        <% end %>
                       <% end %>
                     <% else %>
-                      <% if import.pending? %>
+                      <% if import.pending? && current_user.can_start_validation? %>
                         <%= button_to start_validation_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
                           <%= t('supplier_imports.index.actions.start') %>
                         <% end %>
                       <% end %>
 
-                      <% if import.syncable? %>
+                      <% if import.syncable? && current_user.can_start_validation? %>
                         <%= button_to sync_status_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
                           <%= t('supplier_imports.index.actions.sync') %>
                         <% end %>
                       <% end %>
 
-                      <% if import.ready_to_export? %>
+                      <% if import.ready_to_export? && current_user.can_export_data? %>
                         <%= link_to export_result_supplier_import_path(import), data: { turbo: false }, class: 'workspace-menu-item' do %>
                           <%= t('supplier_imports.index.actions.export_csv') %>
                         <% end %>
@@ -71,7 +78,7 @@
                         <% end %>
                       <% end %>
 
-                      <% if import.destroyable? %>
+                      <% if import.destroyable? && current_user.can_import_data? %>
                         <%= button_to supplier_import_path(import),
                             method: :delete,
                             form: { data: { turbo_confirm: t('supplier_imports.index.confirm.message'), turbo_confirm_title: t('supplier_imports.index.confirm.title'), turbo_confirm_confirm_label: t('supplier_imports.index.confirm.confirm'), turbo_confirm_cancel_label: t('supplier_imports.index.confirm.cancel') } },
@@ -82,16 +89,23 @@
                     <% end %>
                   </div>
                 </details>
+                <% else %>
+                  <span class="text-slate-400">—</span>
+                <% end %>
               </td>
             </tr>
           <% end %>
         <% else %>
-          <%= workspace_empty_table_row(colspan: 9, message: t('supplier_imports.index.table.empty')) do %>
-            <button type="button"
-                    data-action="import-modal#open"
-                    class="<%= workspace_button_class(:primary) %>">
-              <%= t('supplier_imports.messages.import_ready') %>
-            </button>
+          <% if current_user.can_import_data? %>
+            <%= workspace_empty_table_row(colspan: 9, message: t('supplier_imports.index.table.empty')) do %>
+              <button type="button"
+                      data-action="import-modal#open"
+                      class="<%= workspace_button_class(:primary) %>">
+                <%= t('supplier_imports.messages.import_ready') %>
+              </button>
+            <% end %>
+          <% else %>
+            <%= workspace_empty_table_row(colspan: 9, message: t('supplier_imports.index.table.empty')) %>
           <% end %>
         <% end %>
       </tbody>

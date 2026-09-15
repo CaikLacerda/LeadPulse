@@ -1,100 +1,62 @@
-require 'erb'
-require 'zip'
+require "caxlsx"
 
 module Spreadsheets
   class SimpleXlsxBuilder
-    XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'.freeze
+    DEFAULT_SHEET_NAME = "Planilha".freeze
+    MIN_COLUMN_WIDTH = 12
+    MAX_COLUMN_WIDTH = 42
 
     def initialize(sheet_name:, rows:)
-      @sheet_name = sheet_name.to_s.first(31).presence || 'Planilha'
-      @rows = Array(rows)
+      @sheet_name = sanitize_sheet_name(sheet_name)
+      @rows = Array(rows).map { |row| Array(row) }
     end
 
     def call
-      buffer = Zip::OutputStream.write_buffer do |zip|
-        write_entry(zip, '[Content_Types].xml', content_types_xml)
-        write_entry(zip, '_rels/.rels', root_rels_xml)
-        write_entry(zip, 'xl/workbook.xml', workbook_xml)
-        write_entry(zip, 'xl/_rels/workbook.xml.rels', workbook_rels_xml)
-        write_entry(zip, 'xl/worksheets/sheet1.xml', worksheet_xml)
+      package = Axlsx::Package.new
+      workbook = package.workbook
+      header_style = workbook.styles.add_style(
+        bg_color: "0F172A",
+        fg_color: "FFFFFF",
+        b: true,
+        alignment: { vertical: :center, wrap_text: true }
+      )
+      body_style = workbook.styles.add_style(
+        alignment: { vertical: :top, wrap_text: true }
+      )
+
+      workbook.add_worksheet(name: @sheet_name) do |sheet|
+        @rows.each_with_index do |row, index|
+          values = row.map { |value| value.nil? ? "" : value.to_s }
+          style = index.zero? ? header_style : body_style
+          sheet.add_row(
+            values,
+            types: Array.new(values.length, :string),
+            style: Array.new(values.length, style)
+          )
+        end
+
+        widths = column_widths
+        sheet.column_widths(*widths) if widths.any?
       end
 
-      buffer.string
+      package.to_stream.read
     end
 
     private
 
-    def write_entry(zip, path, content)
-      zip.put_next_entry(path)
-      zip.write(content)
+    def sanitize_sheet_name(sheet_name)
+      sanitized = sheet_name.to_s.gsub(/[\\\/?*\[\]:]/, " ").squish.first(31)
+      sanitized.presence || DEFAULT_SHEET_NAME
     end
 
-    def content_types_xml
-      <<~XML
-        #{XML_DECLARATION}
-        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-          <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-          <Default Extension="xml" ContentType="application/xml"/>
-          <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
-          <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
-        </Types>
-      XML
-    end
+    def column_widths
+      return [] if @rows.empty?
 
-    def root_rels_xml
-      <<~XML
-        #{XML_DECLARATION}
-        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
-        </Relationships>
-      XML
-    end
-
-    def workbook_xml
-      <<~XML
-        #{XML_DECLARATION}
-        <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
-                  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-          <sheets>
-            <sheet name="#{escape(@sheet_name)}" sheetId="1" r:id="rId1"/>
-          </sheets>
-        </workbook>
-      XML
-    end
-
-    def workbook_rels_xml
-      <<~XML
-        #{XML_DECLARATION}
-        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
-        </Relationships>
-      XML
-    end
-
-    def worksheet_xml
-      <<~XML
-        #{XML_DECLARATION}
-        <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-          <sheetData>
-            #{worksheet_rows_xml}
-          </sheetData>
-        </worksheet>
-      XML
-    end
-
-    def worksheet_rows_xml
-      @rows.map.with_index(1) do |row, row_index|
-        cells = Array(row).map do |value|
-          text = escape(value.to_s)
-          %(<c t="inlineStr"><is><t xml:space="preserve">#{text}</t></is></c>)
-        end.join
-
-        %(<row r="#{row_index}">#{cells}</row>)
-      end.join
-    end
-
-    def escape(value)
-      ERB::Util.html_escape(value)
+      column_count = @rows.map(&:length).max.to_i
+      Array.new(column_count) do |column_index|
+        content_width = @rows.filter_map { |row| row[column_index]&.to_s&.length }.max.to_i + 2
+        content_width.clamp(MIN_COLUMN_WIDTH, MAX_COLUMN_WIDTH)
+      end
     end
   end
 end

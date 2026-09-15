@@ -3,7 +3,7 @@ module ValidationApi
     class CreateBatchService < ValidationApi::AuthenticatedService
       def call(api_token:, payload:)
         authorized_post(
-          '/supplier-validations',
+          "/supplier-validations",
           api_token: api_token,
           body: payload
         )

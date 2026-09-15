@@ -1,0 +1,29 @@
+<%= workspace_page(max_width: 'max-w-4xl') do %>
+  <%= workspace_page_header(
+    kicker: 'Proteção de dados',
+    title: 'Política de Privacidade',
+    description: 'Como o LeadPulse trata dados de conta, lotes e evidências operacionais.'
+  ) %>
+
+  <section class="workspace-portlet">
+    <div class="workspace-portlet-body space-y-6 text-sm leading-7 text-slate-700">
+      <div>
+        <h2 class="text-base font-black text-slate-950">Dados tratados</h2>
+        <p>A plataforma trata dados da conta e da empresa, configurações operacionais, fornecedores importados ou encontrados, telefones, resultados de chamadas e, quando habilitado, transcrições e referências de gravação.</p>
+      </div>
+      <div>
+        <h2 class="text-base font-black text-slate-950">Finalidade e base legal</h2>
+        <p>A finalidade, a base legal, o aviso falado e o prazo de retenção são definidos pela organização responsável nas configurações LGPD e vinculados a cada lote enviado para a API.</p>
+      </div>
+      <div>
+        <h2 class="text-base font-black text-slate-950">Compartilhamento operacional</h2>
+        <p>Os dados necessários à execução podem passar pelos provedores configurados, incluindo infraestrutura de nuvem, telefonia, inteligência artificial, mapas e e-mail. A relação de operadores pode ser mantida pela organização na área LGPD.</p>
+      </div>
+      <div>
+        <h2 class="text-base font-black text-slate-950">Retenção, recusa e direitos</h2>
+        <p>Recusas podem bloquear novas chamadas para o mesmo número. Evidências podem ser anonimizadas por solicitação ou ao fim do prazo de retenção. Solicitações de acesso, correção, exclusão, anonimização e informação sobre compartilhamento são registradas pela organização responsável.</p>
+      </div>
+      <p class="border-t border-slate-200 pt-5 text-xs text-slate-500">Última atualização: julho de 2026.</p>
+    </div>
+  </section>
+<% end %>

@@ -6,19 +6,26 @@ module SupplierImports
     end
 
     def call
+      ensure_ownership!
       response = anonymize_remote_evidence if @user.validation_api_token_value.present? && @supplier_import.remote_batch_id.present?
       anonymized_payload = anonymize_payload(response.presence || @supplier_import.response_payload)
 
       @supplier_import.update!(
         response_payload: anonymized_payload,
         import_metadata: @supplier_import.import_metadata.merge(
-          'evidence_anonymized_at' => Time.current.iso8601
+          "evidence_anonymized_at" => Time.current.iso8601
         ),
         last_synced_at: Time.current
       )
     end
 
     private
+
+    def ensure_ownership!
+      return if @supplier_import.user_id == @user.id
+
+      raise ActiveRecord::RecordNotFound, "Lote não encontrado para esta conta."
+    end
 
     def anonymize_remote_evidence
       ValidationApi::Validations::AnonymizeEvidenceService.new.call(
@@ -29,11 +36,11 @@ module SupplierImports
 
     def anonymize_payload(payload)
       sanitized = (payload.presence || {}).deep_dup
-      sanitized['privacy_notice'] = (sanitized['privacy_notice'] || {}).merge(
-        'evidence_anonymized_at' => Time.current.iso8601
+      sanitized["privacy_notice"] = (sanitized["privacy_notice"] || {}).merge(
+        "evidence_anonymized_at" => Time.current.iso8601
       )
 
-      sanitized['records'] = Array(sanitized['records']).map do |record|
+      sanitized["records"] = Array(sanitized["records"]).map do |record|
         anonymize_record(record)
       end
 
@@ -42,14 +49,16 @@ module SupplierImports
 
     def anonymize_record(record)
       sanitized = record.deep_dup
-      sanitized['transcript_summary'] = nil
-      sanitized['customer_transcript'] = nil
-      sanitized['assistant_transcript'] = nil
-      sanitized['sentiment'] = nil
-      sanitized['privacy_refusal_reason'] = 'Detalhes anonimizados.' if sanitized['privacy_refusal_detected']
-      sanitized['evidence_anonymized'] = true
+      sanitized["transcript_summary"] = nil
+      sanitized["customer_transcript"] = nil
+      sanitized["assistant_transcript"] = nil
+      sanitized["conversation_turns"] = []
+      sanitized["sentiment"] = nil
+      sanitized["privacy_refusal_reason"] = "Detalhes anonimizados." if sanitized["privacy_refusal_detected"]
+      sanitized["evidence_anonymized"] = true
+      sanitized["observation"] = "Evidências de áudio/transcrição anonimizadas conforme política LGPD."
 
-      sanitized['call_attempts'] = Array(sanitized['call_attempts']).map do |attempt|
+      sanitized["call_attempts"] = Array(sanitized["call_attempts"]).map do |attempt|
         anonymize_attempt(attempt)
       end
 
@@ -58,14 +67,15 @@ module SupplierImports
 
     def anonymize_attempt(attempt)
       sanitized = attempt.deep_dup
-      sanitized['transcript_summary'] = nil
-      sanitized['customer_transcript'] = nil
-      sanitized['assistant_transcript'] = nil
-      sanitized['sentiment'] = nil
-      sanitized['recording_url'] = nil
-      sanitized['recording_sid'] = nil
-      sanitized['privacy_refusal_reason'] = 'Detalhes anonimizados.' if sanitized['privacy_refusal_detected']
-      sanitized['observation'] = 'Evidências de áudio/transcrição anonimizadas conforme política LGPD.'
+      sanitized["transcript_summary"] = nil
+      sanitized["customer_transcript"] = nil
+      sanitized["assistant_transcript"] = nil
+      sanitized["conversation_turns"] = []
+      sanitized["sentiment"] = nil
+      sanitized["recording_url"] = nil
+      sanitized["recording_sid"] = nil
+      sanitized["privacy_refusal_reason"] = "Detalhes anonimizados." if sanitized["privacy_refusal_detected"]
+      sanitized["observation"] = "Evidências de áudio/transcrição anonimizadas conforme política LGPD."
       sanitized
     end
   end

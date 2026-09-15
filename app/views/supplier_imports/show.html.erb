@@ -20,7 +20,7 @@
   ) do %>
     <%= workspace_link_button t('.back'), supplier_imports_path %>
 
-    <% if @import.ready_to_export? %>
+    <% if @import.ready_to_export? && current_user.can_export_data? %>
       <%= workspace_link_button t('.export_csv'), export_result_supplier_import_path(@import), data: { turbo: false } %>
       <%= workspace_link_button t('.export_xlsx'), export_result_supplier_import_path(@import, format: :xlsx), variant: :primary, data: { turbo: false } %>
     <% end %>
@@ -79,7 +79,7 @@
       <div class="mt-4 flex flex-wrap items-center gap-3">
         <% if evidence_anonymized %>
           <span class="workspace-status workspace-status--info"><%= t('.evidence.anonymized') %></span>
-        <% else %>
+        <% elsif current_user.can_anonymize_evidence? %>
           <%= button_to t('.evidence.anonymize'),
               anonymize_evidence_supplier_import_path(@import),
               method: :post,

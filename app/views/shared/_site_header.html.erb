@@ -8,16 +8,19 @@
 <% workspace_items = [
   [:home, t('shared.header.workspace.home'), root_path(anchor: 'inicio')],
   [:search, t('shared.header.workspace.search'), supplier_discovery_searches_path],
-  [:validation, t('shared.header.workspace.validation'), supplier_imports_path]
+  [:validation, t('shared.header.workspace.validation'), supplier_imports_path],
+  [:commercial, t('shared.header.workspace.commercial'), commercial_opportunities_path]
 ] %>
-<% workspace_account_items = [
-  [:audit, t('shared.header.workspace.audit'), validation_audits_path],
-  [:settings, t('shared.header.workspace.settings'), company_platform_settings_path],
-  [:developer_docs, t('shared.header.workspace.developer_docs'), developer_docs_path]
-] %>
+<% workspace_account_items = [] %>
+<% workspace_account_items << [:audit, t('shared.header.workspace.audit'), validation_audits_path] if current_user&.can_view_evidence? %>
+<% workspace_account_items << [:settings, t('shared.header.workspace.settings'), company_platform_settings_path] if current_user&.can_manage_settings? %>
+<% workspace_account_items << [:developer_docs, t('shared.header.workspace.developer_docs'), developer_docs_path] if current_user %>
 <% nav_items = current_user ? workspace_items : marketing_items %>
 <% auth_page = local_assigns.fetch(:auth_page, false) %>
 <% current_path = request.path %>
+<% account_display_name = current_user&.validation_owner_name_value.presence || current_user&.email.to_s.split('@').first.presence || t('shared.header.session.account') %>
+<% account_initials = account_display_name.to_s.split(/\s+/).first(2).filter_map { |part| part[0] }.join.upcase.first(2).presence || 'LP' %>
+<% notifications = current_user ? workspace_notifications : [] %>
 <% workspace_section_active = lambda do |key|
   case key
   when :home
@@ -26,6 +29,8 @@
     current_path.start_with?(supplier_discovery_searches_path)
   when :validation
     current_path.start_with?(supplier_imports_path)
+  when :commercial
+    current_path.start_with?(commercial_opportunities_path)
   when :audit
     current_path.start_with?(validation_audits_path)
   when :settings
@@ -38,27 +43,88 @@
 end %>
 <% account_menu_active = current_user && workspace_account_items.any? { |key, _, _| workspace_section_active.call(key) } %>
 
-<header class="app-header-shell fixed top-0 left-0 right-0 z-50">
-  <div class="<%= auth_page ? 'w-full px-4 sm:px-6 lg:px-10' : 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8' %>" data-controller="nav">
+<header class="app-header-shell fixed top-0 left-0 right-0 z-50" role="banner">
+  <div class="<%= auth_page || current_user ? 'w-full px-4 sm:px-6 lg:px-8' : 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8' %>" data-controller="nav">
     <div class="app-header-inner flex min-h-[4.75rem] items-center gap-3 lg:gap-8">
       <%= link_to root_path(anchor: 'inicio'), class: 'app-brand flex shrink-0 items-center gap-3' do %>
-        <span class="app-brand-mark">⚡</span>
-        <span class="text-lg font-black tracking-tight"><span class="text-orange-500">Lead</span><span class="text-blue-600">Pulse</span></span>
+        <span class="app-brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M13.4 2 5.8 13h5L9.9 22l8.3-12h-5.1l.3-8Z" /></svg>
+        </span>
+        <span class="text-lg font-black"><span class="text-orange-500">Lead</span><span class="text-blue-600">Pulse</span></span>
       <% end %>
 
-      <nav class="hidden items-center gap-1 lg:flex">
+      <nav class="app-primary-nav hidden items-center gap-1 lg:flex" aria-label="Navegação principal">
         <% nav_items.each do |item| %>
           <% key, label, path = current_user ? item : [nil, item[0], item[1]] %>
           <% active = current_user ? workspace_section_active.call(key) : current_page?(path) %>
-          <%= link_to label, path, class: "app-top-link #{active ? 'app-top-link--active' : ''}" %>
+          <%= link_to path,
+              class: "app-top-link #{active ? 'app-top-link--active' : ''}",
+              aria: (active ? { current: 'page' } : {}) do %>
+            <%= workspace_icon(key, classes: 'app-top-link__icon') if current_user %>
+            <span><%= label %></span>
+          <% end %>
         <% end %>
       </nav>
 
       <div class="ml-auto hidden items-center gap-3 lg:flex">
         <% if current_user %>
+          <details data-controller="action-menu" class="app-notifications relative inline-block">
+            <summary class="app-notification-link" aria-label="Abrir notificações" title="Notificações">
+              <%= workspace_icon(:bell) %>
+              <% if notifications.any? %>
+                <span class="app-notification-badge"><%= notifications.size > 9 ? '9+' : notifications.size %></span>
+              <% end %>
+            </summary>
+
+            <div class="app-notification-menu absolute right-0 top-[calc(100%+0.65rem)] z-30">
+              <div class="app-notification-menu__header">
+                <div>
+                  <p class="app-notification-menu__title">Notificações</p>
+                  <p class="app-notification-menu__subtitle">Acompanhe os pontos importantes da operação.</p>
+                </div>
+                <% if notifications.any? %>
+                  <span class="app-notification-menu__count"><%= notifications.size %></span>
+                <% end %>
+              </div>
+
+              <div class="app-notification-menu__list">
+                <% if notifications.any? %>
+                  <% notifications.each do |notification| %>
+                    <%= link_to notification[:path], class: 'app-notification-item' do %>
+                      <span class="app-notification-item__icon app-notification-item__icon--<%= notification[:tone] %>">
+                        <%= workspace_icon(notification[:icon]) %>
+                      </span>
+                      <span class="app-notification-item__copy">
+                        <strong><%= notification[:title] %></strong>
+                        <span><%= notification[:body] %></span>
+                      </span>
+                      <span class="app-notification-item__arrow" aria-hidden="true">›</span>
+                    <% end %>
+                  <% end %>
+                <% else %>
+                  <div class="app-notification-empty">
+                    <span class="app-notification-empty__icon"><%= workspace_icon(:validation) %></span>
+                    <strong>Tudo em dia</strong>
+                    <span>Não há nenhuma pendência operacional agora.</span>
+                  </div>
+                <% end %>
+              </div>
+
+              <% if current_user.can_view_evidence? %>
+                <%= link_to validation_audits_path, class: 'app-notification-menu__footer' do %>
+                  <span>Ver histórico de auditoria</span><span aria-hidden="true">→</span>
+                <% end %>
+              <% end %>
+            </div>
+          </details>
+
           <details data-controller="action-menu" class="relative inline-block">
             <summary class="app-account-summary <%= 'app-account-summary--active' if account_menu_active %>">
-              <span class="app-account-summary__name"><%= current_user.validation_owner_name_value.split.first %></span>
+              <span class="app-account-avatar" aria-hidden="true"><%= account_initials %></span>
+              <span class="app-account-summary__identity">
+                <span class="app-account-summary__name"><%= account_display_name.to_s.split.first %></span>
+                <span class="app-account-summary__company"><%= current_user.validation_company_name_value %></span>
+              </span>
               <span class="app-account-summary__chevron" aria-hidden="true">⌄</span>
             </summary>
 

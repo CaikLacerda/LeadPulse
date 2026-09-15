@@ -11,6 +11,7 @@ module SupplierImports
       :observation,
       :customer_transcript,
       :assistant_transcript,
+      :conversation_turns,
       :summary,
       :provider_call_id,
       :attempt_number,
@@ -38,14 +39,14 @@ module SupplierImports
     private
 
     def entries_for_import(supplier_import)
-      Array(supplier_import.response_payload['records']).flat_map do |record|
-        call_attempts = Array(record['call_attempts'])
+      Array(supplier_import.response_payload["records"]).flat_map do |record|
+        call_attempts = Array(record["call_attempts"])
 
         if call_attempts.any?
           call_attempts.map { |attempt| build_attempt_entry(supplier_import, record, attempt) }.compact
         else
           fallback_entry = build_record_entry(supplier_import, record)
-          fallback_entry ? [fallback_entry] : []
+          fallback_entry ? [ fallback_entry ] : []
         end
       end
     end
@@ -57,29 +58,31 @@ module SupplierImports
         supplier_name: supplier_name_for(record),
         workflow_kind: supplier_import.workflow_kind,
         source: supplier_import.source,
-        occurred_at: parse_time(attempt['finished_at']) || parse_time(attempt['started_at']) || supplier_import.finished_at || supplier_import.created_at,
-        result_code: attempt['result'].presence || record['business_status'].presence || record['final_status'].presence,
-        observation: attempt['observation'].presence || record['observation'].presence,
-        customer_transcript: attempt['customer_transcript'].presence || record['customer_transcript'].presence,
-        assistant_transcript: attempt['assistant_transcript'].presence || record['assistant_transcript'].presence,
-        summary: attempt['transcript_summary'].presence || record['transcript_summary'].presence || record['observation'].presence,
-        provider_call_id: attempt['provider_call_id'],
-        attempt_number: attempt['attempt_number'],
-        recording_url: attempt['recording_url'],
-        privacy_refusal_detected: attempt['privacy_refusal_detected'].presence || record['privacy_refusal_detected'].presence,
-        privacy_refusal_reason: attempt['privacy_refusal_reason'].presence || record['privacy_refusal_reason'].presence,
-        evidence_anonymized: attempt['evidence_anonymized'].presence || record['evidence_anonymized'].presence,
-        record_external_id: record['external_id'],
-        review: review_for(supplier_import, record['external_id'], attempt['provider_call_id'], attempt['attempt_number'])
+        occurred_at: parse_time(attempt["finished_at"]) || parse_time(attempt["started_at"]) || supplier_import.finished_at || supplier_import.created_at,
+        result_code: attempt["result"].presence || record["business_status"].presence || record["final_status"].presence,
+        observation: attempt["observation"].presence || record["observation"].presence,
+        customer_transcript: attempt["customer_transcript"].presence || record["customer_transcript"].presence,
+        assistant_transcript: attempt["assistant_transcript"].presence || record["assistant_transcript"].presence,
+        conversation_turns: conversation_turns_for(attempt, record),
+        summary: attempt["transcript_summary"].presence || record["transcript_summary"].presence || record["observation"].presence,
+        provider_call_id: attempt["provider_call_id"],
+        attempt_number: attempt["attempt_number"],
+        recording_url: attempt["recording_url"],
+        privacy_refusal_detected: attempt["privacy_refusal_detected"].presence || record["privacy_refusal_detected"].presence,
+        privacy_refusal_reason: attempt["privacy_refusal_reason"].presence || record["privacy_refusal_reason"].presence,
+        evidence_anonymized: attempt["evidence_anonymized"].presence || record["evidence_anonymized"].presence,
+        record_external_id: record["external_id"],
+        review: review_for(supplier_import, record["external_id"], attempt["provider_call_id"], attempt["attempt_number"])
       )
     end
 
     def build_record_entry(supplier_import, record)
       return if [
-        record['customer_transcript'],
-        record['assistant_transcript'],
-        record['transcript_summary'],
-        record['observation']
+        record["customer_transcript"],
+        record["assistant_transcript"],
+        record["conversation_turns"],
+        record["transcript_summary"],
+        record["observation"]
       ].all?(&:blank?)
 
       Entry.new(
@@ -88,20 +91,21 @@ module SupplierImports
         supplier_name: supplier_name_for(record),
         workflow_kind: supplier_import.workflow_kind,
         source: supplier_import.source,
-        occurred_at: parse_time(record['finished_at']) || supplier_import.finished_at || supplier_import.created_at,
-        result_code: record['call_result'].presence || record['business_status'].presence || record['final_status'].presence,
-        observation: record['observation'].presence,
-        customer_transcript: record['customer_transcript'],
-        assistant_transcript: record['assistant_transcript'],
-        summary: record['transcript_summary'].presence || record['observation'].presence,
+        occurred_at: parse_time(record["finished_at"]) || supplier_import.finished_at || supplier_import.created_at,
+        result_code: record["call_result"].presence || record["business_status"].presence || record["final_status"].presence,
+        observation: record["observation"].presence,
+        customer_transcript: record["customer_transcript"],
+        assistant_transcript: record["assistant_transcript"],
+        conversation_turns: conversation_turns_for(record),
+        summary: record["transcript_summary"].presence || record["observation"].presence,
         provider_call_id: nil,
         attempt_number: nil,
         recording_url: nil,
-        privacy_refusal_detected: record['privacy_refusal_detected'],
-        privacy_refusal_reason: record['privacy_refusal_reason'],
-        evidence_anonymized: record['evidence_anonymized'],
-        record_external_id: record['external_id'],
-        review: review_for(supplier_import, record['external_id'], nil, nil)
+        privacy_refusal_detected: record["privacy_refusal_detected"],
+        privacy_refusal_reason: record["privacy_refusal_reason"],
+        evidence_anonymized: record["evidence_anonymized"],
+        record_external_id: record["external_id"],
+        review: review_for(supplier_import, record["external_id"], nil, nil)
       )
     end
 
@@ -121,11 +125,34 @@ module SupplierImports
         record_external_id.to_s,
         provider_call_id.to_s,
         attempt_number.to_s
-      ].join(':')
+      ].join(":")
+    end
+
+    def conversation_turns_for(primary, fallback = nil)
+      raw_turns = primary["conversation_turns"].presence || fallback&.dig("conversation_turns")
+
+      Array(raw_turns).filter_map do |raw_turn|
+        next unless raw_turn.respond_to?(:to_h)
+
+        turn = raw_turn.to_h.stringify_keys
+        next unless %w[user assistant].include?(turn["role"])
+        next if turn["transcript"].blank?
+
+        turn.slice(
+          "sequence",
+          "role",
+          "transcript",
+          "question_id",
+          "semantic_value",
+          "confidence",
+          "interrupted",
+          "audio_played_ms"
+        )
+      end
     end
 
     def supplier_name_for(record)
-      record['client_name'].presence || record['company_name'].presence || record['external_id'].presence || 'Registro'
+      record["client_name"].presence || record["company_name"].presence || record["external_id"].presence || "Registro"
     end
 
     def parse_time(value)

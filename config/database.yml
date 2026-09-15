@@ -20,16 +20,16 @@ default: &default
 development:
   <<: *default
   database: <%= ENV.fetch("LEADPULSE_DB_NAME", "leadpulse_development") %>
-  username: <%= ENV.fetch("LEADPULSE_DB_USER", "clacerda") %>
-  password: <%= ENV.fetch("LEADPULSE_DB_PASSWORD", "123456") %>
+  username: <%= ENV.fetch("LEADPULSE_DB_USER", "leadpulse") %>
+  password: <%= ENV.fetch("LEADPULSE_DB_PASSWORD", "leadpulse_local") %>
   host: <%= ENV.fetch("LEADPULSE_DB_HOST", "127.0.0.1") %>
   port: <%= ENV.fetch("LEADPULSE_DB_PORT", 55432) %>
 
 test:
   <<: *default
   database: leadpulse_test
-  username: <%= ENV.fetch("LEADPULSE_DB_USER", "clacerda") %>
-  password: <%= ENV.fetch("LEADPULSE_DB_PASSWORD", "123456") %>
+  username: <%= ENV.fetch("LEADPULSE_DB_USER", "leadpulse") %>
+  password: <%= ENV.fetch("LEADPULSE_DB_PASSWORD", "leadpulse_local") %>
   host: <%= ENV.fetch("LEADPULSE_DB_HOST", "127.0.0.1") %>
   port: <%= ENV.fetch("LEADPULSE_DB_PORT", 55432) %>
 

@@ -15,6 +15,9 @@ export default class extends BaseModalController {
     "cadastralCard",
     "supplierCard",
     "separatorInput",
+    "fileSelected",
+    "fileName",
+    "fileMeta",
     "previewSection",
     "previewMeta",
     "previewState",
@@ -40,6 +43,7 @@ export default class extends BaseModalController {
     previewUrl: String,
     previewLoadingLabel: String,
     previewGenericErrorLabel: String,
+    previewEmptyLabel: String,
     previewReadyLabel: String,
     previewBlockedLabel: String,
     previewTotalLabel: String,
@@ -123,18 +127,49 @@ export default class extends BaseModalController {
   showFile(file) {
     if (!file) {
       this.labelTarget.textContent = this.defaultLabelValue
-      this.dropzoneTarget.classList.remove("border-green-400", "bg-green-50")
+      this.hideSelectedFile()
+      this.dropzoneTarget.classList.remove("border-green-400", "bg-green-50", "bg-blue-50")
       this.dropzoneTarget.classList.add("border-blue-300")
       this.resetPreview()
       this.updateSubmitState(null)
       return
     }
 
-    this.labelTarget.textContent = this.selectedLabelTemplateValue.replace("%{name}", file.name)
-    this.dropzoneTarget.classList.remove("border-blue-300")
-    this.dropzoneTarget.classList.add("border-green-400", "bg-green-50")
+    this.labelTarget.textContent = this.defaultLabelValue
+    this.fileNameTarget.textContent = file.name
+    this.fileMetaTarget.textContent = this.formatFileMeta(file)
+    this.fileSelectedTarget.classList.remove("hidden")
+    this.dropzoneTarget.classList.remove("border-green-400", "bg-green-50", "bg-blue-50")
+    this.dropzoneTarget.classList.add("border-blue-300")
     this.schedulePreviewRefresh()
     this.updateSubmitState(file)
+  }
+
+  removeFile(event) {
+    event.preventDefault()
+    event.stopPropagation()
+    this.fileInputTarget.value = ""
+    this.showFile(null)
+  }
+
+  hideSelectedFile() {
+    if (!this.hasFileSelectedTarget) return
+
+    this.fileSelectedTarget.classList.add("hidden")
+    if (this.hasFileNameTarget) this.fileNameTarget.textContent = ""
+    if (this.hasFileMetaTarget) this.fileMetaTarget.textContent = ""
+  }
+
+  formatFileSize(bytes) {
+    const size = Number(bytes || 0)
+    if (size < 1024) return `${size} B`
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1).replace(".0", "")} KB`
+    return `${(size / (1024 * 1024)).toFixed(1).replace(".0", "")} MB`
+  }
+
+  formatFileMeta(file) {
+    const extension = file?.name?.split(".").pop()?.toLocaleUpperCase("pt-BR") || "ARQUIVO"
+    return `${this.formatFileSize(file?.size)} • ${extension}`
   }
 
   updateSubmitState(file) {
@@ -213,6 +248,15 @@ export default class extends BaseModalController {
 
       this.previewLoading = false
       const preview = payload?.preview || {}
+
+      if (this.shouldUseSupplierWorkflow(preview)) {
+        this.supplierRadioTarget.checked = true
+        this.cadastralRadioTarget.checked = false
+        this.updateWorkflowState()
+        this.schedulePreviewRefresh()
+        return
+      }
+
       this.previewAllowed = Boolean(preview.import_allowed)
       this.renderPreview(preview)
       this.updateSubmitState(this.selectedFile)
@@ -241,6 +285,19 @@ export default class extends BaseModalController {
       : preview.warnings?.[0] || this.previewBlockedLabelValue
 
     this.setPreviewState(preview.import_allowed ? "success" : "warning", stateMessage)
+  }
+
+  shouldUseSupplierWorkflow(preview) {
+    if (this.supplierRadioTarget.checked) return false
+
+    const columns = this.asArray(preview?.columns).map((column) =>
+      String(this.previewItemValue(column) || "").toLocaleLowerCase("pt-BR")
+    )
+    const hasSegment = columns.some((column) => column.includes("segmento"))
+    const hasDiscoveryOrigin = columns.some((column) =>
+      ["código da busca", "região", "link do google maps", "fontes consultadas"].includes(column)
+    )
+    return hasSegment && hasDiscoveryOrigin
   }
 
   renderPreviewSummary(preview) {
@@ -346,8 +403,8 @@ export default class extends BaseModalController {
     const rows = this.asArray(preview.invalid_rows_preview)
 
     if (!rows.length) {
-      this.previewInvalidsTarget.innerHTML = `<p class="import-preview__empty">${this.escapeHtml(this.previewNoInvalidRowsLabelValue)}</p>`
-      this.previewInvalidsSectionTarget.classList.remove("hidden")
+      this.previewInvalidsTarget.innerHTML = ""
+      this.previewInvalidsSectionTarget.classList.add("hidden")
       return
     }
 
@@ -406,13 +463,13 @@ export default class extends BaseModalController {
     this.previewAllowed = false
 
     if (this.hasPreviewSectionTarget) {
-      this.previewSectionTarget.classList.add("hidden")
+      this.previewSectionTarget.classList.remove("hidden")
     }
 
     if (this.hasPreviewMetaTarget) this.previewMetaTarget.textContent = ""
     if (this.hasPreviewStateTarget) {
-      this.previewStateTarget.textContent = ""
-      this.previewStateTarget.className = "import-preview__state hidden"
+      this.previewStateTarget.textContent = this.previewEmptyLabelValue
+      this.previewStateTarget.className = "import-preview__state import-preview__state--empty"
     }
     if (this.hasPreviewSummaryTarget) {
       this.previewSummaryTarget.innerHTML = ""

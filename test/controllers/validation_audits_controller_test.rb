@@ -31,7 +31,22 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
                 "finished_at" => "2026-04-03T10:05:00Z",
                 "customer_transcript" => "Pode falar.",
                 "assistant_transcript" => "Estamos validando o segmento.",
-                "transcript_summary" => "Cliente confirmou continuidade."
+                "transcript_summary" => "Cliente confirmou continuidade.",
+                "conversation_turns" => [
+                  {
+                    "sequence" => 1,
+                    "role" => "assistant",
+                    "transcript" => "Esse contato pertence à empresa?",
+                    "question_id" => "phone_belongs"
+                  },
+                  {
+                    "sequence" => 2,
+                    "role" => "user",
+                    "transcript" => "Sim, pertence.",
+                    "question_id" => "phone_belongs",
+                    "semantic_value" => "confirmed"
+                  }
+                ]
               }
             ]
           }
@@ -54,8 +69,12 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: /Auditoria/
     assert_select "*", text: /Fornecedor Exemplo/
-    assert_select "*", text: /Pode falar/
-    assert_select "*", text: /Estamos validando o segmento/
+    assert_select "[data-testid='chronological-conversation']", count: 1
+    assert_select "*", text: /Esse contato pertence à empresa\?/
+    assert_select "*", text: /Sim, pertence\./
+    assert_operator response.body.index("Esse contato pertence à empresa?"), :<,
+      response.body.index("Sim, pertence.")
+    assert_no_match(/Pode falar\./, response.body)
   end
 
   test "creates human review for audit entry" do
@@ -80,5 +99,15 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
     assert_equal @supplier_import, review.supplier_import
     assert_equal "qualified_supplier", review.reviewed_result
     assert_redirected_to validation_audits_url
+  end
+
+  test "viewer cannot open audit evidence by direct url" do
+    @user.update!(role: "viewer")
+    post user_session_url, params: { user: { email: @user.email, password: @password } }
+
+    get validation_audits_url
+
+    assert_redirected_to root_url
+    assert_equal "Seu perfil não possui permissão para visualizar auditorias.", flash[:alert]
   end
 end

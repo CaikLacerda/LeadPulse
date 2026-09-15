@@ -13,7 +13,7 @@
 
             <div>
               <%= render 'field_label', form: f, field: :validation_twilio_auth_token, text: 'Auth Token', help: 'Chave secreta usada para autenticar as requisições da Twilio.', required: true %>
-              <%= f.password_field :validation_twilio_auth_token, value: current_user.validation_twilio_auth_token, class: 'settings-input', required: true %>
+              <%= f.password_field :validation_twilio_auth_token, value: nil, placeholder: 'Informe o Auth Token para salvar', autocomplete: 'new-password', class: 'settings-input', required: true %>
             </div>
           </div>
 

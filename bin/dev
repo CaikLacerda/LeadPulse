@@ -58,20 +58,43 @@ fi
 echo "Preparando o banco de dados..."
 bundle exec rails db:prepare
 
+# Default to port 3000 if not specified
+export PORT="${PORT:-3000}"
+
 SERVER_PID_FILE="$APP_ROOT/tmp/pids/server.pid"
 if [[ -f "$SERVER_PID_FILE" ]]; then
   existing_pid="$(cat "$SERVER_PID_FILE")"
 
   if [[ -n "$existing_pid" ]] && kill -0 "$existing_pid" >/dev/null 2>&1; then
-    echo "O LeadPulse já está rodando no processo $existing_pid."
-    exit 1
+    process_cwd="$(readlink -f "/proc/$existing_pid/cwd" 2>/dev/null || true)"
+    process_args="$(ps -p "$existing_pid" -o args= 2>/dev/null || true)"
+
+    if [[ "$process_cwd" == "$APP_ROOT" ]] && [[ "$process_args" == *puma* ]]; then
+      echo "Aguardando o processo anterior finalizar..."
+
+      for _attempt in {1..10}; do
+        if curl --silent --fail --max-time 1 "http://127.0.0.1:${PORT}/up" >/dev/null 2>&1; then
+          echo "O LeadPulse já está rodando no processo $existing_pid em http://127.0.0.1:${PORT}."
+          exit 1
+        fi
+
+        if ! kill -0 "$existing_pid" >/dev/null 2>&1; then
+          break
+        fi
+
+        sleep 0.5
+      done
+    fi
+
+    if kill -0 "$existing_pid" >/dev/null 2>&1 && [[ "$process_cwd" == "$APP_ROOT" ]] && [[ "$process_args" == *puma* ]]; then
+      echo "O processo $existing_pid ainda está ativo, mas o LeadPulse não responde na porta ${PORT}."
+      echo "Aguarde alguns segundos e execute bin/dev novamente."
+      exit 1
+    fi
   fi
 
   rm -f "$SERVER_PID_FILE"
 fi
-
-# Default to port 3000 if not specified
-export PORT="${PORT:-3000}"
 
 # Let the debug gem allow remote connections,
 # but avoid loading until `debugger` is called

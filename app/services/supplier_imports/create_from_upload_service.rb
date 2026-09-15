@@ -1,10 +1,10 @@
-require 'securerandom'
+require "securerandom"
 
 module SupplierImports
   class CreateFromUploadService
     Result = Struct.new(:success?, :import, :error_message, keyword_init: true)
 
-    def initialize(user:, file:, separator: ',', workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL, segment_name: nil, callback_phone: nil, callback_contact_name: nil, privacy_notice: {})
+    def initialize(user:, file:, separator: ",", workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL, segment_name: nil, callback_phone: nil, callback_contact_name: nil, privacy_notice: {})
       @user = user
       @file = file
       @separator = separator
@@ -32,8 +32,15 @@ module SupplierImports
 
       validate_workflow_requirements!(resolved_segment_metadata)
 
+      if records_for_request.empty? && privacy_blocked_records.any?
+        return Result.new(
+          success?: false,
+          error_message: "Todos os números válidos desse arquivo estão bloqueados por uma recusa LGPD anterior."
+        )
+      end
+
       if parsed.records.empty? || records_for_request.empty?
-        return Result.new(success?: false, error_message: 'Nenhuma linha válida foi encontrada no arquivo.')
+        return Result.new(success?: false, error_message: "Nenhuma linha válida foi encontrada no arquivo.")
       end
 
       batch_id = generate_batch_id
@@ -75,8 +82,8 @@ module SupplierImports
     def validate_workflow_requirements!(resolved_segment_metadata)
       return unless @workflow_kind == SupplierImport::WORKFLOW_KIND_SUPPLIER
 
-      if resolved_segment_metadata[:segment_name].blank? || resolved_segment_metadata[:callback_phone].blank?
-        raise ArgumentError, 'Para importar um lote de segmento, use a planilha baixada na Busca de fornecedores.'
+      if resolved_segment_metadata[:segment_name].blank?
+        raise ArgumentError, "Para importar um lote de segmento, use a planilha baixada na Busca de fornecedores."
       end
     end
 
@@ -95,9 +102,7 @@ module SupplierImports
       return base unless @workflow_kind == SupplierImport::WORKFLOW_KIND_SUPPLIER
 
       base.merge(
-        segment_name: resolved_segment_metadata[:segment_name],
-        callback_phone: SupplierImports::PhoneStandard.e164(resolved_segment_metadata[:callback_phone]),
-        callback_contact_name: resolved_segment_metadata[:callback_contact_name].presence
+        segment_name: resolved_segment_metadata[:segment_name]
       ).compact
     end
 
@@ -119,9 +124,9 @@ module SupplierImports
 
     def records_for_request(records)
       records.map do |record|
-        record.except(:expected_result, 'expected_result', :manual_validation_seconds, 'manual_validation_seconds').tap do |payload_record|
+        record.except(:expected_result, "expected_result", :manual_validation_seconds, "manual_validation_seconds").tap do |payload_record|
           payload_record[:phone] = SupplierImports::PhoneStandard.e164(payload_record[:phone])
-          payload_record['phone'] = SupplierImports::PhoneStandard.e164(payload_record['phone']) if payload_record.key?('phone')
+          payload_record["phone"] = SupplierImports::PhoneStandard.e164(payload_record["phone"]) if payload_record.key?("phone")
         end
       end
     end
@@ -131,19 +136,19 @@ module SupplierImports
 
       blocked_numbers = SupplierImports::PrivacyRefusalRegistry.blocked_phone_numbers_for(@user)
       records.select do |record|
-        SupplierImports::PrivacyRefusalRegistry.blocked?(record[:phone] || record['phone'], blocked_numbers)
+        SupplierImports::PrivacyRefusalRegistry.blocked?(record[:phone] || record["phone"], blocked_numbers)
       end
     end
 
     def reference_labels(records)
       records.filter_map do |record|
-        expected_result = record[:expected_result].presence || record['expected_result'].presence
+        expected_result = record[:expected_result].presence || record["expected_result"].presence
         next if expected_result.blank?
 
         {
-          external_id: record[:external_id].presence || record['external_id'],
+          external_id: record[:external_id].presence || record["external_id"],
           expected_result: expected_result,
-          manual_validation_seconds: record[:manual_validation_seconds].presence || record['manual_validation_seconds'].presence
+          manual_validation_seconds: record[:manual_validation_seconds].presence || record["manual_validation_seconds"].presence
         }.compact
       end
     end

@@ -21,7 +21,7 @@
 
   <body class="min-h-screen bg-white text-gray-900 <%= 'app-shell--authenticated' if user_signed_in? %>">
     <%= render 'shared/site_header', auth_page: false %>
-    <main class="pt-16 md:pt-20">
+    <main class="app-main pt-16 md:pt-20">
       <% visible_flashes = controller_name == 'platform_settings' ? {} : flash.to_hash.except('generated_api_token').select { |_, message| message.present? } %>
       <% if visible_flashes.any? %>
         <div class="app-flash-overlay px-4 sm:px-6 lg:px-8">

@@ -1,4 +1,4 @@
-require 'securerandom'
+require "securerandom"
 
 module SupplierDiscoverySearches
   class CreateSupplierImportService
@@ -10,8 +10,16 @@ module SupplierDiscoverySearches
     end
 
     def call
+      return ownership_error unless @search.user_id == @user.id
+
       records = filter_privacy_blocked_records(@search.valid_supplier_candidates)
-      return Result.new(success?: false, error_message: 'Essa busca não possui fornecedores com nome e telefone para validar.') if records.empty?
+      if records.empty? && privacy_blocked_records_count.positive?
+        return Result.new(
+          success?: false,
+          error_message: "Todos os fornecedores dessa busca estão bloqueados por uma recusa LGPD anterior."
+        )
+      end
+      return Result.new(success?: false, error_message: "Essa busca não possui fornecedores com nome e telefone para validar.") if records.empty?
 
       batch_id = generate_batch_id
       import = @user.supplier_imports.new(
@@ -29,8 +37,6 @@ module SupplierDiscoverySearches
           source: SupplierImport::SOURCE_UPLOAD,
           privacy_notice: privacy_notice_payload,
           segment_name: @search.segment_name,
-          callback_phone: @search.callback_phone,
-          callback_contact_name: @search.callback_contact_name.presence,
           records: records
         }.compact,
         import_metadata: {
@@ -54,6 +60,10 @@ module SupplierDiscoverySearches
 
     private
 
+    def ownership_error
+      Result.new(success?: false, error_message: "Busca de fornecedores não encontrada para esta conta.")
+    end
+
     def generate_batch_id
       "lp_supplier_batch_#{Time.current.utc.strftime('%Y%m%d%H%M%S')}_#{SecureRandom.hex(3)}"
     end
@@ -71,7 +81,7 @@ module SupplierDiscoverySearches
 
       blocked_numbers = SupplierImports::PrivacyRefusalRegistry.blocked_phone_numbers_for(@user)
       records.reject do |record|
-        blocked = SupplierImports::PrivacyRefusalRegistry.blocked?(record[:phone] || record['phone'], blocked_numbers)
+        blocked = SupplierImports::PrivacyRefusalRegistry.blocked?(record[:phone] || record["phone"], blocked_numbers)
         @privacy_blocked_records_count += 1 if blocked
         blocked
       end

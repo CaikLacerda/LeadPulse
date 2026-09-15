@@ -1,0 +1,62 @@
+<%= workspace_page(max_width: 'max-w-6xl') do %>
+  <%= workspace_page_header(
+    kicker: 'Retorno comercial',
+    title: @commercial_opportunity.display_code,
+    description: @commercial_opportunity.supplier_name
+  ) do %>
+    <%= workspace_link_button 'Voltar', commercial_opportunities_path %>
+    <% if @commercial_opportunity.startable? && current_user.can_start_validation? %>
+      <%= button_to 'Iniciar coleta', start_commercial_opportunity_path(@commercial_opportunity), method: :post, class: workspace_button_class(:accent) %>
+    <% elsif @commercial_opportunity.syncable? && current_user.can_start_validation? %>
+      <%= button_to(@commercial_opportunity.completed? ? 'Atualizar dados' : 'Consultar status', sync_status_commercial_opportunity_path(@commercial_opportunity), method: :post, class: workspace_button_class(:primary)) %>
+    <% end %>
+    <% if @commercial_opportunity.ready_to_export? && current_user.can_export_data? %>
+      <%= workspace_link_button 'Exportar XLSX', export_commercial_opportunity_path(@commercial_opportunity), variant: :primary, data: { turbo: false } %>
+    <% end %>
+  <% end %>
+
+  <div class="grid gap-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)]">
+    <%= workspace_surface(title: 'Contato confirmado') do %>
+      <div class="divide-y divide-slate-200 px-5 py-2">
+        <%= workspace_definition_row(label: 'Fornecedor', value: @commercial_opportunity.supplier_name) %>
+        <%= workspace_definition_row(label: 'Telefone do retorno', value: @commercial_opportunity.callback_phone) %>
+        <%= workspace_definition_row(label: 'Origem do telefone', value: @commercial_opportunity.callback_phone_choice_label) %>
+        <%= workspace_definition_row(label: 'Data e horário', value: @commercial_opportunity.callback_schedule_label) %>
+        <%= workspace_definition_row(label: 'Preferência informada', value: @commercial_opportunity.callback_preferred_time.presence || 'Sem preferência') %>
+        <%= workspace_definition_row(label: 'Lote de origem') do %>
+          <%= link_to @commercial_opportunity.source_import_code, supplier_import_path(@commercial_opportunity.supplier_import), class: 'text-blue-600 hover:underline' %>
+        <% end %>
+        <%= workspace_definition_row(label: 'Status') do %>
+          <%= workspace_status_tag(@commercial_opportunity.status) %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%= workspace_surface(title: 'Condições comerciais', meta: @commercial_opportunity.outcome_label) do %>
+      <div class="divide-y divide-slate-200 px-5 py-2">
+        <%= workspace_definition_row(label: 'Produto ou especificação', value: @commercial_opportunity.display_product_specification.presence || 'Aguardando coleta') %>
+        <%= workspace_definition_row(label: 'Preço por unidade', value: @commercial_opportunity.display_unit_price.presence || 'Aguardando coleta') %>
+        <%= workspace_definition_row(label: 'Preço por lote ou faixas', value: @commercial_opportunity.display_lot_price_ranges.presence || 'Aguardando coleta') %>
+        <%= workspace_definition_row(label: 'Pedido mínimo', value: @commercial_opportunity.display_minimum_order.presence || 'Aguardando coleta') %>
+      </div>
+
+      <% if @commercial_opportunity.original_commercial_terms_differ? %>
+        <details class="group border-t border-slate-200 px-5 py-4">
+          <summary class="cursor-pointer select-none text-xs font-bold text-slate-600 hover:text-slate-900">
+            Respostas originais da ligação
+          </summary>
+          <div class="mt-3 divide-y divide-slate-200 border-t border-slate-200">
+            <%= workspace_definition_row(label: 'Produto ou especificação', value: @commercial_opportunity.product_specification.presence || 'Não informado') %>
+            <%= workspace_definition_row(label: 'Preço por unidade', value: @commercial_opportunity.unit_price.presence || 'Não informado') %>
+            <%= workspace_definition_row(label: 'Preço por lote ou faixas', value: @commercial_opportunity.lot_price_ranges.presence || 'Não informado') %>
+            <%= workspace_definition_row(label: 'Pedido mínimo', value: @commercial_opportunity.minimum_order.presence || 'Não informado') %>
+          </div>
+        </details>
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if @commercial_opportunity.error_message.present? %>
+    <div class="mt-6 settings-feedback settings-feedback--alert"><%= @commercial_opportunity.error_message %></div>
+  <% end %>
+<% end %>

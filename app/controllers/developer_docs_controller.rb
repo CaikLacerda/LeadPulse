@@ -2,51 +2,51 @@ class DeveloperDocsController < ApplicationController
   before_action :authenticate_user!
 
   def show
-    @api_base_url = ENV.fetch('VALIDATION_API_BASE_URL', 'http://127.0.0.1:8000')
+    @api_base_url = ENV.fetch("VALIDATION_API_BASE_URL", "http://127.0.0.1:8000")
     @getting_started = [
-      'Cadastre a empresa e gere o token dentro do LeadPulse.',
-      'Guarde o bearer token com segurança no seu ERP, CRM ou backoffice.',
-      'Padronize telefones no formato E.164, como +55DDDNÚMERO, antes de enviar o lote.',
-      'Envie lotes cadastrais ou de fornecedor para a API.',
-      'Consulte o processamento dos lotes pelo batch_id retornado.',
-      'Consuma supplier discovery e resultados de validação direto do seu sistema.'
+      "Cadastre a empresa e gere o token dentro do LeadPulse.",
+      "Guarde o bearer token com segurança no seu ERP, CRM ou backoffice.",
+      "Padronize telefones no formato E.164, como +55DDDNÚMERO, antes de enviar o lote.",
+      "Envie lotes cadastrais ou de fornecedor para a API.",
+      "Consulte o processamento dos lotes pelo batch_id retornado.",
+      "Consuma supplier discovery e resultados de validação direto do seu sistema."
     ]
     @auth_modes = [
       {
-        title: 'Autenticação da API',
-        auth: 'Authorization: Bearer tkn_live_...',
-        description: 'É a autenticação usada pelo sistema do cliente para enviar lotes, consultar status, buscar fornecedores e ler resultados.'
+        title: "Autenticação da API",
+        auth: "Authorization: Bearer tkn_live_...",
+        description: "É a autenticação usada pelo sistema do cliente para enviar lotes, consultar status, buscar fornecedores e ler resultados."
       }
     ]
     @integration_types = [
       {
-        title: 'Validação cadastral',
-        description: 'Fluxo para confirmar telefone e atualizar registros de empresas já conhecidas.'
+        title: "Validação cadastral",
+        description: "Fluxo para confirmar telefone e atualizar registros de empresas já conhecidas."
       },
       {
-        title: 'Validação de fornecedor',
-        description: 'Fluxo por planilha para confirmar se o contato atende um segmento e se existe abertura comercial.'
+        title: "Validação de fornecedor",
+        description: "Fluxo por planilha para confirmar se o contato atende um segmento e se existe abertura comercial."
       },
       {
-        title: 'Supplier discovery',
-        description: 'Busca fornecedores na web, estrutura o resultado e devolve planilha sem disparar chamadas automaticamente.'
+        title: "Supplier discovery",
+        description: "Busca fornecedores na web, estrutura o resultado e devolve planilha sem disparar chamadas automaticamente."
       },
       {
-        title: 'Integração com ERP',
-        description: 'O ERP consome a API com bearer token emitido no SaaS, envia lotes e consulta resultados pelo batch_id.'
+        title: "Integração com ERP",
+        description: "O ERP consome a API com bearer token emitido no SaaS, envia lotes e consulta resultados pelo batch_id."
       }
     ]
     @public_endpoint_groups = [
       {
-        title: 'Validação de lotes',
-        description: 'Endpoints que o ERP ou sistema externo chama para enviar e acompanhar lotes.',
+        title: "Validação de lotes",
+        description: "Endpoints que o ERP ou sistema externo chama para enviar e acompanhar lotes.",
         items: [
           {
-            title: 'Enviar lote de validação cadastral',
-            method: 'POST',
-            path: '/validations',
-            auth: 'Authorization: Bearer tkn_live_...',
-            description: 'Recebe um lote de empresas já conhecidas para validar telefone, status e resultado das tentativas.',
+            title: "Enviar lote de validação cadastral",
+            method: "POST",
+            path: "/validations",
+            auth: "Authorization: Bearer tkn_live_...",
+            description: "Recebe um lote de empresas já conhecidas para validar telefone, status e resultado das tentativas.",
             request: <<~JSON.strip,
               {
                 "batch_id": "erp_lote_20260328_001",
@@ -66,16 +66,16 @@ class DeveloperDocsController < ApplicationController
               {
                 "batch_id": "erp_lote_20260328_001",
                 "status": "accepted",
-                "message": "Lote de validacao recebido com sucesso."
+                "message": "Lote de validação recebido com sucesso."
               }
             JSON
           },
           {
-            title: 'Consultar lote cadastral',
-            method: 'GET',
-            path: '/validations/{batch_id}',
-            auth: 'Authorization: Bearer tkn_live_...',
-            description: 'Retorna status do lote, resumo geral e detalhes de cada registro processado.',
+            title: "Consultar lote cadastral",
+            method: "GET",
+            path: "/validations/{batch_id}",
+            auth: "Authorization: Bearer tkn_live_...",
+            description: "Retorna status do lote, resumo geral e detalhes de cada registro processado.",
             request: <<~TEXT.strip,
               batch_id=erp_lote_20260328_001
             TEXT
@@ -95,18 +95,16 @@ class DeveloperDocsController < ApplicationController
             JSON
           },
           {
-            title: 'Enviar lote de validação de fornecedor',
-            method: 'POST',
-            path: '/supplier-validations',
-            auth: 'Authorization: Bearer tkn_live_...',
-            description: 'Usa uma planilha de fornecedores já conhecida para validar segmento e abertura comercial por ligação.',
+            title: "Enviar lote de validação de fornecedor",
+            method: "POST",
+            path: "/supplier-validations",
+            auth: "Authorization: Bearer tkn_live_...",
+            description: "Usa uma planilha de fornecedores já conhecida para validar segmento e abertura comercial por ligação.",
             request: <<~JSON.strip,
               {
                 "batch_id": "supplier_batch_20260328_001",
                 "source": "integracao_externa",
                 "segment_name": "Adubo",
-                "callback_phone": "+5511999999999",
-                "callback_contact_name": "Comercial Agro Compras",
                 "records": [
                   {
                     "external_id": "1",
@@ -120,16 +118,16 @@ class DeveloperDocsController < ApplicationController
               {
                 "batch_id": "supplier_batch_20260328_001",
                 "status": "accepted",
-                "message": "Lote de validacao de fornecedores recebido com sucesso."
+                "message": "Lote de validação de fornecedores recebido com sucesso."
               }
             JSON
           },
           {
-            title: 'Consultar lote de fornecedor',
-            method: 'GET',
-            path: '/supplier-validations/{batch_id}',
-            auth: 'Authorization: Bearer tkn_live_...',
-            description: 'Devolve o lote processado com bloco extra de supplier_validation no response.',
+            title: "Consultar lote de fornecedor",
+            method: "GET",
+            path: "/supplier-validations/{batch_id}",
+            auth: "Authorization: Bearer tkn_live_...",
+            description: "Devolve o lote processado com bloco extra de supplier_validation no response.",
             request: <<~TEXT.strip,
               batch_id=supplier_batch_20260328_001
             TEXT
@@ -154,20 +152,18 @@ class DeveloperDocsController < ApplicationController
         ]
       },
       {
-        title: 'Supplier discovery',
-        description: 'Busca web estruturada para formar lotes de fornecedores.',
+        title: "Supplier discovery",
+        description: "Busca web estruturada para formar lotes de fornecedores.",
         items: [
           {
-            title: 'Buscar fornecedores na web',
-            method: 'POST',
-            path: '/supplier-discovery',
-            auth: 'Authorization: Bearer tkn_live_...',
-            description: 'Pesquisa fornecedores reais na web, estrutura o resultado e devolve um search_id com link para planilha.',
+            title: "Buscar fornecedores na web",
+            method: "POST",
+            path: "/supplier-discovery",
+            auth: "Authorization: Bearer tkn_live_...",
+            description: "Pesquisa fornecedores reais na web, estrutura o resultado e devolve um search_id com link para planilha.",
             request: <<~JSON.strip,
               {
                 "segment_name": "Adubo",
-                "callback_phone": "+5511999999999",
-                "callback_contact_name": "Comercial Agro Compras",
                 "region": "Campinas",
                 "max_suppliers": 10,
                 "include_locations": true
@@ -195,11 +191,11 @@ class DeveloperDocsController < ApplicationController
             JSON
           },
           {
-            title: 'Consultar busca anterior',
-            method: 'GET',
-            path: '/supplier-discovery/{search_id}',
-            auth: 'Authorization: Bearer tkn_live_...',
-            description: 'Recupera o resultado estruturado de uma busca anterior da mesma conta autenticada.',
+            title: "Consultar busca anterior",
+            method: "GET",
+            path: "/supplier-discovery/{search_id}",
+            auth: "Authorization: Bearer tkn_live_...",
+            description: "Recupera o resultado estruturado de uma busca anterior da mesma conta autenticada.",
             request: <<~TEXT.strip,
               search_id=supplier_search_20260328150000_ab12cd
             TEXT

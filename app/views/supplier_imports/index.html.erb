@@ -1,6 +1,14 @@
 <%# app/views/supplier_imports/index.html.erb %>
 
-<div data-controller="import-modal"
+<% remote_status_urls = if current_user.can_start_validation?
+     @imports.select { |item| item.processing? && item.syncable? }
+       .map { |item| sync_status_supplier_import_path(item, format: :json) }
+   else
+     []
+   end %>
+
+<div data-controller="import-modal remote-status-poll"
+     data-remote-status-poll-urls-value="<%= remote_status_urls.to_json %>"
      data-import-modal-default-label-value="<%= I18n.t('supplier_imports.modal.upload.label') %>"
      data-import-modal-selected-label-template-value="<%= I18n.t('supplier_imports.modal.upload.selected', name: '%{name}') %>"
      data-import-modal-cadastral-helper-value="<%= I18n.t('supplier_imports.modal.upload.cadastral_helper') %>"
@@ -10,6 +18,7 @@
      data-import-modal-preview-url-value="<%= preview_import_supplier_imports_path %>"
      data-import-modal-preview-loading-label-value="<%= I18n.t('supplier_imports.modal.preview.loading') %>"
      data-import-modal-preview-generic-error-label-value="<%= I18n.t('supplier_imports.modal.preview.generic_error') %>"
+     data-import-modal-preview-empty-label-value="<%= I18n.t('supplier_imports.modal.preview.empty') %>"
      data-import-modal-preview-ready-label-value="<%= I18n.t('supplier_imports.modal.preview.ready') %>"
      data-import-modal-preview-blocked-label-value="<%= I18n.t('supplier_imports.modal.preview.blocked') %>"
      data-import-modal-preview-total-label-value="<%= I18n.t('supplier_imports.modal.preview.summary.total_rows') %>"
@@ -24,16 +33,17 @@
       description: t('.description'),
       actions_data: { tutorial_id: 'imports-create' }
     ) do %>
-      <%= workspace_button_tag t('.new_batch'),
-          type: :button,
-          variant: :accent,
-          data: { action: 'import-modal#open' } %>
+      <% if current_user.can_import_data? %>
+        <%= workspace_button_tag type: :button, variant: :accent, data: { action: 'import-modal#open' } do %>
+          <%= workspace_icon(:plus) %><span><%= t('.new_batch') %></span>
+        <% end %>
+      <% end %>
     <% end %>
 
     <%= render 'filters' %>
     <%= render 'table' %>
   <% end %>
 
-  <%= render 'import_modal' %>
+  <%= render 'import_modal' if current_user.can_import_data? %>
   <%= render 'shared/workspace_tutorial', steps: workspace_tutorial_steps(:supplier_imports) %>
 </div>

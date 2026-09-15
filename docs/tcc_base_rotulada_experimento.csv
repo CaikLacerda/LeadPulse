@@ -1,9 +1,0 @@
-external_id,supplier_name,phone,email,city,state,segment_name,callback_phone,callback_contact_name,expected_result,manual_validation_seconds,manual_observation
-EXP-001,Forn Metal Alfa,+5511999110001,contato@fornmetalalfa.example,Sao Paulo,SP,embalagens metalicas,+5511999999999,Comercial LeadPulse,qualified_supplier,210,Contato pertence a empresa, fornece o segmento e aceitou retorno.
-EXP-002,Forn Log Beta,+5511999110002,contato@fornlogbeta.example,Guarulhos,SP,embalagens metalicas,+5511999999999,Comercial LeadPulse,wrong_company,145,Atendente informou que o numero nao pertence a empresa.
-EXP-003,Forn Plast Gama,+5511999110003,contato@fornplastgama.example,Campinas,SP,embalagens metalicas,+5511999999999,Comercial LeadPulse,does_not_supply_segment,190,Contato pertence a empresa, mas ela nao fornece o segmento analisado.
-EXP-004,Forn Serv Delta,+5511999110004,contato@fornservdelta.example,Sorocaba,SP,embalagens metalicas,+5511999999999,Comercial LeadPulse,not_interested,165,Contato pertence a empresa e fornece servico proximo, mas recusou retorno comercial.
-EXP-005,Forn Inv Epsilon,12345,contato@forninvepsilon.example,Santos,SP,embalagens metalicas,+5511999999999,Comercial LeadPulse,invalid_phone,45,Telefone manualmente classificado como invalido.
-EXP-006,Forn Amb Zeta,+5511999110006,contato@fornambzeta.example,Jundiai,SP,embalagens metalicas,+5511999999999,Comercial LeadPulse,inconclusive,240,Atendimento nao permitiu concluir vinculo, segmento ou aceite.
-EXP-007,Forn Aus Eta,+5511999110007,contato@fornauseta.example,Osasco,SP,embalagens metalicas,+5511999999999,Comercial LeadPulse,not_answered,95,Validacao manual registrou chamada nao atendida.
-EXP-008,Forn Priv Theta,+5511999110008,contato@fornprivtheta.example,Sao Bernardo do Campo,SP,embalagens metalicas,+5511999999999,Comercial LeadPulse,privacy_refusal,80,Interlocutor recusou a chamada ou pediu interrupcao por privacidade.

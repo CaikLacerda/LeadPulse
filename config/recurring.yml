@@ -12,7 +12,10 @@
 development:
   sync_supplier_import_statuses:
     command: "SupplierImports::SyncAllRemoteStatusesService.new.call"
-    schedule: every hour at minute 7
+    schedule: every 2 minutes
+  sync_commercial_opportunity_statuses:
+    command: "CommercialOpportunities::SyncAllRemoteStatusesService.new.call"
+    schedule: every 2 minutes
   apply_lgpd_retention:
     command: "SupplierImports::ApplyRetentionService.new.call"
     schedule: every day at 3am
@@ -24,7 +27,10 @@ production:
 
   sync_supplier_import_statuses:
     command: "SupplierImports::SyncAllRemoteStatusesService.new.call"
-    schedule: every hour at minute 7
+    schedule: every 2 minutes
+  sync_commercial_opportunity_statuses:
+    command: "CommercialOpportunities::SyncAllRemoteStatusesService.new.call"
+    schedule: every 2 minutes
   apply_lgpd_retention:
     command: "SupplierImports::ApplyRetentionService.new.call"
     schedule: every day at 3am

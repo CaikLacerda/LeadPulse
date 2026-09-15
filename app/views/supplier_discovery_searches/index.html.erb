@@ -2,7 +2,10 @@
 <% modal_alert = flash.now[:alert].presence || flash[:alert].presence %>
 <% validation_pending_alert = current_user.validation_ready? ? nil : t('.modal.validation_pending') %>
 
-<div data-controller="search-modal">
+<div data-controller="search-modal supplier-search-progress"
+     data-supplier-search-progress-active-value="<%= @active_search_fingerprint.present? %>"
+     data-supplier-search-progress-url-value="<%= progress_supplier_discovery_searches_path %>"
+     data-supplier-search-progress-fingerprint-value="<%= @active_search_fingerprint %>">
   <%= workspace_page do %>
     <%= workspace_page_header(
       kicker: t('.kicker'),
@@ -10,10 +13,11 @@
       description: t('.description'),
       actions_data: { tutorial_id: 'search-create' }
     ) do %>
-      <%= workspace_button_tag t('.new_search'),
-          type: :button,
-          variant: :accent,
-          data: { action: 'search-modal#open' } %>
+      <% if current_user.can_import_data? %>
+        <%= workspace_button_tag type: :button, variant: :accent, data: { action: 'search-modal#open' } do %>
+          <%= workspace_icon(:plus) %><span><%= t('.new_search') %></span>
+        <% end %>
+      <% end %>
     <% end %>
 
     <%= render 'filters' %>
@@ -28,6 +32,7 @@
     </div>
   <% end %>
 
+<% if current_user.can_import_data? %>
 <div id="supplier-search-modal"
      data-search-modal-target="modal"
      class="fixed inset-0 z-[70] <%= @open_new_search_modal ? '' : 'hidden' %>">
@@ -40,7 +45,7 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <p class="text-xs font-bold uppercase tracking-[0.26em] text-blue-600"><%= t('.modal.eyebrow') %></p>
-          <h2 class="mt-2 text-2xl font-black tracking-[-0.04em] text-slate-950"><%= t('.modal.title') %></h2>
+          <h2 class="mt-2 text-2xl font-black text-slate-950"><%= t('.modal.title') %></h2>
           <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
             <%= t('.modal.description') %>
           </p>
@@ -95,22 +100,6 @@
                 required: true %>
           </div>
 
-          <div>
-            <label for="supplier_discovery_search_callback_phone" class="settings-label"><%= t('.modal.fields.callback_phone') %></label>
-            <%= telephone_field_tag 'supplier_discovery_search[callback_phone]', form_values[:callback_phone],
-                id: 'supplier_discovery_search_callback_phone',
-                placeholder: t('.modal.fields.callback_phone_placeholder'),
-                class: 'settings-input',
-                required: true %>
-          </div>
-
-          <div>
-            <label for="supplier_discovery_search_callback_contact_name" class="settings-label"><%= t('.modal.fields.callback_contact_name') %></label>
-            <%= text_field_tag 'supplier_discovery_search[callback_contact_name]', form_values[:callback_contact_name],
-                id: 'supplier_discovery_search_callback_contact_name',
-                placeholder: t('.modal.fields.callback_contact_name_placeholder'),
-                class: 'settings-input' %>
-          </div>
         </div>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -126,6 +115,7 @@
     </div>
   </div>
 </div>
+<% end %>
 
 <%= render 'shared/workspace_tutorial', steps: workspace_tutorial_steps(:supplier_discovery_searches) %>
 </div>

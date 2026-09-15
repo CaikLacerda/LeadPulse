@@ -17,12 +17,12 @@ module SupplierImports
 
         PrivacyAudit::Logger.log!(
           user: supplier_import.user,
-          action: 'retention_evidence_anonymized',
+          action: "retention_evidence_anonymized",
           supplier_import: supplier_import,
           resource: supplier_import,
           metadata: {
             evidence_expires_at: supplier_import.evidence_expires_at&.iso8601,
-            retention_days: supplier_import.privacy_notice['evidence_retention_days']
+            retention_days: supplier_import.privacy_notice["evidence_retention_days"]
           }
         )
         anonymized += 1

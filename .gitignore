@@ -6,9 +6,11 @@
 
 # Ignore bundler config.
 /.bundle
+/vendor/bundle
 
 # Ignore all environment files.
 /.env*
+!/.env.example
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -29,6 +31,9 @@
 !/tmp/storage/.keep
 
 /public/assets
+
+# Rails credentials key must be provisioned outside version control.
+/config/master.key
 
 /app/assets/builds/*
 !/app/assets/builds/.keep

@@ -1,7 +1,7 @@
 class ThirdPartyOperatorsController < ApplicationController
   before_action :authenticate_user!
   before_action :require_lgpd_manager!
-  before_action :set_operator, only: [:update, :destroy]
+  before_action :set_operator, only: [ :update, :destroy ]
 
   def index
     ThirdPartyOperators::EnsureDefaultsService.new(user: current_user).call
@@ -15,11 +15,11 @@ class ThirdPartyOperatorsController < ApplicationController
     if @operator.save
       PrivacyAudit::Logger.log!(
         user: current_user,
-        action: 'third_party_operator_created',
+        action: "third_party_operator_created",
         resource: @operator,
         metadata: { name: @operator.name, service_type: @operator.service_type }
       )
-      redirect_to third_party_operators_path, notice: 'Operador/terceiro registrado.'
+      redirect_to third_party_operators_path, notice: "Operador/terceiro registrado."
     else
       @operators = current_user.third_party_operators.order(active: :desc, name: :asc)
       flash.now[:alert] = @operator.errors.full_messages.to_sentence
@@ -31,11 +31,11 @@ class ThirdPartyOperatorsController < ApplicationController
     if @operator.update(operator_params)
       PrivacyAudit::Logger.log!(
         user: current_user,
-        action: 'third_party_operator_updated',
+        action: "third_party_operator_updated",
         resource: @operator,
         metadata: { name: @operator.name, service_type: @operator.service_type, active: @operator.active? }
       )
-      redirect_to third_party_operators_path, notice: 'Operador/terceiro atualizado.'
+      redirect_to third_party_operators_path, notice: "Operador/terceiro atualizado."
     else
       @operators = current_user.third_party_operators.order(active: :desc, name: :asc)
       flash.now[:alert] = @operator.errors.full_messages.to_sentence
@@ -47,11 +47,11 @@ class ThirdPartyOperatorsController < ApplicationController
     @operator.update!(active: false)
     PrivacyAudit::Logger.log!(
       user: current_user,
-      action: 'third_party_operator_disabled',
+      action: "third_party_operator_disabled",
       resource: @operator,
       metadata: { name: @operator.name, service_type: @operator.service_type }
     )
-    redirect_to third_party_operators_path, notice: 'Operador/terceiro desativado.'
+    redirect_to third_party_operators_path, notice: "Operador/terceiro desativado."
   end
 
   private
@@ -59,7 +59,7 @@ class ThirdPartyOperatorsController < ApplicationController
   def require_lgpd_manager!
     return if current_user.can_manage_lgpd?
 
-    redirect_to root_path, alert: 'Seu perfil não possui permissão para gerenciar LGPD.'
+    redirect_to root_path, alert: "Seu perfil não possui permissão para gerenciar LGPD."
   end
 
   def set_operator

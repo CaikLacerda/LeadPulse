@@ -17,6 +17,6 @@ class CreatePrivacyRequests < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :privacy_requests, [:user_id, :status]
+    add_index :privacy_requests, [ :user_id, :status ]
   end
 end

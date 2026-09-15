@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_08_090300) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_24_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -29,6 +29,46 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_090300) do
     t.index ["supplier_import_id"], name: "index_audit_reviews_on_supplier_import_id"
     t.index ["user_id", "supplier_import_id", "record_external_id", "provider_call_id", "attempt_number"], name: "index_audit_reviews_on_lookup", unique: true
     t.index ["user_id"], name: "index_audit_reviews_on_user_id"
+  end
+
+  create_table "commercial_opportunities", force: :cascade do |t|
+    t.string "callback_phone", null: false
+    t.string "callback_phone_choice"
+    t.datetime "callback_preferred_at"
+    t.text "callback_preferred_time"
+    t.datetime "created_at", null: false
+    t.text "error_message"
+    t.datetime "finished_at"
+    t.datetime "last_synced_at"
+    t.text "lot_price_ranges"
+    t.text "minimum_order"
+    t.string "normalization_source"
+    t.text "normalized_lot_price_ranges"
+    t.text "normalized_minimum_order"
+    t.text "normalized_product_specification"
+    t.text "normalized_unit_price"
+    t.string "outcome"
+    t.text "product_specification"
+    t.string "remote_batch_id"
+    t.string "remote_batch_status"
+    t.jsonb "request_payload", default: {}, null: false
+    t.jsonb "response_payload", default: {}, null: false
+    t.boolean "result_ready", default: false, null: false
+    t.string "segment_name"
+    t.string "source_external_id", null: false
+    t.string "source_phone"
+    t.datetime "started_at"
+    t.string "status", default: "pendente", null: false
+    t.bigint "supplier_import_id", null: false
+    t.string "supplier_name", null: false
+    t.text "unit_price"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["remote_batch_id"], name: "index_commercial_opportunities_on_remote_batch_id"
+    t.index ["supplier_import_id", "source_external_id"], name: "index_commercial_opportunities_on_source_record", unique: true
+    t.index ["supplier_import_id"], name: "index_commercial_opportunities_on_supplier_import_id"
+    t.index ["user_id", "status"], name: "index_commercial_opportunities_on_user_id_and_status"
+    t.index ["user_id"], name: "index_commercial_opportunities_on_user_id"
   end
 
   create_table "plans", force: :cascade do |t|
@@ -193,8 +233,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_090300) do
     t.string "validation_api_token_prefix"
     t.string "validation_company_name"
     t.string "validation_external_account_id"
-    t.text "validation_openai_api_key"
-    t.string "validation_openai_realtime_model", default: "gpt-realtime-1.5", null: false
+    t.string "validation_openai_realtime_model", default: "gpt-realtime-2.1-mini", null: false
     t.decimal "validation_openai_realtime_output_speed", precision: 4, scale: 2
     t.string "validation_openai_realtime_voice", default: "cedar", null: false
     t.text "validation_openai_style_instructions"
@@ -202,7 +241,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_090300) do
     t.string "validation_owner_name"
     t.string "validation_spoken_company_name"
     t.string "validation_twilio_account_sid"
-    t.text "validation_twilio_auth_token"
     t.jsonb "validation_twilio_phone_numbers", default: [], null: false
     t.string "validation_twilio_webhook_base_url"
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -211,6 +249,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_090300) do
 
   add_foreign_key "audit_reviews", "supplier_imports"
   add_foreign_key "audit_reviews", "users"
+  add_foreign_key "commercial_opportunities", "supplier_imports"
+  add_foreign_key "commercial_opportunities", "users"
   add_foreign_key "privacy_audit_events", "supplier_imports"
   add_foreign_key "privacy_audit_events", "users"
   add_foreign_key "privacy_requests", "supplier_imports"

@@ -1,6 +1,6 @@
 <% table_meta = content_tag(:span, t('supplier_discovery_searches.index.table.count', count: @searches_total_count), class: 'workspace-portlet-meta') %>
 
-<%= portlet_form(t('supplier_discovery_searches.index.table.title'), table_meta, data: { tutorial_id: 'search-results' }, body_class: 'workspace-portlet-body--flush') do %>
+<%= portlet_form(t('supplier_discovery_searches.index.table.title'), table_meta, icon: :database, data: { tutorial_id: 'search-results' }, body_class: 'workspace-portlet-body--flush') do %>
   <div class="overflow-x-auto overflow-y-visible">
     <table class="workspace-table">
       <thead>
@@ -9,6 +9,7 @@
           <th><%= t('supplier_discovery_searches.index.table.headers.segment') %></th>
           <th><%= t('supplier_discovery_searches.index.table.headers.region') %></th>
           <th><%= t('supplier_discovery_searches.index.table.headers.generated_at') %></th>
+          <th><%= t('supplier_discovery_searches.index.table.headers.status') %></th>
           <th><%= t('supplier_discovery_searches.index.table.headers.found') %></th>
           <th><%= t('supplier_discovery_searches.index.table.headers.actions') %></th>
         </tr>
@@ -22,37 +23,64 @@
               <td class="font-medium text-slate-800"><%= search.segment_name %></td>
               <td class="font-medium text-slate-700"><%= search.region.presence || t('supplier_discovery_searches.index.table.no_region') %></td>
               <td><%= workspace_datetime_cell(search.generated_at || search.created_at) %></td>
-              <td class="font-medium text-slate-700"><%= search.total_suppliers %></td>
+              <td>
+                <%= supplier_discovery_status_badge(search) %>
+                <% if search.errored? && search.error_message.present? %>
+                  <p class="mt-1 max-w-56 text-xs leading-4 text-red-700" title="<%= search.error_message %>">
+                    <%= truncate(search.error_message, length: 90) %>
+                  </p>
+                <% end %>
+              </td>
+              <td class="font-medium text-slate-700"><%= search.completed? ? search.total_suppliers : '—' %></td>
               <td class="whitespace-nowrap">
+                <% if search.completed? && (current_user.can_export_data? || current_user.can_import_data?) %>
                 <details data-controller="action-menu" class="relative inline-block">
                   <summary class="workspace-summary-button">
                     <%= t('supplier_discovery_searches.index.actions.label') %>
                   </summary>
 
                   <div class="workspace-menu absolute right-0 top-[calc(100%+0.25rem)] z-20 w-36 p-1">
-                    <%= link_to download_results_supplier_discovery_search_path(search),
-                        class: "workspace-menu-item #{search.download_ready? ? '' : 'pointer-events-none !text-slate-300'}" do %>
-                      <%= t('supplier_discovery_searches.index.actions.download') %>
+                    <% if current_user.can_export_data? %>
+                      <%= link_to download_results_supplier_discovery_search_path(search),
+                          class: "workspace-menu-item #{search.download_ready? ? '' : 'pointer-events-none !text-slate-300'}" do %>
+                        <%= t('supplier_discovery_searches.index.actions.download') %>
+                      <% end %>
                     <% end %>
 
-                    <%= button_to create_segment_import_supplier_discovery_search_path(search),
-                        method: :post,
-                        class: 'workspace-menu-item',
-                        form_class: 'workspace-menu-item--button' do %>
-                      <%= t('supplier_discovery_searches.index.actions.import') %>
+                    <% if current_user.can_import_data? %>
+                      <%= button_to create_segment_import_supplier_discovery_search_path(search),
+                          method: :post,
+                          class: 'workspace-menu-item',
+                          form_class: 'workspace-menu-item--button' do %>
+                        <%= t('supplier_discovery_searches.index.actions.import') %>
+                      <% end %>
                     <% end %>
                   </div>
                 </details>
+                <% elsif search.errored? && current_user.can_import_data? %>
+                  <%= button_to t('supplier_discovery_searches.index.actions.retry'),
+                      retry_search_supplier_discovery_search_path(search),
+                      method: :post,
+                      class: workspace_button_class(:secondary) %>
+                <% elsif search.active? %>
+                  <span class="text-xs font-semibold text-slate-400"><%= t('supplier_discovery_searches.index.actions.wait') %></span>
+                <% else %>
+                  <span class="text-slate-400">—</span>
+                <% end %>
               </td>
             </tr>
           <% end %>
         <% else %>
-          <%= workspace_empty_table_row(colspan: 6, message: t('supplier_discovery_searches.index.table.empty')) do %>
-            <button type="button"
-                    data-action="search-modal#open"
-                    class="<%= workspace_button_class(:primary) %>">
-              <%= t('supplier_discovery_searches.index.new_search') %>
-            </button>
+          <% if current_user.can_import_data? %>
+            <%= workspace_empty_table_row(colspan: 7, message: t('supplier_discovery_searches.index.table.empty')) do %>
+              <button type="button"
+                      data-action="search-modal#open"
+                      class="<%= workspace_button_class(:primary) %>">
+                <%= t('supplier_discovery_searches.index.new_search') %>
+              </button>
+            <% end %>
+          <% else %>
+            <%= workspace_empty_table_row(colspan: 7, message: t('supplier_discovery_searches.index.table.empty')) %>
           <% end %>
         <% end %>
       </tbody>

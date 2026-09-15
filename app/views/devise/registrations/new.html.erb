@@ -12,7 +12,7 @@
     <div class="mx-auto w-full max-w-md">
 
       <!-- Voltar -->
-      <%= link_to "← Voltar para Início", root_path,
+      <%= link_to "← Voltar para o início", root_path,
           class: "text-sm font-semibold text-blue-600 hover:underline mb-8 inline-block" %>
 
       <!-- Título -->
@@ -21,7 +21,7 @@
 
       <!-- Erros -->
       <% if resource.errors.any? %>
-        <div class="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-6">
+        <div class="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-6">
           <% resource.errors.full_messages.each do |msg| %>
             <p>• <%= msg %></p>
           <% end %>
@@ -32,12 +32,12 @@
 
         <!-- Nome completo -->
         <div class="mb-4">
-          <%= f.label :name, "Nome Completo",
+          <%= f.label :name, "Nome completo",
               class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
           <%= f.text_field :name,
               autofocus: true,
               placeholder: "Seu nome aqui",
-              class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
+              class: "w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
         </div>
 
         <!-- E-mail -->
@@ -47,7 +47,7 @@
           <%= f.email_field :email,
               autocomplete: "email",
               placeholder: "voce@empresa.com",
-              class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
+              class: "w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
         </div>
 
         <!-- Senha + Confirmar (lado a lado) -->
@@ -58,7 +58,7 @@
             <%= f.password_field :password,
                 autocomplete: "new-password",
                 placeholder: "••••••",
-                class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
+                class: "w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
           </div>
           <div class="flex-1">
             <%= f.label :password_confirmation, "Confirmar",
@@ -66,21 +66,21 @@
             <%= f.password_field :password_confirmation,
                 autocomplete: "new-password",
                 placeholder: "••••••",
-                class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
+                class: "w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
           </div>
         </div>
 
         <!-- Termos -->
         <p class="text-xs text-gray-400 mb-6">
           Ao se registrar, você concorda com nossos
-          <a href="#" class="text-gray-600 underline">Termos de Serviço</a>
+          <%= link_to 'Termos de Serviço', terms_path, class: 'text-gray-600 underline', target: '_blank', rel: 'noopener' %>
           e
-          <a href="#" class="text-gray-600 underline">Política de Privacidade</a>.
+          <%= link_to 'Política de Privacidade', privacy_path, class: 'text-gray-600 underline', target: '_blank', rel: 'noopener' %>.
         </p>
 
         <!-- Botão -->
         <%= f.submit "Criar minha conta",
-            class: "w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-0.5 shadow-lg shadow-orange-200 cursor-pointer" %>
+            class: "w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-lg transition-all hover:-translate-y-0.5 shadow-lg shadow-orange-200 cursor-pointer" %>
 
       <% end %>
 
@@ -101,16 +101,12 @@
   <!-- LADO DIREITO - Banner laranja -->
   <div class="auth-copy auth-banner hidden md:flex w-1/2 flex-col justify-center overflow-hidden bg-orange-500 p-14 relative">
 
-    <!-- Círculos decorativos -->
-    <div class="auth-orb auth-orb--slow absolute -bottom-32 -right-32 w-96 h-96 bg-orange-400 rounded-full opacity-40"></div>
-    <div class="auth-orb auth-orb--delay auth-orb--reverse absolute -top-24 -left-24 w-72 h-72 bg-orange-600 rounded-full opacity-30"></div>
-
     <div class="z-10">
       <p class="text-blue-900 text-xs font-bold tracking-widest uppercase mb-6">Junte-se a nós</p>
       <h1 class="text-7xl font-black text-white leading-none">COMECE</h1>
       <h1 class="text-7xl font-black text-blue-800 leading-none mb-8">DO ZERO.</h1>
       <p class="text-orange-100 text-lg leading-relaxed max-w-sm mb-10">
-        Em menos de 2 minutos, você terá acesso à tecnologia de voz que está revolucionando a limpeza de banco de dados.
+        Configure sua operação para buscar fornecedores, validar contatos por voz e revisar os resultados em um só lugar.
       </p>
 
       <!-- Benefícios -->
@@ -119,13 +115,13 @@
           <div class="w-7 h-7 rounded-full bg-blue-800 flex items-center justify-center shrink-0">
             <span class="text-white text-xs">✓</span>
           </div>
-          <p class="text-white font-semibold">100 validações gratuitas mensais</p>
+          <p class="text-white font-semibold">Busca e validação organizadas por lote</p>
         </div>
         <div class="flex items-center gap-3">
           <div class="w-7 h-7 rounded-full bg-blue-800 flex items-center justify-center shrink-0">
             <span class="text-white text-xs">✓</span>
           </div>
-          <p class="text-white font-semibold">Relatórios em tempo real</p>
+          <p class="text-white font-semibold">Auditoria e exportação dos resultados</p>
         </div>
       </div>
     </div>

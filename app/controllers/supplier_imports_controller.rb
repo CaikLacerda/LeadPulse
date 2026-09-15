@@ -5,40 +5,37 @@ class SupplierImportsController < ApplicationController
   PER_PAGE = 5
 
   before_action :authenticate_user!
-  before_action :set_import, only: [:show, :start_validation, :sync_status, :anonymize_evidence, :export_result, :privacy_report, :destroy]
+  before_action :set_import, only: [ :show, :start_validation, :sync_status, :anonymize_evidence, :export_result, :privacy_report, :destroy ]
+  before_action :require_evidence_access!, only: :show
 
   def index
     load_imports
     assign_import_modal_state
   end
 
+  def import
+    redirect_to supplier_imports_path(open_import_modal: "1")
+  end
+
   def show
     if current_user.can_view_evidence?
       PrivacyAudit::Logger.log!(
         user: current_user,
-        action: 'supplier_import_evidence_viewed',
+        action: "supplier_import_evidence_viewed",
         supplier_import: @import,
         resource: @import,
-        metadata: { page: 'supplier_import_show' }
+        metadata: { page: "supplier_import_show" }
       )
     end
   end
 
-  def export
-    redirect_to supplier_imports_path, alert: I18n.t('supplier_imports.messages.export_from_row')
-  end
-
-  def import
-    redirect_to supplier_imports_path(open_import_modal: '1')
-  end
-
   def create_import
-    return redirect_to supplier_imports_path, alert: 'Seu perfil não possui permissão para importar bases.' unless current_user.can_import_data?
+    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para importar bases." unless current_user.can_import_data?
 
     if params[:file].blank?
       return redirect_to(
         supplier_imports_path(import_modal_redirect_params),
-        alert: I18n.t('supplier_imports.messages.select_file')
+        alert: I18n.t("supplier_imports.messages.select_file")
       )
     end
 
@@ -55,28 +52,28 @@ class SupplierImportsController < ApplicationController
     if result.success?
       PrivacyAudit::Logger.log!(
         user: current_user,
-        action: 'supplier_import_created',
+        action: "supplier_import_created",
         supplier_import: result.import,
         resource: result.import,
         metadata: {
           file_name: result.import.file_name,
           total_rows: result.import.total_rows,
-          legal_basis: result.import.request_payload.dig('privacy_notice', 'legal_basis') || result.import.request_payload.dig(:privacy_notice, :legal_basis)
+          legal_basis: result.import.request_payload.dig("privacy_notice", "legal_basis") || result.import.request_payload.dig(:privacy_notice, :legal_basis)
         }
       )
-      redirect_to supplier_imports_path, notice: I18n.t('supplier_imports.messages.imported_success')
+      redirect_to supplier_imports_path, notice: I18n.t("supplier_imports.messages.imported_success")
     else
       redirect_to supplier_imports_path(import_modal_redirect_params), alert: result.error_message
     end
   end
 
   def preview_import
-    return render json: { success: false, error_message: 'Seu perfil não possui permissão para importar bases.' }, status: :forbidden unless current_user.can_import_data?
+    return render json: { success: false, error_message: "Seu perfil não possui permissão para importar bases." }, status: :forbidden unless current_user.can_import_data?
 
     if params[:file].blank?
       return render json: {
         success: false,
-        error_message: I18n.t('supplier_imports.messages.select_file')
+        error_message: I18n.t("supplier_imports.messages.select_file")
       }, status: :unprocessable_entity
     end
 
@@ -93,20 +90,8 @@ class SupplierImportsController < ApplicationController
     end
   end
 
-  def academic_report
-    return redirect_to supplier_imports_path, alert: 'Seu perfil não possui permissão para exportar relatórios.' unless current_user.can_export_data?
-
-    export = SupplierImports::AcademicReportService.new(imports: current_user.supplier_imports.order(created_at: :desc)).call
-    PrivacyAudit::Logger.log!(
-      user: current_user,
-      action: 'academic_report_exported',
-      metadata: { format: 'csv', imports_count: current_user.supplier_imports.count }
-    )
-    send_data export[:content], filename: export[:filename], type: export[:content_type]
-  end
-
   def start_validation
-    return redirect_to supplier_imports_path, alert: 'Seu perfil não possui permissão para iniciar validações.' unless current_user.can_start_validation?
+    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para iniciar validações." unless current_user.can_start_validation?
 
     SupplierImports::StartRemoteValidationService.new(
       user: current_user,
@@ -115,33 +100,51 @@ class SupplierImportsController < ApplicationController
 
     PrivacyAudit::Logger.log!(
       user: current_user,
-      action: 'supplier_import_validation_started',
+      action: "supplier_import_validation_started",
       supplier_import: @import,
       resource: @import,
       metadata: { remote_batch_id: @import.remote_batch_id }
     )
-    redirect_to supplier_imports_path, notice: I18n.t('supplier_imports.messages.started_success')
+    redirect_to supplier_imports_path, notice: I18n.t("supplier_imports.messages.started_success")
   rescue ValidationApi::Error => e
     redirect_to supplier_imports_path, alert: e.message
   end
 
   def sync_status
-    if @import.remote_batch_id.blank? || @import.validation_started_at.blank?
-      return redirect_to supplier_imports_path, alert: I18n.t('supplier_imports.messages.not_started_yet')
+    unless current_user.can_start_validation?
+      return render(json: { error: "forbidden" }, status: :forbidden) if request.format.json?
+      return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para consultar o status da validação."
     end
 
+    if @import.remote_batch_id.blank? || @import.validation_started_at.blank?
+      return render(json: { error: "not_started" }, status: :unprocessable_entity) if request.format.json?
+      return redirect_to supplier_imports_path, alert: I18n.t("supplier_imports.messages.not_started_yet")
+    end
+
+    previous_status = @import.status
     SupplierImports::SyncRemoteStatusService.new(
       user: current_user,
       supplier_import: @import
     ).call
 
-    redirect_to supplier_imports_path, notice: I18n.t('supplier_imports.messages.synced_success')
+    if request.format.json?
+      @import.reload
+      return render json: {
+        status: @import.status,
+        changed: @import.status != previous_status,
+        terminal: !@import.processing?
+      }
+    end
+
+    redirect_to supplier_imports_path, notice: I18n.t("supplier_imports.messages.synced_success")
   rescue ValidationApi::Error => e
+    return render(json: { error: e.message }, status: :bad_gateway) if request.format.json?
+
     redirect_to supplier_imports_path, alert: e.message
   end
 
   def anonymize_evidence
-    return redirect_to supplier_import_path(@import), alert: 'Seu perfil não possui permissão para anonimizar evidências.' unless current_user.can_anonymize_evidence?
+    return redirect_to supplier_import_path(@import), alert: "Seu perfil não possui permissão para anonimizar evidências." unless current_user.can_anonymize_evidence?
 
     SupplierImports::AnonymizeEvidenceService.new(
       user: current_user,
@@ -150,25 +153,25 @@ class SupplierImportsController < ApplicationController
 
     PrivacyAudit::Logger.log!(
       user: current_user,
-      action: 'supplier_import_evidence_anonymized',
+      action: "supplier_import_evidence_anonymized",
       supplier_import: @import,
       resource: @import,
       metadata: { remote_batch_id: @import.remote_batch_id }
     )
-    redirect_to supplier_import_path(@import), notice: I18n.t('supplier_imports.messages.evidence_anonymized')
+    redirect_to supplier_import_path(@import), notice: I18n.t("supplier_imports.messages.evidence_anonymized")
   rescue ValidationApi::Error => e
     redirect_to supplier_import_path(@import), alert: e.message
   end
 
   def export_result
-    return redirect_to supplier_imports_path, alert: 'Seu perfil não possui permissão para exportar resultados.' unless current_user.can_export_data?
+    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para exportar resultados." unless current_user.can_export_data?
 
     unless @import.ready_to_export?
-      return redirect_to supplier_imports_path, alert: I18n.t('supplier_imports.messages.not_ready_to_export')
+      return redirect_to supplier_imports_path, alert: I18n.t("supplier_imports.messages.not_ready_to_export")
     end
 
     export =
-      if params[:format].to_s == 'xlsx'
+      if params[:format].to_s == "xlsx"
         SupplierImports::ExportResultXlsxService.new(supplier_import: @import).call
       else
         SupplierImports::ExportResultCsvService.new(supplier_import: @import).call
@@ -176,10 +179,10 @@ class SupplierImportsController < ApplicationController
 
     PrivacyAudit::Logger.log!(
       user: current_user,
-      action: 'supplier_import_result_exported',
+      action: "supplier_import_result_exported",
       supplier_import: @import,
       resource: @import,
-      metadata: { filename: export[:filename], format: params[:format].presence || 'csv' }
+      metadata: { filename: export[:filename], format: params[:format].presence || "csv" }
     )
     send_data export[:content], filename: export[:filename], type: export[:content_type]
   rescue SupplierImports::ExportResultCsvService::Error, SupplierImports::ExportResultXlsxService::Error => e
@@ -187,12 +190,12 @@ class SupplierImportsController < ApplicationController
   end
 
   def privacy_report
-    return redirect_to supplier_import_path(@import), alert: 'Seu perfil não possui permissão para exportar relatórios LGPD.' unless current_user.can_export_data?
+    return redirect_to supplier_import_path(@import), alert: "Seu perfil não possui permissão para exportar relatórios LGPD." unless current_user.can_export_data?
 
     export = SupplierImports::PrivacyReportService.new(supplier_import: @import).call
     PrivacyAudit::Logger.log!(
       user: current_user,
-      action: 'supplier_import_privacy_report_exported',
+      action: "supplier_import_privacy_report_exported",
       supplier_import: @import,
       resource: @import,
       metadata: { filename: export[:filename] }
@@ -201,12 +204,14 @@ class SupplierImportsController < ApplicationController
   end
 
   def destroy
+    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para excluir lotes." unless current_user.can_import_data?
+
     unless @import.destroyable?
-      return redirect_to supplier_imports_path, alert: I18n.t('supplier_imports.messages.destroy_not_allowed')
+      return redirect_to supplier_imports_path, alert: I18n.t("supplier_imports.messages.destroy_not_allowed")
     end
 
     @import.destroy!
-    redirect_to supplier_imports_path, notice: I18n.t('supplier_imports.messages.destroyed_success')
+    redirect_to supplier_imports_path, notice: I18n.t("supplier_imports.messages.destroyed_success")
   end
 
   private
@@ -214,27 +219,27 @@ class SupplierImportsController < ApplicationController
   def load_imports
     imports = current_user.supplier_imports.order(created_at: :desc)
 
-    if params[:status].present? && params[:status] != 'todos'
+    if params[:status].present? && params[:status] != "todos"
       imports = imports.where(status: params[:status])
     end
 
-    if params[:workflow_kind].present? && params[:workflow_kind] != 'todos'
+    if params[:workflow_kind].present? && params[:workflow_kind] != "todos"
       imports = imports.where(workflow_kind: params[:workflow_kind])
     end
 
     if params[:periodo].present?
       case params[:periodo]
-      when '7d'  then imports = imports.where('created_at >= ?', 7.days.ago)
-      when '30d' then imports = imports.where('created_at >= ?', 30.days.ago)
-      when '1y'  then imports = imports.where('created_at >= ?', 1.year.ago)
+      when "7d"  then imports = imports.where("created_at >= ?", 7.days.ago)
+      when "30d" then imports = imports.where("created_at >= ?", 30.days.ago)
+      when "1y"  then imports = imports.where("created_at >= ?", 1.year.ago)
       end
     end
 
     if params[:q].present?
       search = "%#{params[:q]}%"
-      id_search = extract_display_number(params[:q], prefix: 'LD')
+      id_search = extract_display_number(params[:q], prefix: "LD")
       imports = imports.where(
-        'id::text ILIKE :search OR id = :id_search OR remote_batch_id ILIKE :search OR COALESCE(file_name, \'\') ILIKE :search',
+        "id::text ILIKE :search OR id = :id_search OR remote_batch_id ILIKE :search OR COALESCE(file_name, '') ILIKE :search",
         search: search,
         id_search: id_search || -1
       )
@@ -256,12 +261,18 @@ class SupplierImportsController < ApplicationController
 
   def import_modal_redirect_params
     {
-      open_import_modal: '1',
+      open_import_modal: "1",
       import_workflow_kind: params[:workflow_kind]
     }.compact
   end
 
   def set_import
     @import = current_user.supplier_imports.find(params[:id])
+  end
+
+  def require_evidence_access!
+    return if current_user.can_view_evidence?
+
+    redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para visualizar evidências."
   end
 end

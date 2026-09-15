@@ -15,7 +15,7 @@ class CreateAuditReviews < ActiveRecord::Migration[8.1]
     end
 
     add_index :audit_reviews,
-              [:user_id, :supplier_import_id, :record_external_id, :provider_call_id, :attempt_number],
+              [ :user_id, :supplier_import_id, :record_external_id, :provider_call_id, :attempt_number ],
               unique: true,
               name: "index_audit_reviews_on_lookup"
   end

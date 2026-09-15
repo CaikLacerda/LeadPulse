@@ -14,6 +14,6 @@ class CreateThirdPartyOperators < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :third_party_operators, [:user_id, :active]
+    add_index :third_party_operators, [ :user_id, :active ]
   end
 end

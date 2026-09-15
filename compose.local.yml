@@ -5,14 +5,14 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: leadpulse_development
-      POSTGRES_USER: clacerda
-      POSTGRES_PASSWORD: "123456"
+      POSTGRES_USER: leadpulse
+      POSTGRES_PASSWORD: "leadpulse_local"
     ports:
       - "127.0.0.1:55432:5432"
     volumes:
       - leadpulse_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U clacerda -d leadpulse_development"]
+      test: ["CMD-SHELL", "pg_isready -U leadpulse -d leadpulse_development"]
       interval: 2s
       timeout: 3s
       retries: 30
