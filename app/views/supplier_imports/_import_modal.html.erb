@@ -23,7 +23,7 @@
                 data-action="import-modal#close"
                 aria-label="<%= I18n.t("#{modal_scope}.close") %>"
                 class="import-modal-close">
-          ✕
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
       </div>
 
@@ -81,18 +81,18 @@
                    role="button"
                    aria-controls="importFileInput">
                 <span class="import-upload-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" focusable="false"><path d="M16 16l-4-4-4 4M12 12v9M20.4 17.5A5 5 0 0 0 18 8.2 7 7 0 0 0 4.3 10.6 4.5 4.5 0 0 0 5.5 19H7" /></svg>
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
                 </span>
                 <p id="import-dropzone-label" data-import-modal-target="label" class="import-dropzone-label"><%= t("#{modal_scope}.upload.label") %></p>
                 <p id="import-dropzone-helper" data-import-modal-target="helper" class="import-dropzone-helper"><%= t("#{modal_scope}.upload.cadastral_helper") %></p>
 
                 <div class="import-selected-file hidden" data-import-modal-target="fileSelected">
-                  <span class="import-selected-file__icon" aria-hidden="true">X</span>
+                  <span class="import-selected-file__icon" aria-hidden="true"><i class="fa-solid fa-file-excel"></i></span>
                   <span class="import-selected-file__copy">
                     <strong data-import-modal-target="fileName"></strong>
                     <small data-import-modal-target="fileMeta"></small>
                   </span>
-                  <button type="button" class="import-selected-file__remove" data-action="click->import-modal#removeFile" aria-label="Remover arquivo">✕</button>
+                  <button type="button" class="import-selected-file__remove" data-action="click->import-modal#removeFile" aria-label="Remover arquivo"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 </div>
               </div>
             </div>

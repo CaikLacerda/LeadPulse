@@ -21,6 +21,8 @@
 <% account_display_name = current_user&.validation_owner_name_value.presence || current_user&.email.to_s.split('@').first.presence || t('shared.header.session.account') %>
 <% account_initials = account_display_name.to_s.split(/\s+/).first(2).filter_map { |part| part[0] }.join.upcase.first(2).presence || 'LP' %>
 <% notifications = current_user ? workspace_notifications : [] %>
+<% unread_notifications = notifications.reject { |notification| notification[:read] } %>
+<% unread_notification_keys = unread_notifications.pluck(:key) %>
 <% workspace_section_active = lambda do |key|
   case key
   when :home
@@ -48,7 +50,7 @@ end %>
     <div class="app-header-inner flex min-h-[4.75rem] items-center gap-3 lg:gap-8">
       <%= link_to root_path(anchor: 'inicio'), class: 'app-brand flex shrink-0 items-center gap-3' do %>
         <span class="app-brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false"><path d="M13.4 2 5.8 13h5L9.9 22l8.3-12h-5.1l.3-8Z" /></svg>
+          <i class="fa-solid fa-bolt"></i>
         </span>
         <span class="text-lg font-black"><span class="text-orange-500">Lead</span><span class="text-blue-600">Pulse</span></span>
       <% end %>
@@ -68,11 +70,14 @@ end %>
 
       <div class="ml-auto hidden items-center gap-3 lg:flex">
         <% if current_user %>
-          <details data-controller="action-menu" class="app-notifications relative inline-block">
+          <details data-controller="action-menu notification-read"
+                   data-notification-read-url-value="<%= mark_notifications_read_path %>"
+                   data-notification-read-keys-value="<%= unread_notification_keys.to_json %>"
+                   class="app-notifications relative inline-block">
             <summary class="app-notification-link" aria-label="Abrir notificações" title="Notificações">
               <%= workspace_icon(:bell) %>
-              <% if notifications.any? %>
-                <span class="app-notification-badge"><%= notifications.size > 9 ? '9+' : notifications.size %></span>
+              <% if unread_notifications.any? %>
+                <span class="app-notification-badge" data-notification-read-target="badge"><%= unread_notifications.size > 9 ? '9+' : unread_notifications.size %></span>
               <% end %>
             </summary>
 
@@ -82,15 +87,17 @@ end %>
                   <p class="app-notification-menu__title">Notificações</p>
                   <p class="app-notification-menu__subtitle">Acompanhe os pontos importantes da operação.</p>
                 </div>
-                <% if notifications.any? %>
-                  <span class="app-notification-menu__count"><%= notifications.size %></span>
+                <% if unread_notifications.any? %>
+                  <span class="app-notification-menu__count" data-notification-read-target="count"><%= unread_notifications.size %></span>
                 <% end %>
               </div>
 
               <div class="app-notification-menu__list">
                 <% if notifications.any? %>
                   <% notifications.each do |notification| %>
-                    <%= link_to notification[:path], class: 'app-notification-item' do %>
+                    <%= link_to notification[:path],
+                        class: "app-notification-item #{notification[:read] ? 'app-notification-item--read' : 'app-notification-item--unread'}",
+                        data: (notification[:read] ? {} : { notification_read_target: 'item' }) do %>
                       <span class="app-notification-item__icon app-notification-item__icon--<%= notification[:tone] %>">
                         <%= workspace_icon(notification[:icon]) %>
                       </span>
@@ -98,7 +105,7 @@ end %>
                         <strong><%= notification[:title] %></strong>
                         <span><%= notification[:body] %></span>
                       </span>
-                      <span class="app-notification-item__arrow" aria-hidden="true">›</span>
+                      <span class="app-notification-item__arrow" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
                     <% end %>
                   <% end %>
                 <% else %>
@@ -112,7 +119,7 @@ end %>
 
               <% if current_user.can_view_evidence? %>
                 <%= link_to validation_audits_path, class: 'app-notification-menu__footer' do %>
-                  <span>Ver histórico de auditoria</span><span aria-hidden="true">→</span>
+                  <span>Ver histórico de auditoria</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 <% end %>
               <% end %>
             </div>
@@ -125,7 +132,7 @@ end %>
                 <span class="app-account-summary__name"><%= account_display_name.to_s.split.first %></span>
                 <span class="app-account-summary__company"><%= current_user.validation_company_name_value %></span>
               </span>
-              <span class="app-account-summary__chevron" aria-hidden="true">⌄</span>
+              <span class="app-account-summary__chevron" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></span>
             </summary>
 
             <div class="app-account-menu workspace-menu absolute right-0 top-[calc(100%+0.35rem)] z-20 w-56 p-1.5">
@@ -158,7 +165,7 @@ end %>
               aria-expanded="false"
               data-nav-target="button"
               data-action="click->nav#toggle">
-        <span class="text-xl leading-none">☰</span>
+        <i class="fa-solid fa-bars text-xl leading-none" aria-hidden="true"></i>
       </button>
     </div>
 

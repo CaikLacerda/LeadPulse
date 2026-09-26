@@ -15,6 +15,7 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" referrerpolicy="no-referrer">
     <%= stylesheet_link_tag :app, 'data-turbo-track': 'reload' %>
     <%= javascript_importmap_tags %>
   </head>
@@ -36,7 +37,7 @@
                    data-flash-delay-value="5000">
                 <span class="app-flash__label"><%= label %></span>
                 <span class="app-flash__message"><%= message %></span>
-                <span class="app-flash__bolt" aria-hidden="true">⚡</span>
+                <span class="app-flash__bolt" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
               </div>
             <% end %>
           </div>

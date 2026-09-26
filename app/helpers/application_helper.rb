@@ -91,23 +91,23 @@ module ApplicationHelper
     disabled: "workspace-button--disabled"
   }.freeze
 
-  WORKSPACE_ICON_PATHS = {
-    home: [ "M3 11.5 12 4l9 7.5", "M5.5 10v10h13V10", "M9.5 20v-6h5v6" ],
-    search: [ "M21 21l-4.35-4.35", "M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" ],
-    validation: [ "m12 3-9 5 9 5 9-5-9-5Z", "m3 12 9 5 9-5", "m3 16 9 5 9-5" ],
-    commercial: [ "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z", "M22 21v-2a4 4 0 0 0-3-3.87", "M16 3.13a4 4 0 0 1 0 7.75" ],
-    chart: [ "M4 20V10", "M10 20V4", "M16 20v-7", "M22 20H2" ],
-    database: [ "M20 5c0 1.66-3.58 3-8 3S4 6.66 4 5s3.58-3 8-3 8 1.34 8 3Z", "M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5", "M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6" ],
-    clock: [ "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z", "M12 6v6l4 2" ],
-    bell: [ "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9", "M10 21h4" ],
-    user: [ "M20 21a8 8 0 0 0-16 0", "M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" ],
-    settings: [ "M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z", "M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 3.67-.09-.03a1.7 1.7 0 0 0-1.84.27l-.75.43a1.7 1.7 0 0 0-.82 1.7V23H9.82v-.1A1.7 1.7 0 0 0 9 21.28l-.75-.43a1.7 1.7 0 0 0-1.84-.27l-.09.03-2.12-3.67.06-.06A1.7 1.7 0 0 0 4.6 15v-.86a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-3.67.09.03a1.7 1.7 0 0 0 1.84-.27L9 7.86a1.7 1.7 0 0 0 .82-1.7V6h4.36v.16a1.7 1.7 0 0 0 .82 1.7l.75.43a1.7 1.7 0 0 0 1.84.27l.09-.03 2.12 3.67-.06.06a1.7 1.7 0 0 0-.34 1.88V15Z" ],
-    plus: [ "M12 5v14", "M5 12h14", "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" ],
-    filter: [ "M4 5h16l-6.5 7.25V19l-3 1v-7.75L4 5Z" ],
-    map_pin: [ "M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z", "M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" ],
-    building: [ "M4 22V7l8-4v19", "M12 9h8v13", "M2 22h20", "M7 10h2M7 14h2M7 18h2M15 13h2M15 17h2" ],
-    message: [ "M21 15a4 4 0 0 1-4 4H8l-5 3 1.5-4A8 8 0 1 1 21 15Z", "M8 11h.01M12 11h.01M16 11h.01" ],
-    key: [ "M15 7a5 5 0 1 1-3.9 4.88L3 20v2h3l2-2h2l2-2v-2.1A5 5 0 0 1 15 7Z" ]
+  WORKSPACE_ICON_CLASSES = {
+    home: "fa-house",
+    search: "fa-magnifying-glass",
+    validation: "fa-layer-group",
+    commercial: "fa-users",
+    chart: "fa-chart-column",
+    database: "fa-database",
+    clock: "fa-clock",
+    bell: "fa-bell",
+    user: "fa-user",
+    settings: "fa-gear",
+    plus: "fa-plus",
+    filter: "fa-filter",
+    map_pin: "fa-location-dot",
+    building: "fa-building",
+    message: "fa-comment-dots",
+    key: "fa-key"
   }.freeze
 
   def workspace_page(max_width: "max-w-7xl", classes: nil, content_classes: nil, &block)
@@ -126,8 +126,7 @@ module ApplicationHelper
         content_tag(:div, class: "workspace-page-header__body") do
           safe_join([
             content_tag(:p, kicker, class: "workspace-page-kicker"),
-            content_tag(:h1, title, class: "workspace-page-title"),
-            (content_tag(:p, description, class: "workspace-page-description") if description.present?)
+            content_tag(:h1, title, class: "workspace-page-title")
           ].compact)
         end,
         (content_tag(:div, action_content, class: "workspace-page-actions", data: actions_data) if action_content.present?)
@@ -277,16 +276,15 @@ module ApplicationHelper
   end
 
   def workspace_icon(name, classes: nil)
-    paths = WORKSPACE_ICON_PATHS[name.to_sym]
-    return "".html_safe if paths.blank?
+    icon_class = WORKSPACE_ICON_CLASSES[name.to_sym]
+    return "".html_safe if icon_class.blank?
 
-    content_tag(:svg,
-                class: workspace_class_names("workspace-icon", classes),
-                viewBox: "0 0 24 24", fill: "none", aria: { hidden: true }, focusable: false) do
-      safe_join(paths.map do |path|
-        tag.path(d: path, stroke: "currentColor", 'stroke-width': 1.8, 'stroke-linecap': "round", 'stroke-linejoin': "round")
-      end)
-    end
+    content_tag(
+      :i,
+      "",
+      class: workspace_class_names("workspace-icon", "fa-solid", icon_class, classes),
+      aria: { hidden: true }
+    )
   end
 
   def workspace_notifications
@@ -306,6 +304,7 @@ module ApplicationHelper
 
       if pending_imports.positive? && current_user.can_start_validation?
         items << {
+          key: "pending_imports:#{pending_imports}",
           icon: :clock,
           tone: :warning,
           title: "Lotes aguardando início",
@@ -316,6 +315,7 @@ module ApplicationHelper
 
       if processing_imports.positive?
         items << {
+          key: "processing_imports:#{processing_imports}",
           icon: :validation,
           tone: :info,
           title: "Validação em andamento",
@@ -326,6 +326,7 @@ module ApplicationHelper
 
       if ready_exports.positive? && current_user.can_export_data?
         items << {
+          key: "ready_exports:#{ready_exports}",
           icon: :database,
           tone: :success,
           title: "Resultados disponíveis",
@@ -336,6 +337,7 @@ module ApplicationHelper
 
       if pending_commercial.positive? && current_user.can_start_validation?
         items << {
+          key: "pending_commercial:#{pending_commercial}",
           icon: :commercial,
           tone: :commercial,
           title: "Retornos comerciais pendentes",
@@ -346,6 +348,7 @@ module ApplicationHelper
 
       if import_errors.positive?
         items << {
+          key: "import_errors:#{import_errors}",
           icon: :bell,
           tone: :danger,
           title: "Lotes com erro",
@@ -354,7 +357,11 @@ module ApplicationHelper
         }
       end
 
-      items
+      read_keys = current_user.workspace_notification_reads
+        .where(notification_key: items.pluck(:key))
+        .pluck(:notification_key)
+
+      items.map { |item| item.merge(read: read_keys.include?(item[:key])) }
     end
   end
 
@@ -415,11 +422,31 @@ module ApplicationHelper
 
   def workspace_status_tag(status)
     css_class = WORKSPACE_STATUS_VARIANTS[status.to_s]
-    classes = [ "workspace-status" ]
+    label = local_status_label(status)
+    classes = [ "workspace-status", "workspace-status--with-icon", "workspace-status--icon-only" ]
     classes << css_class if css_class.present?
     classes.concat(%w[bg-slate-100 text-slate-600]) if css_class.blank?
 
-    content_tag(:span, local_status_label(status), class: classes.join(" "))
+    content_tag(:span, workspace_status_icon(status), class: classes.join(" "), title: label, aria: { label: label })
+  end
+
+  def workspace_status_icon(status)
+    normalized_status = status.to_s.strip.downcase
+    icon_class =
+      case normalized_status
+      when "completed", "complete", "concluido", "confirmed_by_call", "confirmed_by_whatsapp", "confirmed_by_email", "validated", "qualified_supplier", "success"
+        "fa-circle-check"
+      when "processing", "processando", "in_progress", "in-progress"
+        "fa-spinner fa-spin"
+      when "error", "erro", "failed", "validation_failed", "invalid_phone", "wrong_company", "does_not_supply_segment", "not_interested", "privacy_refusal", "cancelled", "canceled"
+        "fa-circle-xmark"
+      when "pending", "pendente", "queued", "awaiting_submission", "inconclusive", "inconclusive_call", "not_answered"
+        "fa-clock"
+      else
+        "fa-circle-info"
+      end
+
+    content_tag(:i, "", class: "workspace-status__icon fa-solid #{icon_class}", aria: { hidden: true })
   end
 
   def local_status_label(status)
@@ -478,7 +505,7 @@ module ApplicationHelper
   def audit_result_tag(result_code)
     normalized = result_code.to_s.strip
     css_class = AUDIT_RESULT_VARIANTS[normalized]
-    classes = [ "workspace-status" ]
+    classes = [ "workspace-status", "workspace-status--with-icon", "workspace-status--icon-only" ]
     classes << css_class if css_class.present?
     classes.concat(%w[bg-slate-100 text-slate-600]) if css_class.blank?
 
@@ -492,7 +519,7 @@ module ApplicationHelper
         )
       end
 
-    content_tag(:span, label, class: classes.join(" "))
+    content_tag(:span, workspace_status_icon(normalized), class: classes.join(" "), title: label, aria: { label: label })
   end
 
   def audit_review_result_options

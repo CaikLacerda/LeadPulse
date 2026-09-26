@@ -51,4 +51,14 @@ class PlatformSettingsControllerTest < ActionDispatch::IntegrationTest
       assert_no_match(/translation_missing/, @response.body)
     end
   end
+
+  test "administrator sees the institutional information field on company settings" do
+    @user.update!(role: "admin")
+
+    get company_platform_settings_url
+
+    assert_response :success
+    assert_select "textarea[name='user[validation_calling_profile]'][maxlength='1500']"
+    assert_match "Informações institucionais para a ligação", @response.body
+  end
 end

@@ -15,15 +15,15 @@ fi
 export ASDF_RUBY_VERSION="3.3.8"
 export BUNDLE_PATH="$APP_ROOT/.bundle/local"
 export BUNDLE_DISABLE_SHARED_GEMS="true"
-export LEADPULSE_DB_HOST="127.0.0.1"
-export LEADPULSE_DB_PORT="55432"
-export LEADPULSE_DB_NAME="leadpulse_development"
-export LEADPULSE_DB_USER="clacerda"
-export LEADPULSE_DB_PASSWORD="123456"
+export LEADPULSE_DB_HOST="${LEADPULSE_DB_HOST:-127.0.0.1}"
+export LEADPULSE_DB_PORT="${LEADPULSE_DB_PORT:-55432}"
+export LEADPULSE_DB_NAME="${LEADPULSE_DB_NAME:-leadpulse_development}"
+export LEADPULSE_DB_USER="${LEADPULSE_DB_USER:-leadpulse}"
+export LEADPULSE_DB_PASSWORD="${LEADPULSE_DB_PASSWORD:-leadpulse_local}"
 export DATABASE_URL="postgresql://${LEADPULSE_DB_USER}:${LEADPULSE_DB_PASSWORD}@${LEADPULSE_DB_HOST}:${LEADPULSE_DB_PORT}/${LEADPULSE_DB_NAME}"
 
 if ! docker info >/dev/null 2>&1; then
-  echo "Docker não está disponível. Abra o Docker Desktop e execute bin/dev novamente."
+  echo "Docker não está disponível. Inicie o serviço Docker e execute bin/dev novamente."
   exit 1
 fi
 

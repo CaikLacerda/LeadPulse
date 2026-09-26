@@ -43,4 +43,20 @@ class UserTest < ActiveSupport::TestCase
     assert user.errors[:validation_twilio_webhook_base_url].present?
     assert user.errors[:validation_openai_realtime_output_speed].present?
   end
+
+  test "limits the institutional calling profile to the API limit" do
+    user = users(:one)
+    user.validation_calling_profile = "a" * 1_501
+
+    assert_not user.valid?
+    assert user.errors[:validation_calling_profile].present?
+  end
+
+  test "accepts GPT Live as a voice model option" do
+    user = users(:one)
+    user.validation_openai_realtime_model = "gpt-live-1"
+
+    assert user.valid?
+  end
+
 end

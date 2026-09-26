@@ -13,7 +13,8 @@ module ValidationApi
         company_name: @user.validation_company_name_value,
         spoken_company_name: @user.validation_spoken_company_name_value,
         owner_name: @user.validation_owner_name_value,
-        owner_email: @user.validation_owner_email_value
+        owner_email: @user.validation_owner_email_value,
+        calling_profile: @user.validation_calling_profile
       )
 
       persist_account_snapshot!(response)
@@ -28,6 +29,7 @@ module ValidationApi
         validation_spoken_company_name: response["spoken_company_name"].presence || @user.validation_spoken_company_name,
         validation_owner_name: response["owner_name"].presence || @user.validation_owner_name,
         validation_owner_email: response["owner_email"].presence || @user.validation_owner_email,
+        validation_calling_profile: response.key?("calling_profile") ? response["calling_profile"] : @user.validation_calling_profile,
         validation_account_response: response
       )
     end

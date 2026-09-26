@@ -77,7 +77,7 @@ const ensureConfirmModal = () => {
     <div class="app-confirm__panel" role="alertdialog" aria-modal="true" aria-labelledby="app-confirm-title" aria-describedby="app-confirm-message" tabindex="-1">
       <div class="app-confirm__accent" aria-hidden="true"></div>
       <div class="app-confirm__header">
-        <span class="app-confirm__icon" aria-hidden="true">⚡</span>
+        <span class="app-confirm__icon" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
         <div class="app-confirm__copy">
           <p class="app-confirm__eyebrow">LeadPulse</p>
           <h2 class="app-confirm__title" id="app-confirm-title">Confirmar ação</h2>

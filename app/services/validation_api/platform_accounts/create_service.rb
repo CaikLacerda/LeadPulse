@@ -5,7 +5,7 @@ module ValidationApi
         @client = client
       end
 
-      def call(external_account_id:, company_name:, spoken_company_name:, owner_name:, owner_email:)
+      def call(external_account_id:, company_name:, spoken_company_name:, owner_name:, owner_email:, calling_profile: nil)
         @client.post(
           "/platform/accounts",
           headers: @client.admin_headers,
@@ -14,7 +14,8 @@ module ValidationApi
             company_name: company_name,
             spoken_company_name: spoken_company_name,
             owner_name: owner_name,
-            owner_email: owner_email
+            owner_email: owner_email,
+            calling_profile: calling_profile
           }
         )
       end

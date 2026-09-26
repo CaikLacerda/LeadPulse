@@ -14,6 +14,7 @@ class User < ApplicationRecord
     viewer: "Visualizador"
   }.freeze
   REALTIME_MODELS = [
+    [ "GPT Live 1", "gpt-live-1" ],
     [ "GPT Realtime 2.1 Mini", "gpt-realtime-2.1-mini" ],
     [ "GPT Realtime 2.1", "gpt-realtime-2.1" ],
     [ "GPT Realtime 1.5", "gpt-realtime-1.5" ],
@@ -29,10 +30,12 @@ class User < ApplicationRecord
   has_many :privacy_requests, dependent: :destroy
   has_many :third_party_operators, dependent: :destroy
   has_many :privacy_audit_events, dependent: :destroy
+  has_many :workspace_notification_reads, dependent: :destroy
 
   validates :role, inclusion: { in: ROLES.keys.map(&:to_s) }
   validates :validation_company_name, :validation_spoken_company_name,
     :validation_owner_name, length: { maximum: 255 }, allow_blank: true
+  validates :validation_calling_profile, length: { maximum: 1_500 }, allow_blank: true
   validates :validation_owner_email, :lgpd_controller_email,
     format: { with: URI::MailTo::EMAIL_REGEXP }, length: { maximum: 320 }, allow_blank: true
   validates :validation_twilio_account_sid, length: { maximum: 64 }, allow_blank: true
@@ -43,7 +46,7 @@ class User < ApplicationRecord
   validates :validation_openai_realtime_model,
     presence: true,
     length: { maximum: 120 },
-    format: { with: /\Agpt-realtime(?:[-.][a-z0-9.]+)*\z/ }
+    format: { with: /\Agpt-(?:realtime|live)(?:[-.][a-z0-9.]+)*\z/ }
   validates :validation_openai_realtime_voice, presence: true, length: { maximum: 60 }
   validates :validation_openai_realtime_output_speed,
     numericality: { greater_than_or_equal_to: 0.25, less_than_or_equal_to: 1.5 },

@@ -51,7 +51,8 @@ class PlatformSettingsController < ApplicationController
           company_name: company_params[:validation_company_name],
           spoken_company_name: company_params[:validation_spoken_company_name],
           owner_name: company_params[:validation_owner_name],
-          owner_email: company_params[:validation_owner_email]
+          owner_email: company_params[:validation_owner_email],
+          calling_profile: company_params[:validation_calling_profile]
         )
       else
         ValidationApi::PlatformAccounts::CreateService.new.call(
@@ -59,7 +60,8 @@ class PlatformSettingsController < ApplicationController
           company_name: company_params[:validation_company_name],
           spoken_company_name: company_params[:validation_spoken_company_name],
           owner_name: company_params[:validation_owner_name],
-          owner_email: company_params[:validation_owner_email]
+          owner_email: company_params[:validation_owner_email],
+          calling_profile: company_params[:validation_calling_profile]
         )
       end
 
@@ -193,7 +195,8 @@ class PlatformSettingsController < ApplicationController
       :validation_company_name,
       :validation_spoken_company_name,
       :validation_owner_name,
-      :validation_owner_email
+      :validation_owner_email,
+      :validation_calling_profile
     )
   end
 

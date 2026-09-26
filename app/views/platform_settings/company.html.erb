@@ -27,6 +27,12 @@
             </div>
           </div>
 
+          <div>
+            <%= render 'field_label', form: f, field: :validation_calling_profile, text: 'Informações institucionais para a ligação', help: 'Informações públicas que a IA pode usar para responder quem somos, o que fazemos e por que estamos entrando em contato. Não inclua senhas, tokens, dados pessoais, preços confidenciais ou instruções para a IA.', required: false %>
+            <%= f.text_area :validation_calling_profile, value: current_user.validation_calling_profile, class: 'settings-input min-h-40', rows: 7, maxlength: 1500, placeholder: 'Ex.: A empresa atua com... Esta ligação busca... Para dúvidas não cobertas, a equipe responsável pode retornar pelo canal oficial.' %>
+            <p class="settings-field-help">Máximo de 1.500 caracteres. A IA usa somente fatos informados aqui e retoma a validação após responder.</p>
+          </div>
+
           <div class="settings-meta-card" data-tutorial-id="company-account">
             <span class="settings-meta-label">Conta na API</span>
             <span class="settings-meta-value"><%= current_user.validation_account_id.presence || 'ainda não provisionada' %></span>

@@ -10,8 +10,9 @@
     </div>
 
     <div class="mx-auto w-full max-w-md">
-      <%= link_to "← Voltar para login", new_session_path(resource_name),
-          class: "mb-8 inline-block text-sm font-semibold text-blue-600 hover:underline" %>
+      <%= link_to new_session_path(resource_name), class: "mb-8 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:underline" do %>
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Voltar para login</span>
+      <% end %>
 
       <h2 class="mb-1 mt-4 text-3xl font-black text-gray-900">Definir nova senha</h2>
       <p class="mb-7 text-sm text-gray-500">Escolha uma nova senha para voltar ao painel com segurança.</p>
@@ -67,13 +68,13 @@
       <div class="flex flex-col gap-4">
         <div class="flex items-center gap-3">
           <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-800">
-            <span class="text-xs text-white">✓</span>
+            <i class="fa-solid fa-check text-xs text-white" aria-hidden="true"></i>
           </div>
           <p class="font-semibold text-white">Atualização segura da sua conta</p>
         </div>
         <div class="flex items-center gap-3">
           <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-800">
-            <span class="text-xs text-white">✓</span>
+            <i class="fa-solid fa-check text-xs text-white" aria-hidden="true"></i>
           </div>
           <p class="font-semibold text-white">Acesso rápido de volta ao painel</p>
         </div>

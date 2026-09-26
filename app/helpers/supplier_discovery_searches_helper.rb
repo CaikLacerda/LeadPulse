@@ -12,8 +12,10 @@ module SupplierDiscoverySearchesHelper
 
     content_tag(
       :span,
-      label,
-      class: "inline-flex items-center border px-2 py-1 text-xs font-bold #{classes}"
+      workspace_status_icon(search.status),
+      class: "workspace-status workspace-status--with-icon workspace-status--icon-only inline-flex items-center border #{classes}",
+      title: label,
+      aria: { label: label }
     )
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_24_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_17_194500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -231,6 +231,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_170000) do
     t.text "validation_api_token"
     t.datetime "validation_api_token_created_at"
     t.string "validation_api_token_prefix"
+    t.text "validation_calling_profile"
     t.string "validation_company_name"
     t.string "validation_external_account_id"
     t.string "validation_openai_realtime_model", default: "gpt-realtime-2.1-mini", null: false
@@ -247,6 +248,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_170000) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  create_table "workspace_notification_reads", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "notification_key", limit: 120, null: false
+    t.datetime "read_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "notification_key"], name: "idx_on_user_id_notification_key_573a03c093", unique: true
+    t.index ["user_id"], name: "index_workspace_notification_reads_on_user_id"
+  end
+
   add_foreign_key "audit_reviews", "supplier_imports"
   add_foreign_key "audit_reviews", "users"
   add_foreign_key "commercial_opportunities", "supplier_imports"
@@ -260,4 +271,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_24_170000) do
   add_foreign_key "supplier_imports", "users"
   add_foreign_key "suppliers", "supplier_imports"
   add_foreign_key "third_party_operators", "users"
+  add_foreign_key "workspace_notification_reads", "users"
 end

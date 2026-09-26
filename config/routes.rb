@@ -58,6 +58,7 @@ Rails.application.routes.draw do
   post "auditoria/revisoes", to: "validation_audit_reviews#create", as: :validation_audit_reviews
 
   get "for-devs", to: "developer_docs#show", as: :developer_docs
+  post "notificacoes/lidas", to: "notifications#mark_read", as: :mark_notifications_read
   get "termos", to: "pages#terms", as: :terms
   get "privacidade", to: "pages#privacy", as: :privacy
 
