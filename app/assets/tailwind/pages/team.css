@@ -180,3 +180,19 @@
     justify-content: center;
   }
 }
+
+/* Tokens de BI: criação em linha */
+@layer components {
+  .bi-token-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem;
+  }
+
+  .bi-token-form__field {
+    min-width: 14rem;
+    flex: 1 1 20rem;
+    max-width: 28rem;
+  }
+}

@@ -481,7 +481,7 @@
       company: "Empresa"
       twilio: "Twilio"
       openai: "OpenAI"
-      api_token: "Token de API"
+      api_token: "API de validação"
       lgpd: "LGPD"
     api_token:
       copy_now: "Copie o token abaixo agora"

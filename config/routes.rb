@@ -15,6 +15,8 @@ Rails.application.routes.draw do
     patch :lgpd, action: :update_lgpd
   end
 
+  resources :analytics_api_tokens, path: "configuracoes/tokens-bi", only: [ :index, :create, :destroy ]
+
   resources :privacy_requests, path: "lgpd/solicitacoes", only: [ :index, :create, :update ]
   resources :third_party_operators, path: "lgpd/operadores", only: [ :index, :create, :update, :destroy ]
   resources :privacy_audit_events, path: "lgpd/auditoria", only: [ :index ]

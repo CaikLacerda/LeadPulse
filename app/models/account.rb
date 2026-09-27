@@ -16,6 +16,7 @@ class Account < ApplicationRecord
 
   has_many :account_memberships, dependent: :destroy
   has_many :account_invitations, dependent: :destroy
+  has_many :analytics_api_tokens, dependent: :destroy
   has_many :users, through: :account_memberships
 
   has_many :supplier_imports, dependent: :destroy

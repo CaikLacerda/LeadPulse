@@ -1,8 +1,9 @@
 <% tabs = [
   [t('platform_settings.tabs.twilio'), twilio_platform_settings_path],
   [t('platform_settings.tabs.openai'), openai_platform_settings_path],
-  [t('platform_settings.tabs.api_token'), api_token_platform_settings_path]
-] %>
+  [t('platform_settings.tabs.api_token'), api_token_platform_settings_path],
+  (["Tokens de BI", analytics_api_tokens_path] if current_membership.can_manage_bi_tokens?)
+].compact %>
 
 <nav class="settings-tab-rail mb-6" aria-label="Integrações" data-tutorial-id="settings-tabs">
   <% tabs.each do |label, path| %>

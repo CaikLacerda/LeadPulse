@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_27_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -87,6 +87,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_160000) do
     t.index ["legacy_user_id"], name: "index_accounts_on_legacy_user_id", unique: true, where: "(legacy_user_id IS NOT NULL)"
     t.index ["validation_account_id"], name: "index_accounts_on_validation_account_id", unique: true, where: "(validation_account_id IS NOT NULL)"
     t.index ["validation_external_account_id"], name: "index_accounts_on_validation_external_account_id", unique: true, where: "(validation_external_account_id IS NOT NULL)"
+  end
+
+  create_table "analytics_api_tokens", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.datetime "last_used_at"
+    t.string "name", null: false
+    t.datetime "revoked_at"
+    t.bigint "revoked_by_id"
+    t.string "token_digest", null: false
+    t.string "token_prefix", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "revoked_at"], name: "index_analytics_api_tokens_on_account_id_and_revoked_at"
+    t.index ["account_id"], name: "index_analytics_api_tokens_on_account_id"
+    t.index ["created_by_id"], name: "index_analytics_api_tokens_on_created_by_id"
+    t.index ["revoked_by_id"], name: "index_analytics_api_tokens_on_revoked_by_id"
+    t.index ["token_digest"], name: "index_analytics_api_tokens_on_token_digest", unique: true
   end
 
   create_table "audit_reviews", force: :cascade do |t|
@@ -333,6 +351,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_160000) do
   add_foreign_key "account_memberships", "accounts"
   add_foreign_key "account_memberships", "users"
   add_foreign_key "account_memberships", "users", column: "invited_by_id", on_delete: :nullify
+  add_foreign_key "analytics_api_tokens", "accounts"
+  add_foreign_key "analytics_api_tokens", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "analytics_api_tokens", "users", column: "revoked_by_id", on_delete: :nullify
   add_foreign_key "audit_reviews", "accounts"
   add_foreign_key "audit_reviews", "supplier_imports"
   add_foreign_key "audit_reviews", "users"
