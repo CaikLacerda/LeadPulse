@@ -509,6 +509,7 @@
       supplier_import_created: "Lote importado"
       supplier_import_validation_started: "Validação iniciada"
       supplier_import_result_exported: "Resultado exportado"
+      supplier_import_deleted: "Lote excluído"
       analytics_exported: "Analytics exportado"
       account_member_invited: "Membro convidado"
       account_member_invitation_resent: "Convite reenviado"

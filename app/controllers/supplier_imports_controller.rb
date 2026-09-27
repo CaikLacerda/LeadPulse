@@ -219,6 +219,12 @@ class SupplierImportsController < ApplicationController
     end
 
     @import.destroy!
+    PrivacyAudit::Logger.log!(
+      account: current_account,
+      user: current_user,
+      action: "supplier_import_deleted",
+      metadata: { batch_code: @import.display_code, total_rows: @import.total_rows }
+    )
     redirect_to supplier_imports_path, notice: I18n.t("supplier_imports.messages.destroyed_success")
   end
 
