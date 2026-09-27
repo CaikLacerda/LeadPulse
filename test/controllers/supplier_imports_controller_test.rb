@@ -24,7 +24,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
     get supplier_imports_url
 
     assert_response :success
-    assert_select "h1", text: /Validação/
+    assert_select "h1", text: /Lotes de validação/
     assert_select "button", text: /Novo lote/
     assert_no_match(/translation_missing/, @response.body)
   end

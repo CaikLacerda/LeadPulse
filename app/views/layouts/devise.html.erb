@@ -1,20 +1,55 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html <%= tag.attributes(lang: 'pt-BR', data: { theme: html_theme_attribute }) %>>
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>LeadPulse</title>
+    <title><%= content_for(:title) || 'LeadPulse' %></title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" referrerpolicy="no-referrer">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
-  <body class="m-0 bg-white p-0 text-gray-900">
-    <%= render "shared/site_header", auth_page: true %>
-    <main class="app-main pt-16 md:pt-20">
-      <%= yield %>
-    </main>
+  <body class="auth-body" <%= tag.attributes(data: { page_theme: html_theme_attribute }) %>>
+    <div class="auth-layout">
+      <aside class="auth-aside">
+        <%= link_to root_path, class: 'app-brand-link' do %>
+          <span class="app-logo-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
+          <span class="app-logo-text">LeadPulse</span>
+        <% end %>
+
+        <div>
+          <p class="auth-aside__statement">Validação de fornecedores com chamadas por IA, auditoria e LGPD no mesmo fluxo.</p>
+          <ul class="auth-aside__list">
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Busca de fornecedores por segmento e região</span></li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Chamadas automatizadas com gravação e transcrição</span></li>
+            <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Revisão manual, trilha de auditoria e exportação</span></li>
+          </ul>
+        </div>
+
+        <div class="auth-aside__footer">
+          <span>© <%= Date.current.year %> LeadPulse</span>
+          <%= link_to 'Termos', terms_path %>
+          <%= link_to 'Privacidade', privacy_path %>
+        </div>
+      </aside>
+
+      <main class="auth-main">
+        <div class="auth-panel <%= content_for(:auth_panel_class) %>">
+          <%= link_to root_path, class: 'app-brand-link auth-mobile-brand' do %>
+            <span class="app-logo-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
+            <span class="app-logo-text">LeadPulse</span>
+          <% end %>
+
+          <%= yield %>
+        </div>
+      </main>
+    </div>
   </body>
 </html>

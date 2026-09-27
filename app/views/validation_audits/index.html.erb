@@ -1,11 +1,8 @@
 <%= workspace_page do %>
   <%= workspace_page_header(
-    kicker: t('.kicker'),
     title: t('.title'),
     description: t('.description')
-  ) do %>
-    <%= workspace_link_button t('.validation_cta'), supplier_imports_path %>
-  <% end %>
+  ) %>
 
   <%= render 'filters' %>
   <%= render 'table' %>

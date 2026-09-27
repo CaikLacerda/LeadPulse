@@ -1,19 +1,20 @@
-<% table_meta = content_tag(:span, t('supplier_imports.index.table.count', count: @imports_total_count), class: 'workspace-portlet-meta') %>
+<% confirm_delete_data = { turbo_confirm: t('supplier_imports.index.confirm.message'), turbo_confirm_title: t('supplier_imports.index.confirm.title'), turbo_confirm_confirm_label: t('supplier_imports.index.confirm.confirm'), turbo_confirm_cancel_label: t('supplier_imports.index.confirm.cancel'), turbo_confirm_variant: 'danger' } %>
+<% filtered = params.slice(:q, :periodo, :status, :workflow_kind).values.any? { |value| value.present? && value != 'todos' } %>
 
-<%= portlet_form(t('supplier_imports.index.table.title'), table_meta, icon: :database, data: { tutorial_id: 'imports-results' }, body_class: 'workspace-portlet-body--flush') do %>
-  <div class="overflow-x-auto overflow-y-visible">
+<section class="workspace-portlet" data-tutorial-id="imports-results">
+  <div class="workspace-table-wrap">
     <table class="workspace-table">
       <thead>
         <tr>
-          <th><%= t('supplier_imports.index.table.headers.batch') %></th>
-          <th><%= t('supplier_imports.index.table.headers.date') %></th>
-          <th><%= t('supplier_imports.index.table.headers.source') %></th>
-          <th><%= t('supplier_imports.index.table.headers.type') %></th>
-          <th><%= t('supplier_imports.index.table.headers.total') %></th>
-          <th><%= t('supplier_imports.index.table.headers.valid') %></th>
-          <th><%= t('supplier_imports.index.table.headers.invalid') %></th>
-          <th><%= t('supplier_imports.index.table.headers.status') %></th>
-          <th><%= t('supplier_imports.index.table.headers.actions') %></th>
+          <th scope="col"><%= t('supplier_imports.index.table.headers.batch') %></th>
+          <th scope="col"><%= t('supplier_imports.index.table.headers.type') %></th>
+          <th scope="col"><%= t('supplier_imports.index.table.headers.source') %></th>
+          <th scope="col" class="is-numeric"><%= t('supplier_imports.index.table.headers.total') %></th>
+          <th scope="col" class="is-numeric"><%= t('supplier_imports.index.table.headers.valid') %></th>
+          <th scope="col" class="is-numeric"><%= t('supplier_imports.index.table.headers.invalid') %></th>
+          <th scope="col"><%= t('supplier_imports.index.table.headers.status') %></th>
+          <th scope="col"><%= t('supplier_imports.index.table.headers.date') %></th>
+          <th scope="col" class="is-actions"><span class="sr-only"><%= t('supplier_imports.index.table.headers.actions') %></span></th>
         </tr>
       </thead>
 
@@ -22,97 +23,90 @@
           <% @imports.each do |import| %>
             <tr>
               <td><%= workspace_code_tag(import.display_code, current_user.can_view_evidence? ? supplier_import_path(import) : nil) %></td>
-              <td><%= workspace_datetime_cell(import.created_at) %></td>
-              <td class="font-medium text-slate-700"><%= import.source_label %></td>
-              <td class="font-medium text-slate-700"><%= import.workflow_kind_label %></td>
-              <td class="font-medium text-slate-700"><%= import.total_rows %></td>
-              <td class="font-semibold text-emerald-600"><%= import.valid_rows %></td>
-              <td class="font-semibold text-rose-500"><%= import.invalid_rows %></td>
+              <td><%= import.workflow_kind_label %></td>
+              <td><%= import.source_label %></td>
+              <td class="is-numeric"><%= number_with_delimiter(import.total_rows) %></td>
+              <td class="is-numeric"><%= number_with_delimiter(import.valid_rows) %></td>
+              <td class="is-numeric <%= 'text-danger-fg' if import.invalid_rows.to_i.positive? %>"><%= number_with_delimiter(import.invalid_rows) %></td>
               <td><%= workspace_status_tag(import.status) %></td>
+              <td><%= workspace_datetime_cell(import.created_at) %></td>
 
-              <td class="whitespace-nowrap">
+              <td class="is-actions">
                 <% can_act =
                   (import.startable? || import.syncable?) && current_user.can_start_validation? ||
                   import.ready_to_export? && current_user.can_export_data? ||
-                  import.destroyable? && current_user.can_import_data? %>
+                  import.destroyable? && current_user.can_import_data? ||
+                  current_user.can_view_evidence? %>
                 <% if can_act %>
-                <details data-controller="action-menu" class="relative inline-block">
-                  <summary class="workspace-summary-button">
-                    <%= t('supplier_imports.index.actions.label') %>
-                  </summary>
+                  <details data-controller="action-menu" data-action-menu-floating-value="true" class="relative inline-block text-left">
+                    <summary class="workspace-row-menu-trigger" aria-label="<%= t('supplier_imports.index.actions.label') %> do lote <%= import.display_code %>">
+                      <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+                    </summary>
 
-                  <div class="workspace-menu absolute right-0 top-[calc(100%+0.25rem)] z-20 w-44 p-1">
-                    <% if import.errored? && current_user.can_start_validation? %>
-                      <%= button_to start_validation_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
-                        <%= t('supplier_imports.index.actions.restart') %>
-                      <% end %>
-
-                      <% if current_user.can_import_data? %>
-                        <%= button_to supplier_import_path(import),
-                          method: :delete,
-                          form: { data: { turbo_confirm: t('supplier_imports.index.confirm.message'), turbo_confirm_title: t('supplier_imports.index.confirm.title'), turbo_confirm_confirm_label: t('supplier_imports.index.confirm.confirm'), turbo_confirm_cancel_label: t('supplier_imports.index.confirm.cancel') } },
-                          class: 'workspace-menu-item workspace-menu-item--danger' do %>
-                          <%= t('supplier_imports.index.actions.delete') %>
+                    <div class="workspace-menu absolute right-0 top-full w-48">
+                      <% if current_user.can_view_evidence? %>
+                        <%= link_to supplier_import_path(import), class: 'workspace-menu-item' do %>
+                          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.details') %></span>
                         <% end %>
                       <% end %>
-                    <% else %>
-                      <% if import.pending? && current_user.can_start_validation? %>
+
+                      <% if import.errored? && current_user.can_start_validation? %>
                         <%= button_to start_validation_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
-                          <%= t('supplier_imports.index.actions.start') %>
+                          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.restart') %></span>
+                        <% end %>
+                      <% elsif import.pending? && current_user.can_start_validation? %>
+                        <%= button_to start_validation_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
+                          <i class="fa-solid fa-play" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.start') %></span>
                         <% end %>
                       <% end %>
 
-                      <% if import.syncable? && current_user.can_start_validation? %>
+                      <% if !import.errored? && import.syncable? && current_user.can_start_validation? %>
                         <%= button_to sync_status_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
-                          <%= t('supplier_imports.index.actions.sync') %>
+                          <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.sync') %></span>
                         <% end %>
                       <% end %>
 
-                      <% if import.ready_to_export? && current_user.can_export_data? %>
+                      <% if !import.errored? && import.ready_to_export? && current_user.can_export_data? %>
                         <%= link_to export_result_supplier_import_path(import), data: { turbo: false }, class: 'workspace-menu-item' do %>
-                          <%= t('supplier_imports.index.actions.export_csv') %>
+                          <i class="fa-solid fa-file-csv" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.export_csv') %></span>
                         <% end %>
 
                         <%= link_to export_result_supplier_import_path(import, format: :xlsx), data: { turbo: false }, class: 'workspace-menu-item' do %>
-                          <%= t('supplier_imports.index.actions.export_xlsx') %>
+                          <i class="fa-solid fa-file-excel" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.export_xlsx') %></span>
                         <% end %>
                       <% end %>
 
                       <% if import.destroyable? && current_user.can_import_data? %>
+                        <div class="workspace-menu-separator" role="separator"></div>
                         <%= button_to supplier_import_path(import),
                             method: :delete,
-                            form: { data: { turbo_confirm: t('supplier_imports.index.confirm.message'), turbo_confirm_title: t('supplier_imports.index.confirm.title'), turbo_confirm_confirm_label: t('supplier_imports.index.confirm.confirm'), turbo_confirm_cancel_label: t('supplier_imports.index.confirm.cancel') } },
+                            form: { data: confirm_delete_data },
                             class: 'workspace-menu-item workspace-menu-item--danger' do %>
-                          <%= t('supplier_imports.index.actions.delete') %>
+                          <i class="fa-solid fa-trash-can" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.delete') %></span>
                         <% end %>
                       <% end %>
-                    <% end %>
-                  </div>
-                </details>
-                <% else %>
-                  <span class="text-slate-400">—</span>
+                    </div>
+                  </details>
                 <% end %>
               </td>
             </tr>
           <% end %>
         <% else %>
-          <% if current_user.can_import_data? %>
-            <%= workspace_empty_table_row(colspan: 9, message: t('supplier_imports.index.table.empty')) do %>
-              <button type="button"
-                      data-action="import-modal#open"
-                      class="<%= workspace_button_class(:primary) %>">
-                <%= t('supplier_imports.messages.import_ready') %>
-              </button>
+          <%= workspace_empty_table_row(colspan: 9,
+                message: t('supplier_imports.index.table.empty'),
+                hint: filtered ? t('supplier_imports.index.table.empty_filtered_hint') : t('supplier_imports.index.table.empty_hint')) do %>
+            <% if filtered %>
+              <%= workspace_link_button t('supplier_imports.index.filters.clear'), supplier_imports_path, size: :sm %>
+            <% elsif current_user.can_import_data? %>
+              <%= workspace_button_tag type: :button, variant: :primary, size: :sm, data: { action: 'import-modal#open' } do %>
+                <%= workspace_icon(:plus) %><span><%= t('supplier_imports.messages.import_ready') %></span>
+              <% end %>
             <% end %>
-          <% else %>
-            <%= workspace_empty_table_row(colspan: 9, message: t('supplier_imports.index.table.empty')) %>
           <% end %>
         <% end %>
       </tbody>
     </table>
   </div>
 
-  <div class="border-t border-slate-200 px-4 py-3">
-    <%= render 'shared/pagination', current_page: @imports_page, total_pages: @imports_total_pages %>
-  </div>
-<% end %>
+  <%= render 'shared/pagination', current_page: @imports_page, total_pages: @imports_total_pages %>
+</section>

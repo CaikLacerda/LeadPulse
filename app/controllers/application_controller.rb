@@ -20,7 +20,11 @@ class ApplicationController < ActionController::Base
     I18n.with_locale(APP_LOCALE, &action)
   end
 
+  # A edição da própria conta acontece dentro do workspace; as demais telas do Devise usam o layout de autenticação.
   def layout_by_resource
-    devise_controller? ? "devise" : "application"
+    return "application" unless devise_controller?
+    return "application" if controller_name == "registrations" && action_name.in?(%w[edit update]) && user_signed_in?
+
+    "devise"
   end
 end

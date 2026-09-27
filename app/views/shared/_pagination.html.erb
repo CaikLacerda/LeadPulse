@@ -1,45 +1,38 @@
 <% if total_pages.to_i > 1 %>
   <% base_params = request.query_parameters.except(:page) %>
-  <div class="flex flex-col gap-3 border-t border-slate-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-    <p class="text-sm text-slate-500">
-      <%= t('shared.pagination.page_of', page: content_tag(:span, current_page, class: 'font-semibold text-slate-900'), total: content_tag(:span, total_pages, class: 'font-semibold text-slate-900')).html_safe %>
+  <div class="workspace-pagination">
+    <p class="workspace-pagination__summary">
+      <%= t('shared.pagination.page_of', page: content_tag(:strong, current_page), total: content_tag(:strong, total_pages)).html_safe %>
     </p>
 
-    <nav class="flex items-center gap-1.5" aria-label="<%= t('shared.pagination.aria') %>">
-      <% previous_page = current_page - 1 %>
-      <% next_page = current_page + 1 %>
-
+    <nav class="workspace-pagination__nav" aria-label="<%= t('shared.pagination.aria') %>">
       <% if current_page > 1 %>
-        <%= link_to t('shared.pagination.previous'),
-            url_for(base_params.merge(page: previous_page)),
-            class: 'inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900' %>
+        <%= link_to url_for(base_params.merge(page: current_page - 1)), class: 'workspace-pagination__link', rel: 'prev' do %>
+          <i class="fa-solid fa-chevron-left text-[0.625rem]" aria-hidden="true"></i><span><%= t('shared.pagination.previous') %></span>
+        <% end %>
       <% else %>
-        <span class="inline-flex items-center justify-center rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-300">
-          <%= t('shared.pagination.previous') %>
+        <span class="workspace-pagination__link workspace-pagination__link--disabled" aria-disabled="true">
+          <i class="fa-solid fa-chevron-left text-[0.625rem]" aria-hidden="true"></i><span><%= t('shared.pagination.previous') %></span>
         </span>
       <% end %>
 
       <% pagination_series(current_page, total_pages).each do |item| %>
         <% if item == :gap %>
-          <span class="px-1 text-sm text-slate-400">…</span>
+          <span class="workspace-pagination__gap" aria-hidden="true">…</span>
         <% elsif item == current_page %>
-          <span class="inline-flex min-w-9 items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white">
-            <%= item %>
-          </span>
+          <span class="workspace-pagination__link workspace-pagination__link--current" aria-current="page"><%= item %></span>
         <% else %>
-          <%= link_to item,
-              url_for(base_params.merge(page: item)),
-              class: 'inline-flex min-w-9 items-center justify-center rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900' %>
+          <%= link_to item, url_for(base_params.merge(page: item)), class: 'workspace-pagination__link' %>
         <% end %>
       <% end %>
 
       <% if current_page < total_pages %>
-        <%= link_to t('shared.pagination.next'),
-            url_for(base_params.merge(page: next_page)),
-            class: 'inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900' %>
+        <%= link_to url_for(base_params.merge(page: current_page + 1)), class: 'workspace-pagination__link', rel: 'next' do %>
+          <span><%= t('shared.pagination.next') %></span><i class="fa-solid fa-chevron-right text-[0.625rem]" aria-hidden="true"></i>
+        <% end %>
       <% else %>
-        <span class="inline-flex items-center justify-center rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-300">
-          <%= t('shared.pagination.next') %>
+        <span class="workspace-pagination__link workspace-pagination__link--disabled" aria-disabled="true">
+          <span><%= t('shared.pagination.next') %></span><i class="fa-solid fa-chevron-right text-[0.625rem]" aria-hidden="true"></i>
         </span>
       <% end %>
     </nav>

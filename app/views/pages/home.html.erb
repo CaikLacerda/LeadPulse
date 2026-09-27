@@ -1,189 +1,197 @@
 <% if current_user %>
   <% integration_rows = [
-    ['Empresa', @integration_flags[:company], current_user.validation_account_id.presence || 'Provisionar conta', company_platform_settings_path],
-    ['Twilio', @integration_flags[:twilio], @integration_flags[:twilio] ? 'Conta e números prontos' : 'Conectar conta e números', twilio_platform_settings_path],
+    ['Conta na API', @integration_flags[:company], current_user.validation_account_id.present? ? "ID #{current_user.validation_account_id}" : 'Não provisionada', company_platform_settings_path],
+    ['Twilio', @integration_flags[:twilio], @integration_flags[:twilio] ? 'Conta e números' : 'Conectar conta e números', twilio_platform_settings_path],
     ['OpenAI', @integration_flags[:openai], @integration_flags[:openai] ? 'Chave configurada' : 'Definir chave da conta', openai_platform_settings_path],
-    ['Token', @integration_flags[:api_token], @integration_flags[:api_token] ? 'Token ativo' : 'Gerar novo token', api_token_platform_settings_path]
+    ['Token da API', @integration_flags[:api_token], @integration_flags[:api_token] ? 'Token ativo' : 'Gerar token de integração', api_token_platform_settings_path]
   ] %>
   <% attention_items = [] %>
   <% if current_user.can_manage_settings? %>
-    <% attention_items << ['Configurar empresa', 'A conta ainda não foi provisionada na API.', company_platform_settings_path] unless @integration_flags[:company] %>
-    <% attention_items << ['Conectar Twilio', 'As chamadas ainda não podem sair desta conta.', twilio_platform_settings_path] unless @integration_flags[:twilio] %>
-    <% attention_items << ['Configurar OpenAI', 'A IA conversacional ainda não está pronta para operar.', openai_platform_settings_path] unless @integration_flags[:openai] %>
-    <% attention_items << ['Gerar token da API', 'A integração ainda não tem token ativo para autenticação.', api_token_platform_settings_path] unless @integration_flags[:api_token] %>
+    <% attention_items << [:warning, 'Configurar empresa', 'A conta ainda não foi provisionada na API.', company_platform_settings_path] unless @integration_flags[:company] %>
+    <% attention_items << [:warning, 'Conectar Twilio', 'As chamadas ainda não podem sair desta conta.', twilio_platform_settings_path] unless @integration_flags[:twilio] %>
+    <% attention_items << [:warning, 'Configurar OpenAI', 'A IA conversacional ainda não está pronta.', openai_platform_settings_path] unless @integration_flags[:openai] %>
+    <% attention_items << [:warning, 'Gerar token da API', 'A integração não tem token ativo.', api_token_platform_settings_path] unless @integration_flags[:api_token] %>
+  <% end %>
+  <% if @dashboard_insights[:error_batches].positive? %>
+    <% attention_items << [:danger, 'Lotes com erro', "#{pluralize(@dashboard_insights[:error_batches], 'lote precisa', plural: 'lotes precisam')} de revisão.", supplier_imports_path(status: 'erro')] %>
   <% end %>
   <% if @dashboard_insights[:pending_batches].positive? && current_user.can_start_validation? %>
-    <% attention_items << ['Iniciar lotes pendentes', "#{@dashboard_insights[:pending_batches]} lote(s) aguardando início.", supplier_imports_path(status: 'pendente')] %>
+    <% attention_items << [:neutral, 'Iniciar lotes pendentes', "#{pluralize(@dashboard_insights[:pending_batches], 'lote aguardando', plural: 'lotes aguardando')} início.", supplier_imports_path(status: 'pendente')] %>
   <% end %>
   <% if @dashboard_insights[:processing_batches].positive? && current_user.can_start_validation? %>
-    <% attention_items << ['Acompanhar processamento', "#{@dashboard_insights[:processing_batches]} lote(s) em andamento.", supplier_imports_path(status: 'processando')] %>
+    <% attention_items << [:info, 'Acompanhar processamento', "#{pluralize(@dashboard_insights[:processing_batches], 'lote', plural: 'lotes')} em andamento.", supplier_imports_path(status: 'processando')] %>
   <% end %>
   <% if @dashboard_insights[:ready_exports].positive? && current_user.can_export_data? %>
-    <% attention_items << ['Exportar resultados', "#{@dashboard_insights[:ready_exports]} lote(s) já voltaram com resultado.", supplier_imports_path(status: 'concluido')] %>
+    <% attention_items << [:success, 'Exportar resultados', "#{pluralize(@dashboard_insights[:ready_exports], 'lote', plural: 'lotes')} com resultado disponível.", supplier_imports_path(status: 'concluido')] %>
   <% end %>
   <% if @dashboard_insights[:commercial_pending].positive? && current_user.can_start_validation? %>
-    <% attention_items << ['Iniciar retornos comerciais', "#{@dashboard_insights[:commercial_pending]} fornecedor(es) aguardando coleta.", commercial_opportunities_path(status: 'pendente')] %>
+    <% attention_items << [:neutral, 'Iniciar retornos comerciais', "#{pluralize(@dashboard_insights[:commercial_pending], 'fornecedor aguardando', plural: 'fornecedores aguardando')} coleta.", commercial_opportunities_path(status: 'pendente')] %>
   <% end %>
+  <% attention_dot = { warning: 'bg-warning-dot', danger: 'bg-danger-dot', info: 'bg-info-dot', success: 'bg-success-dot', neutral: 'bg-neutral-dot' } %>
+  <% period_records = @daily_imports.sum { |day| day[:records] } %>
+  <% period_batches = @daily_imports.sum { |day| day[:batches] } %>
+
   <%= workspace_page do %>
     <%= workspace_page_header(
-      kicker: t('home.workspace.kicker'),
       title: t('home.workspace.title'),
-      description: t('home.workspace.welcome_html', name: @welcome_contact_name).html_safe,
+      description: t('home.workspace.welcome_html', name: @welcome_contact_name.to_s.split.first.presence || @welcome_contact_name),
       actions_data: { tutorial_id: 'home-actions' }
     ) do %>
       <% if current_user.can_import_data? %>
         <%= link_to supplier_discovery_searches_path, class: workspace_button_class(:secondary) do %>
           <%= workspace_icon(:search) %><span><%= t('home.workspace.new_search') %></span>
         <% end %>
-        <%= link_to supplier_imports_path(open_import_modal: '1'), class: workspace_button_class(:accent) do %>
+        <%= link_to supplier_imports_path(open_import_modal: '1'), class: workspace_button_class(:primary) do %>
           <%= workspace_icon(:plus) %><span><%= t('home.workspace.new_batch') %></span>
-        <% end %>
-      <% end %>
-      <% if current_user.can_manage_settings? %>
-        <%= link_to company_platform_settings_path, class: workspace_button_class(:secondary) do %>
-          <%= workspace_icon(:settings) %><span><%= t('home.workspace.settings') %></span>
         <% end %>
       <% end %>
     <% end %>
 
-    <div class="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4" data-tutorial-id="home-metrics">
-      <%= workspace_metric_card(label: 'Buscas salvas', value: @dashboard_insights[:total_searches], description: 'Histórico de descoberta já registrado.', icon: :search) %>
-      <%= workspace_metric_card(label: 'Lotes importados', value: @dashboard_insights[:total_batches], description: 'Bases já levadas para validação.', icon: :validation) %>
-      <%= workspace_metric_card(label: 'Pendentes', value: @dashboard_insights[:pending_batches], description: 'Lotes aguardando início.', icon: :clock) %>
-      <%= workspace_metric_card(label: 'Retornos comerciais', value: @dashboard_insights[:commercial_total], description: 'Fornecedores que aceitaram novo contato.', icon: :commercial) %>
-    </div>
+    <%= workspace_metrics(classes: 'mb-6', data: { tutorial_id: 'home-metrics' }) do %>
+      <%= workspace_metric_card(label: 'Em processamento', value: number_with_delimiter(@dashboard_insights[:processing_batches]), description: 'Chamadas em andamento', path: supplier_imports_path(status: 'processando')) %>
+      <%= workspace_metric_card(label: 'Aguardando início', value: number_with_delimiter(@dashboard_insights[:pending_batches]), description: 'Importados, não iniciados', path: supplier_imports_path(status: 'pendente')) %>
+      <%= workspace_metric_card(label: 'Concluídos', value: number_with_delimiter(@dashboard_insights[:completed_batches]), description: "#{number_with_delimiter(@dashboard_insights[:ready_exports])} prontos para exportar", path: supplier_imports_path(status: 'concluido')) %>
+      <%= workspace_metric_card(label: 'Com erro', value: number_with_delimiter(@dashboard_insights[:error_batches]), value_class: ('text-danger-fg' if @dashboard_insights[:error_batches].positive?), description: 'Precisam de revisão', path: supplier_imports_path(status: 'erro')) %>
+      <%= workspace_metric_card(label: 'Registros processados', value: number_with_delimiter(@dashboard_insights[:total_records]), description: "Em #{pluralize(@dashboard_insights[:total_batches], 'lote', plural: 'lotes')}") %>
+    <% end %>
 
-    <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-      <%= portlet_form(t('home.workspace.latest_batches'), link_to(t('home.workspace.open_validation'), supplier_imports_path, class: 'workspace-portlet-link'), icon: :database, data: { tutorial_id: 'home-batches' }, body_class: 'workspace-portlet-body--flush') do %>
-          <% if @recent_imports.any? %>
-            <div class="overflow-x-auto">
-              <table class="workspace-table">
-                <thead>
-                  <tr>
-                    <th>Lote</th>
-                    <th>Tipo</th>
-                    <th>Registros</th>
-                    <th>Status</th>
-                    <th>Data</th>
-                    <th>Ação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% @recent_imports.each do |supplier_import| %>
-                    <tr>
-                      <td><%= workspace_code_tag(supplier_import.display_code) %></td>
-                      <td class="font-medium text-slate-700"><%= supplier_import.workflow_kind_label %></td>
-                      <td class="font-medium text-slate-700"><%= supplier_import.total_rows %></td>
-                      <td><%= workspace_status_tag(supplier_import.status) %></td>
-                      <td><%= workspace_datetime_cell(supplier_import.created_at) %></td>
-                      <td class="whitespace-nowrap">
-                        <%= link_to t('shared.empty_state.open'), supplier_imports_path(q: supplier_import.display_code), class: 'text-[13px] font-semibold text-blue-700 transition hover:text-blue-900' %>
-                      </td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-          <% else %>
-            <div class="px-4 py-10 text-sm text-slate-500">
-              <%= t('home.workspace.empty_batches') %>
-            </div>
-          <% end %>
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
+      <%= portlet_form('Registros importados', content_tag(:span, "Últimos 30 dias · #{pluralize(period_records, 'registro', plural: 'registros')} em #{pluralize(period_batches, 'lote', plural: 'lotes')}", class: 'workspace-portlet-meta'), class: 'flex flex-col', body_class: 'workspace-portlet-body--flush flex flex-1 flex-col') do %>
+        <%= render 'daily_imports_chart', series: @daily_imports %>
       <% end %>
 
-      <div class="space-y-6">
-        <%= portlet_form('Pontos de atenção', content_tag(:span, "#{attention_items.size} item#{'s' if attention_items.size != 1}", class: 'workspace-portlet-meta'), icon: :bell, data: { tutorial_id: 'home-integrations' }, body_class: 'workspace-portlet-body--flush') do %>
-          <% if attention_items.any? %>
-            <div class="divide-y divide-slate-200">
-              <% attention_items.each do |title, body, path| %>
-                <div class="flex items-start justify-between gap-4 px-4 py-4">
-                  <div>
-                    <p class="text-sm font-semibold text-slate-900"><%= title %></p>
-                    <p class="mt-1 text-sm leading-6 text-slate-500"><%= body %></p>
-                  </div>
-                  <%= link_to 'Abrir', path, class: 'whitespace-nowrap text-[13px] font-semibold text-blue-700 transition hover:text-blue-900' %>
-                </div>
+      <%= portlet_form('Requer atenção', [], count: attention_items.size, body_class: 'workspace-portlet-body--flush', data: { tutorial_id: 'home-integrations' }) do %>
+        <% if attention_items.any? %>
+          <div class="workspace-list">
+            <% attention_items.each do |tone, title, body, path| %>
+              <%= link_to path, class: 'workspace-list__item' do %>
+                <span class="flex min-w-0 items-start gap-3">
+                  <span class="mt-[0.4375rem] h-1.5 w-1.5 flex-none rounded-full <%= attention_dot.fetch(tone) %>" aria-hidden="true"></span>
+                  <span class="min-w-0">
+                    <span class="workspace-list__title block"><%= title %></span>
+                    <span class="workspace-list__meta block"><%= body %></span>
+                  </span>
+                </span>
+                <i class="workspace-list__chevron fa-solid fa-chevron-right" aria-hidden="true"></i>
               <% end %>
-            </div>
-          <% else %>
-            <div class="px-4 py-10 text-sm text-slate-500">
-              Nada crítico agora. A conta está pronta e sem fila parada neste momento.
-            </div>
-          <% end %>
-        <% end %>
-
-        <%= portlet_form('Integrações', content_tag(:span, "#{integration_rows.count { |row| row[1] }}/4 prontas", class: 'workspace-portlet-meta'), icon: :key, body_class: 'workspace-portlet-body--flush') do %>
-          <div class="divide-y divide-slate-200">
-            <% integration_rows.each do |label, ready, detail, path| %>
-              <div class="flex items-start justify-between gap-4 px-4 py-4">
-                <div>
-                  <div class="flex items-center gap-2">
-                    <p class="text-sm font-semibold text-slate-900"><%= label %></p>
-                    <span class="<%= ready ? 'workspace-status workspace-status--success' : 'workspace-status workspace-status--warning' %>">
-                      <%= ready ? 'Pronto' : 'Pendente' %>
-                    </span>
-                  </div>
-                  <p class="mt-1 text-sm leading-6 text-slate-500"><%= detail %></p>
-                </div>
-                <% if current_user.can_manage_settings? %>
-                  <%= link_to 'Abrir', path, class: 'whitespace-nowrap text-[13px] font-semibold text-blue-700 transition hover:text-blue-900' %>
-                <% end %>
-              </div>
             <% end %>
           </div>
+        <% else %>
+          <%= workspace_empty_state(message: 'Nada pendente agora.', hint: 'Lotes parados, erros e resultados prontos aparecem aqui.') %>
         <% end %>
-      </div>
+      <% end %>
     </div>
 
-    <div class="mt-6 grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-      <%= portlet_form(t('home.workspace.recent_searches'), link_to(t('home.workspace.open_search'), supplier_discovery_searches_path, class: 'workspace-portlet-link'), icon: :search, body_class: 'workspace-portlet-body--flush') do %>
-          <% if @recent_searches.any? %>
-            <div class="overflow-x-auto">
-              <table class="workspace-table">
-                <thead>
+    <div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
+      <%= portlet_form(t('home.workspace.latest_batches'), link_to(t('home.workspace.open_validation'), supplier_imports_path, class: 'workspace-portlet-link'), body_class: 'workspace-portlet-body--flush', data: { tutorial_id: 'home-batches' }) do %>
+        <% if @recent_imports.any? %>
+          <div class="workspace-table-wrap">
+            <table class="workspace-table">
+              <thead>
+                <tr>
+                  <th scope="col">Lote</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col" class="is-numeric">Registros</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Importado em</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @recent_imports.each do |supplier_import| %>
                   <tr>
-                    <th>Busca</th>
-                    <th>Segmento</th>
-                    <th>Região</th>
-                    <th>Importáveis</th>
+                    <td><%= workspace_code_tag(supplier_import.display_code, current_user.can_view_evidence? ? supplier_import_path(supplier_import) : supplier_imports_path(q: supplier_import.display_code)) %></td>
+                    <td><%= supplier_import.workflow_kind_label %></td>
+                    <td class="is-numeric"><%= number_with_delimiter(supplier_import.total_rows) %></td>
+                    <td><%= workspace_status_tag(supplier_import.status) %></td>
+                    <td><%= workspace_datetime_cell(supplier_import.created_at) %></td>
                   </tr>
-                </thead>
-                <tbody>
-                  <% @recent_searches.each do |search| %>
-                    <tr>
-                      <td><%= workspace_code_tag(search.display_code) %></td>
-                      <td class="font-medium text-slate-700"><%= search.segment_name %></td>
-                      <td class="font-medium text-slate-700"><%= search.region.presence || 'Sem filtro' %></td>
-                      <td class="font-medium text-slate-700"><%= search.valid_supplier_candidates.size %></td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-          <% else %>
-            <div class="px-4 py-10 text-sm text-slate-500">
-              <%= t('home.workspace.empty_searches') %>
-            </div>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <%= workspace_empty_state(message: t('home.workspace.empty_batches'), hint: 'Os lotes importados aparecem aqui com o status da validação.') do %>
+            <% if current_user.can_import_data? %>
+              <%= workspace_link_button supplier_imports_path(open_import_modal: '1'), variant: :primary, size: :sm do %>
+                <%= workspace_icon(:plus) %><span><%= t('home.workspace.new_batch') %></span>
+              <% end %>
+            <% end %>
           <% end %>
+        <% end %>
       <% end %>
 
-      <%= portlet_form('Conta', content_tag(:span, current_user.validation_account_id.presence || 'não provisionada', class: 'workspace-portlet-meta'), icon: :user, body_class: 'workspace-portlet-body--flush') do %>
-        <div class="grid gap-px bg-slate-200">
-          <%= workspace_definition_row(label: 'Empresa', value: current_user.validation_company_name_value) %>
-          <%= workspace_definition_row(label: 'Nome falado pela IA', value: current_user.validation_spoken_company_name_value) %>
-          <%= workspace_definition_row(label: 'Responsável', value: "#{@welcome_contact_name} · #{current_user.validation_owner_email_value}") %>
-          <%= workspace_definition_row(label: 'Registros processados', value: number_with_delimiter(@dashboard_insights[:total_records])) %>
+      <%= portlet_form('Conta e integrações', content_tag(:span, "#{integration_rows.count { |row| row[1] }} de #{integration_rows.size} configuradas", class: 'workspace-portlet-meta'), body_class: 'workspace-portlet-body--flush') do %>
+        <div class="workspace-list">
+          <% integration_rows.each do |label, ready, detail, path| %>
+            <% row_content = capture do %>
+              <span class="flex min-w-0 items-baseline gap-2">
+                <span class="workspace-list__title flex-none"><%= label %></span>
+                <span class="workspace-list__meta truncate"><%= detail %></span>
+              </span>
+              <%= status_badge(ready ? 'Configurado' : 'Pendente', tone: ready ? :success : :warning) %>
+            <% end %>
+            <% if current_user.can_manage_settings? %>
+              <%= link_to row_content, path, class: 'workspace-list__item' %>
+            <% else %>
+              <div class="workspace-list__item"><%= row_content %></div>
+            <% end %>
+          <% end %>
         </div>
+
+        <dl class="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line px-5 py-4 workspace-kv">
+          <div>
+            <dt>Empresa</dt>
+            <dd><%= current_user.validation_company_name_value %></dd>
+          </div>
+          <div>
+            <dt>Nome falado pela IA</dt>
+            <dd><%= current_user.validation_spoken_company_name_value %></dd>
+          </div>
+          <div class="col-span-full">
+            <dt>Responsável</dt>
+            <dd><%= @welcome_contact_name %> · <%= current_user.validation_owner_email_value %></dd>
+          </div>
+        </dl>
       <% end %>
     </div>
 
     <% home_map_points = supplier_discovery_map_points(@recent_location_searches, limit: 80) %>
-    <div class="mt-6">
+    <div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.65fr)]">
+      <%= portlet_form(t('home.workspace.recent_searches'), link_to(t('home.workspace.open_search'), supplier_discovery_searches_path, class: 'workspace-portlet-link'), body_class: 'workspace-portlet-body--flush') do %>
+        <% if @recent_searches.any? %>
+          <div class="workspace-table-wrap">
+            <table class="workspace-table">
+              <thead>
+                <tr>
+                  <th scope="col">Segmento</th>
+                  <th scope="col">Região</th>
+                  <th scope="col" class="is-numeric">Importáveis</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @recent_searches.each do |search| %>
+                  <tr>
+                    <td>
+                      <span class="workspace-table__primary"><%= search.segment_name %></span>
+                      <span class="workspace-table__secondary"><%= workspace_code_tag(search.display_code) %></span>
+                    </td>
+                    <td><%= search.region.presence || content_tag(:span, 'Sem filtro', class: 'workspace-table__muted') %></td>
+                    <td class="is-numeric"><%= search.valid_supplier_candidates.size %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <%= workspace_empty_state(message: t('home.workspace.empty_searches'), hint: 'Pesquise fornecedores por segmento e região antes de validar.') %>
+        <% end %>
+      <% end %>
+
       <%= render 'shared/supplier_location_map',
           points: home_map_points,
-          title: 'Mapa de fornecedores encontrados',
+          title: 'Localização dos fornecedores',
           meta: supplier_location_map_meta(home_map_points),
-          empty_message: 'As próximas buscas com cidade, UF ou coordenada vão aparecer no mapa do Brasil.' %>
+          empty_message: 'Buscas com cidade, UF ou coordenadas aparecem no mapa.' %>
     </div>
   <% end %>
 

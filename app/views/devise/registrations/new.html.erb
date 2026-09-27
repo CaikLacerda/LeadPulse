@@ -1,132 +1,46 @@
-<%# app/views/devise/registrations/new.html.erb %>
+<% content_for :title, 'Criar conta · LeadPulse' %>
 
-<div class="auth-shell auth-shell--register flex min-h-[calc(100vh-4rem)] flex-col-reverse md:min-h-screen md:flex-row" data-controller="auth-transition" data-auth-transition-direction="backward">
-  <!-- LADO ESQUERDO - Formulário -->
-  <div class="auth-card flex-1 overflow-y-auto bg-white px-5 pb-10 pt-8 sm:px-8 md:flex md:items-start md:justify-center md:px-16 md:pt-12">
-    <div class="auth-card-bolts">
-      <div class="home-bolt left-[10%] top-[11%] hidden h-24 w-14 md:block"></div>
-      <div class="home-bolt home-bolt--soft right-[10%] top-[18%] hidden h-20 w-12 md:block"></div>
-      <div class="home-bolt right-[16%] bottom-[18%] hidden h-28 w-16 md:block"></div>
-      <div class="home-bolt home-bolt--soft left-[18%] bottom-[10%] hidden h-20 w-12 md:block"></div>
-    </div>
-    <div class="mx-auto w-full max-w-md">
+<h1 class="auth-title">Criar conta</h1>
+<p class="auth-description">Configure a operação de busca e validação de fornecedores da sua empresa.</p>
 
-      <!-- Voltar -->
-      <%= link_to root_path, class: "mb-8 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:underline" do %>
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Voltar para o início</span>
-      <% end %>
+<%= render 'devise/shared/messages', resource: resource %>
 
-      <!-- Título -->
-      <h2 class="text-3xl font-black text-gray-900 mt-4 mb-1">Criar conta</h2>
-      <p class="text-gray-500 mb-7 text-sm">Preencha os campos para começar agora.</p>
-
-      <!-- Erros -->
-      <% if resource.errors.any? %>
-        <div class="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-6">
-          <% resource.errors.full_messages.each do |msg| %>
-            <p>• <%= msg %></p>
-          <% end %>
-        </div>
-      <% end %>
-
-      <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-
-        <!-- Nome completo -->
-        <div class="mb-4">
-          <%= f.label :name, "Nome completo",
-              class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
-          <%= f.text_field :name,
-              autofocus: true,
-              placeholder: "Seu nome aqui",
-              class: "w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
-        </div>
-
-        <!-- E-mail -->
-        <div class="mb-4">
-          <%= f.label :email, "E-mail",
-              class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
-          <%= f.email_field :email,
-              autocomplete: "email",
-              placeholder: "voce@empresa.com",
-              class: "w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
-        </div>
-
-        <!-- Senha + Confirmar (lado a lado) -->
-        <div class="flex gap-4 mb-5">
-          <div class="flex-1">
-            <%= f.label :password, "Senha",
-                class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
-            <%= f.password_field :password,
-                autocomplete: "new-password",
-                placeholder: "••••••",
-                class: "w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
-          </div>
-          <div class="flex-1">
-            <%= f.label :password_confirmation, "Confirmar",
-                class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
-            <%= f.password_field :password_confirmation,
-                autocomplete: "new-password",
-                placeholder: "••••••",
-                class: "w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
-          </div>
-        </div>
-
-        <!-- Termos -->
-        <p class="text-xs text-gray-400 mb-6">
-          Ao se registrar, você concorda com nossos
-          <%= link_to 'Termos de Serviço', terms_path, class: 'text-gray-600 underline', target: '_blank', rel: 'noopener' %>
-          e
-          <%= link_to 'Política de Privacidade', privacy_path, class: 'text-gray-600 underline', target: '_blank', rel: 'noopener' %>.
-        </p>
-
-        <!-- Botão -->
-        <%= f.submit "Criar minha conta",
-            class: "w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-lg transition-all hover:-translate-y-0.5 shadow-lg shadow-orange-200 cursor-pointer" %>
-
-      <% end %>
-
-      <!-- Link login -->
-      <p class="text-center text-sm text-gray-500 mt-7">
-        Já é um cliente?
-        <%= link_to "Fazer login", new_session_path(resource_name),
-            class: "font-bold text-orange-500 hover:underline",
-            data: {
-              action: "click->auth-transition#rememberDirection",
-              auth_transition_direction: "backward"
-            } %>
-      </p>
-
-    </div>
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: 'auth-form' }) do |f| %>
+  <div>
+    <%= f.label :name, 'Nome completo', class: 'settings-label' %>
+    <%= f.text_field :name, autofocus: true, autocomplete: 'name', class: 'settings-input' %>
   </div>
 
-  <!-- LADO DIREITO - Banner laranja -->
-  <div class="auth-copy auth-banner hidden md:flex w-1/2 flex-col justify-center overflow-hidden bg-orange-500 p-14 relative">
-
-    <div class="z-10">
-      <p class="text-blue-900 text-xs font-bold tracking-widest uppercase mb-6">Junte-se a nós</p>
-      <h1 class="text-7xl font-black text-white leading-none">COMECE</h1>
-      <h1 class="text-7xl font-black text-blue-800 leading-none mb-8">DO ZERO.</h1>
-      <p class="text-orange-100 text-lg leading-relaxed max-w-sm mb-10">
-        Configure sua operação para buscar fornecedores, validar contatos por voz e revisar os resultados em um só lugar.
-      </p>
-
-      <!-- Benefícios -->
-      <div class="flex flex-col gap-4">
-        <div class="flex items-center gap-3">
-          <div class="w-7 h-7 rounded-full bg-blue-800 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-check text-xs text-white" aria-hidden="true"></i>
-          </div>
-          <p class="text-white font-semibold">Busca e validação organizadas por lote</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="w-7 h-7 rounded-full bg-blue-800 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-check text-xs text-white" aria-hidden="true"></i>
-          </div>
-          <p class="text-white font-semibold">Auditoria e exportação dos resultados</p>
-        </div>
-      </div>
-    </div>
-
+  <div>
+    <%= f.label :email, 'E-mail corporativo', class: 'settings-label' %>
+    <%= f.email_field :email, autocomplete: 'email', placeholder: 'voce@empresa.com', class: 'settings-input' %>
   </div>
 
-</div>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <%= f.label :password, 'Senha', class: 'settings-label' %>
+      <%= f.password_field :password, autocomplete: 'new-password', class: 'settings-input', aria: { describedby: 'password_hint' } %>
+    </div>
+    <div>
+      <%= f.label :password_confirmation, 'Confirmar senha', class: 'settings-label' %>
+      <%= f.password_field :password_confirmation, autocomplete: 'new-password', class: 'settings-input' %>
+    </div>
+    <% if @minimum_password_length %>
+      <p class="settings-field-hint !mt-0 sm:col-span-2" id="password_hint">Mínimo de <%= @minimum_password_length %> caracteres.</p>
+    <% end %>
+  </div>
+
+  <p class="text-[0.8125rem] leading-5 text-fg-muted">
+    Ao criar a conta, você concorda com os
+    <%= link_to 'Termos de Serviço', terms_path, class: 'workspace-link workspace-link--muted underline', target: '_blank', rel: 'noopener' %>
+    e a
+    <%= link_to 'Política de Privacidade', privacy_path, class: 'workspace-link workspace-link--muted underline', target: '_blank', rel: 'noopener' %>.
+  </p>
+
+  <%= f.submit 'Criar conta', class: workspace_submit_class(:primary), data: { turbo_submits_with: 'Criando conta…' } %>
+<% end %>
+
+<p class="auth-footer">
+  Já tem conta?
+  <%= link_to 'Entrar', new_session_path(resource_name), class: 'workspace-link' %>
+</p>

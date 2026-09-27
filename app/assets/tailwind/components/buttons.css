@@ -1,0 +1,178 @@
+/*
+  Botões: primary, secondary, ghost e danger, em dois tamanhos (36px e 32px).
+  "accent" e "settings-submit" são aliases legados de primary (usados pelo JS e por views antigas).
+*/
+@layer components {
+  .workspace-button,
+  .settings-submit {
+    display: inline-flex;
+    height: 2.25rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 1px solid transparent;
+    border-radius: var(--lp-radius-sm);
+    padding: 0 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    transition:
+      background-color var(--lp-duration) var(--lp-ease),
+      border-color var(--lp-duration) var(--lp-ease),
+      color var(--lp-duration) var(--lp-ease),
+      box-shadow var(--lp-duration) var(--lp-ease);
+  }
+
+  .workspace-button:focus-visible,
+  .settings-submit:focus-visible {
+    outline: none;
+    box-shadow: var(--lp-focus-ring);
+  }
+
+  .workspace-button .workspace-icon,
+  .workspace-button > .fa-solid {
+    width: auto;
+    height: auto;
+    font-size: 0.8125rem;
+  }
+
+  .workspace-button--primary,
+  .workspace-button--accent,
+  .settings-submit {
+    border-color: var(--color-brand);
+    background: var(--color-brand);
+    color: #fff;
+    box-shadow: var(--lp-shadow-xs);
+  }
+
+  .workspace-button--primary:hover,
+  .workspace-button--accent:hover,
+  .settings-submit:hover {
+    border-color: var(--color-brand-hover);
+    background: var(--color-brand-hover);
+  }
+
+  .workspace-button--primary:active,
+  .workspace-button--accent:active,
+  .settings-submit:active {
+    background: var(--color-brand-active);
+  }
+
+  .workspace-button--secondary {
+    border-color: var(--color-line-strong);
+    background: var(--color-surface);
+    color: var(--color-fg-secondary);
+    box-shadow: var(--lp-shadow-xs);
+  }
+
+  .workspace-button--secondary:hover {
+    background: var(--color-surface-subtle);
+    color: var(--color-fg);
+  }
+
+  .workspace-button--secondary:active {
+    background: var(--color-surface-hover);
+  }
+
+  .workspace-button--ghost {
+    background: transparent;
+    color: var(--color-fg-secondary);
+  }
+
+  .workspace-button--ghost:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-fg);
+  }
+
+  .workspace-button--danger {
+    border-color: var(--color-danger-solid);
+    background: var(--color-danger-solid);
+    color: #fff;
+    box-shadow: var(--lp-shadow-xs);
+  }
+
+  .workspace-button--danger:hover {
+    border-color: var(--color-danger-solid-hover);
+    background: var(--color-danger-solid-hover);
+  }
+
+  .workspace-button--danger:focus-visible {
+    box-shadow: 0 0 0 3px rgba(217, 45, 32, 0.24);
+  }
+
+  .workspace-button--disabled,
+  .workspace-button:disabled,
+  .settings-submit:disabled {
+    border-color: var(--color-line);
+    background: var(--color-surface-subtle);
+    color: var(--color-fg-subtle);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .workspace-button--sm {
+    height: 2rem;
+    padding: 0 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .workspace-button--icon {
+    width: 2.25rem;
+    padding: 0;
+  }
+
+  .workspace-button--sm.workspace-button--icon {
+    width: 2rem;
+  }
+
+  .workspace-button__caret {
+    margin-left: 0.125rem;
+    color: currentColor;
+    font-size: 0.625rem;
+    opacity: 0.7;
+  }
+
+  /* Botão de texto inline (links de ação dentro de painéis e tabelas). */
+  .workspace-link {
+    color: var(--color-brand-fg);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color var(--lp-duration) var(--lp-ease);
+  }
+
+  .workspace-link:hover {
+    color: var(--color-brand-active);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .workspace-link--muted {
+    color: var(--color-fg-secondary);
+  }
+
+  .workspace-link--muted:hover {
+    color: var(--color-fg);
+  }
+
+  /* Pequeno spinner para botões e ações locais. */
+  .workspace-spinner {
+    display: inline-block;
+    height: 0.875rem;
+    width: 0.875rem;
+    flex: none;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 9999px;
+    animation: workspace-spin 700ms linear infinite;
+    opacity: 0.8;
+  }
+}
+
+@keyframes workspace-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

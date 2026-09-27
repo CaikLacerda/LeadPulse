@@ -1,46 +1,57 @@
-<%= platform_settings_page(title: 'Empresa', tutorial_key: :platform_settings_company) do %>
-      <%= settings_panel do %>
-        <%= form_with model: current_user, url: company_platform_settings_path, method: :patch, local: true, class: 'space-y-8' do |f| %>
-          <%= settings_feedback_messages %>
+<%= platform_settings_page(title: 'Configurações', description: 'Dados da empresa, provedores de voz e IA e acesso à API.', tutorial_key: :platform_settings_company) do %>
+  <%= settings_panel do %>
+    <%= form_with model: current_user, url: company_platform_settings_path, method: :patch, local: true do |f| %>
+      <%= settings_feedback_messages %>
 
-          <div class="settings-form-note">Campos marcados com * são obrigatórios para provisionar e salvar a empresa na API.</div>
-
-          <div class="settings-form-grid grid gap-6 md:grid-cols-2" data-tutorial-id="company-fields">
-            <div>
-              <%= render 'field_label', form: f, field: :validation_company_name, text: 'Nome da empresa', help: 'Nome principal da conta dentro do LeadPulse e da integração com a API.', required: true %>
-              <%= f.text_field :validation_company_name, value: current_user.validation_company_name_value, class: 'settings-input', required: true %>
-            </div>
-
-            <div>
-              <%= render 'field_label', form: f, field: :validation_spoken_company_name, text: 'Nome falado pela IA', help: 'Como a IA deve citar sua empresa durante as ligações e confirmações.', required: true %>
-              <%= f.text_field :validation_spoken_company_name, value: current_user.validation_spoken_company_name_value, class: 'settings-input', required: true %>
-            </div>
-
-            <div>
-              <%= render 'field_label', form: f, field: :validation_owner_name, text: 'Responsável', help: 'Pessoa de referência para esta conta e para os ajustes operacionais.', required: true %>
-              <%= f.text_field :validation_owner_name, value: current_user.validation_owner_name_value, class: 'settings-input', required: true %>
-            </div>
-
-            <div>
-              <%= render 'field_label', form: f, field: :validation_owner_email, text: 'E-mail do responsável', help: 'Contato principal usado como referência administrativa desta integração.', required: true %>
-              <%= f.email_field :validation_owner_email, value: current_user.validation_owner_email_value, class: 'settings-input', required: true %>
-            </div>
+      <%= settings_section(title: 'Empresa', description: 'Identificação da conta no LeadPulse e na API de validação.', data: { tutorial_id: 'company-fields' }) do %>
+        <div class="settings-fields settings-fields--2">
+          <div class="settings-field">
+            <%= render 'field_label', form: f, field: :validation_company_name, text: 'Nome da empresa', help: 'Nome principal da conta no LeadPulse e na API.', required: true %>
+            <%= f.text_field :validation_company_name, value: current_user.validation_company_name_value, class: 'settings-input', required: true %>
           </div>
 
-          <div>
-            <%= render 'field_label', form: f, field: :validation_calling_profile, text: 'Informações institucionais para a ligação', help: 'Informações públicas que a IA pode usar para responder quem somos, o que fazemos e por que estamos entrando em contato. Não inclua senhas, tokens, dados pessoais, preços confidenciais ou instruções para a IA.', required: false %>
-            <%= f.text_area :validation_calling_profile, value: current_user.validation_calling_profile, class: 'settings-input min-h-40', rows: 7, maxlength: 1500, placeholder: 'Ex.: A empresa atua com... Esta ligação busca... Para dúvidas não cobertas, a equipe responsável pode retornar pelo canal oficial.' %>
-            <p class="settings-field-help">Máximo de 1.500 caracteres. A IA usa somente fatos informados aqui e retoma a validação após responder.</p>
+          <div class="settings-field">
+            <%= render 'field_label', form: f, field: :validation_spoken_company_name, text: 'Nome falado pela IA', help: 'Como a IA cita a empresa durante as ligações.', required: true %>
+            <%= f.text_field :validation_spoken_company_name, value: current_user.validation_spoken_company_name_value, class: 'settings-input', required: true %>
           </div>
 
-          <div class="settings-meta-card" data-tutorial-id="company-account">
-            <span class="settings-meta-label">Conta na API</span>
-            <span class="settings-meta-value"><%= current_user.validation_account_id.presence || 'ainda não provisionada' %></span>
+          <div class="settings-field">
+            <%= render 'field_label', form: f, field: :validation_owner_name, text: 'Responsável', help: 'Pessoa de referência para a conta.', required: true %>
+            <%= f.text_field :validation_owner_name, value: current_user.validation_owner_name_value, class: 'settings-input', required: true %>
           </div>
 
-          <div class="flex justify-end">
-            <%= f.submit 'Salvar empresa', class: 'settings-submit', data: { tutorial_id: 'company-submit' } %>
+          <div class="settings-field">
+            <%= render 'field_label', form: f, field: :validation_owner_email, text: 'E-mail do responsável', help: 'Contato administrativo da integração.', required: true %>
+            <%= f.email_field :validation_owner_email, value: current_user.validation_owner_email_value, class: 'settings-input', required: true %>
           </div>
-        <% end %>
+        </div>
       <% end %>
+
+      <%= settings_section(title: 'Apresentação na ligação', description: 'Fatos públicos que a IA pode usar para explicar quem está ligando e por quê.') do %>
+        <%= render 'field_label', form: f, field: :validation_calling_profile, text: 'Informações institucionais para a ligação', help: 'Não inclua senhas, tokens, dados pessoais, preços confidenciais ou instruções para a IA.', required: false %>
+        <%= f.text_area :validation_calling_profile, value: current_user.validation_calling_profile, class: 'settings-input min-h-36', rows: 6, maxlength: 1500, aria: { describedby: 'calling_profile_limit' }, placeholder: 'Ex.: A empresa atua com... Esta ligação busca... Para dúvidas não cobertas, a equipe responsável pode retornar pelo canal oficial.' %>
+        <p class="settings-field-hint" id="calling_profile_limit">Máximo de 1.500 caracteres. A IA usa somente os fatos informados aqui e retoma a validação após responder.</p>
+      <% end %>
+
+      <%= settings_section(title: 'Conta na API', description: 'Identificador gerado quando a empresa é provisionada.', data: { tutorial_id: 'company-account' }) do %>
+        <dl class="workspace-kv">
+          <div>
+            <dt>ID da conta</dt>
+            <dd class="workspace-mono"><%= current_user.validation_account_id.presence || '—' %></dd>
+          </div>
+          <div>
+            <dt>Situação</dt>
+            <dd><%= current_user.validation_account_id.present? ? status_badge('Provisionada', tone: :success) : status_badge('Não provisionada', tone: :warning) %></dd>
+          </div>
+        </dl>
+      <% end %>
+
+      <div class="settings-panel__footer">
+        <p class="settings-panel__footer-note"><span class="text-danger-fg">*</span> Obrigatórios para provisionar e salvar a empresa na API.</p>
+        <div class="settings-panel__footer-actions">
+          <%= f.submit 'Salvar alterações', class: workspace_submit_class(:primary), data: { tutorial_id: 'company-submit', turbo_submits_with: 'Salvando…' } %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
 <% end %>

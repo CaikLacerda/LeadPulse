@@ -1,0 +1,49 @@
+<aside class="app-sidebar" id="app-sidebar">
+  <div class="app-sidebar__header">
+    <%= link_to root_path, class: 'app-brand-link', title: t('shared.app_name') do %>
+      <span class="app-logo-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
+      <span class="app-logo-text"><%= t('shared.app_name') %></span>
+    <% end %>
+
+    <button type="button" class="app-icon-button app-sidebar__close" data-action="sidebar#closeMobile" aria-label="Fechar menu">
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <nav class="app-sidebar__nav" aria-label="Navegação principal">
+    <% workspace_nav_groups.each do |group| %>
+      <div class="app-nav-group">
+        <% if group[:title].present? %>
+          <p class="app-nav-group__title"><%= group[:title] %></p>
+        <% end %>
+
+        <ul class="app-nav-list">
+          <% group[:items].each do |item| %>
+            <% active = workspace_nav_active?(item) %>
+            <li>
+              <%= link_to item[:path],
+                  class: "app-nav-link #{'app-nav-link--active' if active}",
+                  title: item[:label],
+                  aria: { current: (active ? 'page' : nil) } do %>
+                <span class="app-nav-link__icon"><%= workspace_icon(item[:icon]) %></span>
+                <span class="app-nav-link__label"><%= item[:label] %></span>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  </nav>
+
+  <div class="app-sidebar__footer">
+    <button type="button"
+            class="app-sidebar__collapse"
+            data-sidebar-target="collapseButton"
+            data-action="sidebar#toggleCollapsed"
+            aria-pressed="<%= workspace_sidebar_collapsed? %>"
+            title="Recolher ou expandir o menu">
+      <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
+      <span>Recolher menu</span>
+    </button>
+  </div>
+</aside>

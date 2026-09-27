@@ -28,13 +28,12 @@
      data-import-modal-preview-no-invalid-rows-label-value="<%= I18n.t('supplier_imports.modal.preview.no_invalid_rows') %>">
   <%= workspace_page do %>
     <%= workspace_page_header(
-      kicker: t('.kicker'),
       title: t('.title'),
       description: t('.description'),
       actions_data: { tutorial_id: 'imports-create' }
     ) do %>
       <% if current_user.can_import_data? %>
-        <%= workspace_button_tag type: :button, variant: :accent, data: { action: 'import-modal#open' } do %>
+        <%= workspace_button_tag type: :button, variant: :primary, data: { action: 'import-modal#open' } do %>
           <%= workspace_icon(:plus) %><span><%= t('.new_batch') %></span>
         <% end %>
       <% end %>

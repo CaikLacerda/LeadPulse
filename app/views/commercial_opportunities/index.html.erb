@@ -4,71 +4,74 @@
    else
      []
    end %>
+<% filtered = params[:q].present? || params[:status].present? %>
 
 <div data-controller="remote-status-poll"
      data-remote-status-poll-urls-value="<%= remote_status_urls.to_json %>">
 <%= workspace_page do %>
   <%= workspace_page_header(
-    kicker: 'Operação comercial',
     title: 'Retornos comerciais',
     description: 'Fornecedores que aceitaram um novo contato e aguardam a coleta de condições comerciais.'
   ) %>
 
-  <section class="mb-6 grid gap-3 md:grid-cols-3">
+  <%= workspace_metrics(classes: 'mb-6') do %>
     <%= workspace_metric_card(
       label: 'Aguardando início',
-      value: @status_counts.fetch(CommercialOpportunity::STATUS_PENDING, 0),
-      description: 'Retornos liberados para início manual.',
-      icon: :clock
+      value: number_with_delimiter(@status_counts.fetch(CommercialOpportunity::STATUS_PENDING, 0)),
+      description: 'Liberados para início manual',
+      path: commercial_opportunities_path(status: CommercialOpportunity::STATUS_PENDING)
     ) %>
     <%= workspace_metric_card(
       label: 'Em andamento',
-      value: @status_counts.fetch(CommercialOpportunity::STATUS_PROCESSING, 0),
-      description: 'Chamadas iniciadas ou aguardando atualização.',
-      icon: :clock
+      value: number_with_delimiter(@status_counts.fetch(CommercialOpportunity::STATUS_PROCESSING, 0)),
+      description: 'Chamadas iniciadas ou aguardando atualização',
+      path: commercial_opportunities_path(status: CommercialOpportunity::STATUS_PROCESSING)
     ) %>
     <%= workspace_metric_card(
       label: 'Concluídos',
-      value: @status_counts.fetch(CommercialOpportunity::STATUS_COMPLETED, 0),
-      description: 'Coletas disponíveis para revisão.',
-      icon: :validation
+      value: number_with_delimiter(@status_counts.fetch(CommercialOpportunity::STATUS_COMPLETED, 0)),
+      description: 'Coletas disponíveis para revisão',
+      path: commercial_opportunities_path(status: CommercialOpportunity::STATUS_COMPLETED)
     ) %>
-  </section>
+  <% end %>
 
   <%= portlet_search do %>
-    <%= form_with url: commercial_opportunities_path, method: :get, local: true do |f| %>
-      <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
-        <%= f.text_field :q,
+    <%= form_with url: commercial_opportunities_path, method: :get, local: true, class: 'workspace-filters__row' do |f| %>
+      <label class="workspace-filters__search">
+        <span class="sr-only">Buscar por código, fornecedor ou telefone</span>
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <%= f.search_field :q,
           value: params[:q],
           placeholder: 'Buscar por código, fornecedor ou telefone',
           class: 'settings-input' %>
-        <%= f.select :status,
-          [['Todos os status', '']] + CommercialOpportunity::STATUSES.map { |status| [local_status_label(status), status] },
-          { selected: params[:status] },
-          class: 'settings-input appearance-none' %>
-        <div class="flex gap-2">
-          <%= workspace_link_button 'Limpar', commercial_opportunities_path %>
-          <%= workspace_button_tag type: :submit do %>
-            <%= workspace_icon(:filter) %><span>Filtrar</span>
-          <% end %>
-        </div>
+      </label>
+      <%= f.select :status,
+        [['Todos os status', '']] + CommercialOpportunity::STATUSES.map { |status| [local_status_label(status), status] },
+        { selected: params[:status] },
+        class: 'settings-input workspace-filters__select', aria: { label: 'Status' } %>
+      <div class="workspace-filters__actions">
+        <%= workspace_button_tag 'Filtrar', type: :submit, variant: :secondary %>
+        <% if filtered %>
+          <%= workspace_link_button 'Limpar', commercial_opportunities_path, variant: :ghost %>
+        <% end %>
       </div>
+
+      <p class="ml-auto text-[0.8125rem] text-fg-muted tabular-nums"><%= pluralize(@opportunities_total_count, 'retorno', plural: 'retornos') %></p>
     <% end %>
   <% end %>
 
-  <% table_meta = content_tag(:span, "#{@opportunities_total_count} registro(s)", class: 'workspace-portlet-meta') %>
-  <%= portlet_form('Fila de fornecedores', table_meta, icon: :commercial, body_class: 'workspace-portlet-body--flush') do %>
-    <div class="overflow-x-auto overflow-y-visible">
+  <section class="workspace-portlet">
+    <div class="workspace-table-wrap">
       <table class="workspace-table">
         <thead>
           <tr>
-            <th>Retorno</th>
-            <th>Fornecedor</th>
-            <th>Telefone</th>
-            <th>Preferência informada</th>
-            <th>Origem</th>
-            <th>Status</th>
-            <th>Ações</th>
+            <th scope="col">Retorno</th>
+            <th scope="col">Fornecedor</th>
+            <th scope="col">Telefone</th>
+            <th scope="col">Preferência informada</th>
+            <th scope="col">Lote de origem</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="is-actions"><span class="sr-only">Ações</span></th>
           </tr>
         </thead>
         <tbody>
@@ -76,30 +79,34 @@
             <% @opportunities.each do |opportunity| %>
               <tr>
                 <td><%= workspace_code_tag(opportunity.display_code, commercial_opportunity_path(opportunity)) %></td>
-                <td>
-                  <p class="font-semibold text-slate-900"><%= opportunity.supplier_name %></p>
-                </td>
-                <td>
-                  <p class="font-medium text-slate-800"><%= opportunity.callback_phone %></p>
-                </td>
-                <td class="max-w-xs">
-                  <p class="text-sm font-medium text-slate-800"><%= opportunity.callback_schedule_label %></p>
-                </td>
-                <td><%= workspace_code_tag(opportunity.source_import_code, supplier_import_path(opportunity.supplier_import)) %></td>
+                <td class="workspace-table__primary"><%= opportunity.supplier_name %></td>
+                <td class="is-nowrap tabular-nums"><%= opportunity.callback_phone %></td>
+                <td class="max-w-xs"><%= opportunity.callback_schedule_label %></td>
+                <td><%= workspace_code_tag(opportunity.source_import_code, current_user.can_view_evidence? ? supplier_import_path(opportunity.supplier_import) : nil) %></td>
                 <td><%= workspace_status_tag(opportunity.status) %></td>
-                <td class="whitespace-nowrap">
-                  <details data-controller="action-menu" class="relative inline-block">
-                    <summary class="workspace-summary-button">Ações</summary>
-                    <div class="workspace-menu absolute right-0 top-[calc(100%+0.25rem)] z-20 w-48 p-1">
-                      <%= link_to 'Ver detalhes', commercial_opportunity_path(opportunity), class: 'workspace-menu-item' %>
+                <td class="is-actions">
+                  <details data-controller="action-menu" data-action-menu-floating-value="true" class="relative inline-block text-left">
+                    <summary class="workspace-row-menu-trigger" aria-label="Ações do retorno <%= opportunity.display_code %>">
+                      <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+                    </summary>
+                    <div class="workspace-menu absolute right-0 top-full w-48">
+                      <%= link_to commercial_opportunity_path(opportunity), class: 'workspace-menu-item' do %>
+                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i><span>Ver detalhes</span>
+                      <% end %>
                       <% if opportunity.startable? && current_user.can_start_validation? %>
-                        <%= button_to 'Iniciar coleta', start_commercial_opportunity_path(opportunity), method: :post, class: 'workspace-menu-item' %>
+                        <%= button_to start_commercial_opportunity_path(opportunity), method: :post, class: 'workspace-menu-item' do %>
+                          <i class="fa-solid fa-play" aria-hidden="true"></i><span>Iniciar coleta</span>
+                        <% end %>
                       <% end %>
                       <% if opportunity.syncable? && current_user.can_start_validation? %>
-                        <%= button_to 'Consultar status', sync_status_commercial_opportunity_path(opportunity), method: :post, class: 'workspace-menu-item' %>
+                        <%= button_to sync_status_commercial_opportunity_path(opportunity), method: :post, class: 'workspace-menu-item' do %>
+                          <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i><span>Consultar status</span>
+                        <% end %>
                       <% end %>
                       <% if opportunity.ready_to_export? && current_user.can_export_data? %>
-                        <%= link_to 'Exportar XLSX', export_commercial_opportunity_path(opportunity), data: { turbo: false }, class: 'workspace-menu-item' %>
+                        <%= link_to export_commercial_opportunity_path(opportunity), data: { turbo: false }, class: 'workspace-menu-item' do %>
+                          <i class="fa-solid fa-file-excel" aria-hidden="true"></i><span>Exportar XLSX</span>
+                        <% end %>
                       <% end %>
                     </div>
                   </details>
@@ -107,15 +114,19 @@
               </tr>
             <% end %>
           <% else %>
-            <%= workspace_empty_table_row(colspan: 7, message: 'Nenhum fornecedor aceitou retorno comercial até o momento.') %>
+            <%= workspace_empty_table_row(colspan: 7,
+                  message: filtered ? 'Nenhum retorno encontrado.' : 'Nenhum retorno comercial ainda.',
+                  hint: filtered ? 'Nenhum retorno corresponde aos filtros aplicados.' : 'Fornecedores que aceitarem um novo contato durante a validação aparecem aqui.') do %>
+              <% if filtered %>
+                <%= workspace_link_button 'Limpar filtros', commercial_opportunities_path, size: :sm %>
+              <% end %>
+            <% end %>
           <% end %>
         </tbody>
       </table>
     </div>
 
-    <div class="border-t border-slate-200 px-4 py-3">
-      <%= render 'shared/pagination', current_page: @opportunities_page, total_pages: @opportunities_total_pages %>
-    </div>
-  <% end %>
+    <%= render 'shared/pagination', current_page: @opportunities_page, total_pages: @opportunities_total_pages %>
+  </section>
 <% end %>
 </div>

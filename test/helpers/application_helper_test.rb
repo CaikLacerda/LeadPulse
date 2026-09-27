@@ -9,22 +9,35 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_not_includes icon, "<svg"
   end
 
-  test "renders status as an icon only, with an accessible label" do
-    completed = workspace_status_tag("completed")
-    processing = workspace_status_tag("processing")
+  test "renders status as a badge with a visible label and a semantic tone" do
+    completed = workspace_status_tag("concluido")
 
-    assert_includes completed, "fa-circle-check"
-    assert_includes completed, "workspace-status--icon-only"
-    assert_includes completed, 'aria-label="Concluído"'
-    assert_not_includes completed, ">Concluído<"
-    assert_includes processing, "fa-spinner"
-    assert_includes processing, "fa-spin"
-    assert_includes workspace_status_tag("error"), "fa-circle-xmark"
-    assert_includes workspace_status_tag("pending"), "fa-clock"
+    assert_includes completed, "workspace-status--success"
+    assert_includes completed, ">Concluído<"
+    assert_includes workspace_status_tag("erro"), "workspace-status--danger"
+    assert_includes workspace_status_tag("pendente"), "workspace-status--neutral"
+  end
 
-    assert_includes workspace_status_tag("concluido"), "fa-circle-check"
-    assert_includes workspace_status_tag("processando"), "fa-spinner"
-    assert_includes workspace_status_tag("erro"), "fa-circle-xmark"
-    assert_includes workspace_status_tag("pendente"), "fa-clock"
+  test "marks processing statuses with a pulsing indicator" do
+    processing = workspace_status_tag("processando")
+
+    assert_includes processing, "workspace-status--info"
+    assert_includes processing, "workspace-status--pulse"
+    assert_not_includes workspace_status_tag("concluido"), "workspace-status--pulse"
+  end
+
+  test "translates remote statuses to the local labels" do
+    assert_includes workspace_status_tag("completed"), ">Concluído<"
+    assert_includes workspace_status_tag("processing"), ">Processando<"
+    assert_includes workspace_status_tag("failed"), ">Erro<"
+    assert_includes workspace_status_tag("pending"), ">Pendente<"
+  end
+
+  test "keeps audit results distinguishable by tone" do
+    assert_includes audit_result_tag("confirmed_by_call"), "workspace-status--success"
+    assert_includes audit_result_tag("inconclusive"), "workspace-status--warning"
+    assert_includes audit_result_tag("not_answered"), "workspace-status--warning"
+    assert_includes audit_result_tag("wrong_company"), "workspace-status--danger"
+    assert_includes audit_result_tag(nil), "workspace-status--neutral"
   end
 end

@@ -1,0 +1,21 @@
+<% if local_assigns[:resource]&.errors&.any? %>
+  <div class="workspace-callout workspace-callout--danger auth-errors" role="alert">
+    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+    <div>
+      <p class="font-medium">Revise os campos abaixo.</p>
+      <ul>
+        <% resource.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+<% elsif alert.present? %>
+  <div class="workspace-callout workspace-callout--danger auth-errors" role="alert">
+    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span><%= alert %></span>
+  </div>
+<% elsif notice.present? %>
+  <div class="workspace-callout workspace-callout--success auth-errors" role="status">
+    <i class="fa-solid fa-circle-check" aria-hidden="true"></i><span><%= notice %></span>
+  </div>
+<% end %>

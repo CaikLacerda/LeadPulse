@@ -1,9 +1,19 @@
 <% points = Array(local_assigns[:points]) %>
-<% title = local_assigns[:title].presence || 'Mapa dos fornecedores' %>
+<% title = local_assigns[:title].presence || 'Localização dos fornecedores' %>
 <% meta = local_assigns[:meta].presence || supplier_location_map_meta(points) %>
 <% empty_message = local_assigns[:empty_message].presence || 'Nenhum fornecedor com localização confirmada foi encontrado ainda.' %>
 
-<%= portlet_form(title, content_tag(:span, meta, class: 'workspace-portlet-meta'), icon: :map_pin, body_class: 'workspace-portlet-body--flush', data: local_assigns[:data]) do %>
+<% legend = capture do %>
+  <% if points.any? %>
+    <span class="hidden items-center gap-3 sm:inline-flex" aria-hidden="true">
+      <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-brand"></span>Exata</span>
+      <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-fg-subtle"></span>Aproximada</span>
+    </span>
+  <% end %>
+  <span class="workspace-portlet-meta"><%= meta %></span>
+<% end %>
+
+<%= portlet_form(title, legend, body_class: 'workspace-portlet-body--flush', data: local_assigns[:data]) do %>
   <% if points.any? %>
     <div class="supplier-location-map"
          data-controller="supplier-map"
@@ -17,8 +27,6 @@
       </div>
     </div>
   <% else %>
-    <div class="supplier-location-map__empty">
-      <p><%= empty_message %></p>
-    </div>
+    <p class="supplier-location-map__empty"><%= empty_message %></p>
   <% end %>
 <% end %>

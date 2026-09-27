@@ -1,105 +1,35 @@
-<%# app/views/devise/sessions/new.html.erb %>
+<% content_for :title, 'Entrar · LeadPulse' %>
 
-<div class="auth-shell auth-shell--login flex min-h-[calc(100vh-4rem)] flex-col md:min-h-screen md:flex-row" data-controller="auth-transition" data-auth-transition-direction="forward">
-  <!-- LADO ESQUERDO - Banner azul -->
-  <div class="auth-copy auth-banner hidden md:flex w-1/2 bg-blue-600 flex-col justify-between p-14 relative overflow-hidden">
+<h1 class="auth-title">Entrar</h1>
+<p class="auth-description">Acesse o painel de validação da sua empresa.</p>
 
-    <!-- Logo -->
-    <a href="/" class="flex items-center gap-2 font-extrabold text-xl text-white z-10">
-      <i class="fa-solid fa-bolt" aria-hidden="true"></i>
-      <span>LeadPulse</span>
-    </a>
+<%= render 'devise/shared/messages' %>
 
-    <!-- Conteúdo central -->
-    <div class="z-10">
-      <h1 class="text-7xl font-black text-white leading-none">BEM-VINDO</h1>
-      <h1 class="text-7xl font-black text-orange-500 leading-none mb-8">DE VOLTA.</h1>
-      <p class="text-blue-100 text-lg leading-relaxed max-w-sm">
-        Sua central de inteligência de dados está a um clique de distância. Continue validando, continue crescendo.
-      </p>
-
-      <p class="mt-12 max-w-sm border-l-2 border-orange-400 pl-4 text-sm leading-6 text-blue-100">
-        Busca, validação por voz, auditoria e exportação reunidas no mesmo fluxo operacional.
-      </p>
-    </div>
-
-    <div class="z-10"></div>
+<%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'auth-form' }) do |f| %>
+  <div>
+    <%= f.label :email, 'E-mail corporativo', class: 'settings-label' %>
+    <%= f.email_field :email, autofocus: true, autocomplete: 'email', placeholder: 'voce@empresa.com', class: 'settings-input' %>
   </div>
 
-  <!-- LADO DIREITO - Formulário -->
-  <div class="auth-card flex-1 bg-white px-5 py-10 sm:px-8 md:flex md:items-center md:justify-center md:px-20">
-    <div class="auth-card-bolts">
-      <div class="home-bolt left-[12%] top-[13%] hidden h-24 w-14 md:block"></div>
-      <div class="home-bolt home-bolt--soft right-[14%] top-[22%] hidden h-20 w-12 md:block"></div>
-      <div class="home-bolt right-[10%] bottom-[18%] hidden h-28 w-16 md:block"></div>
-      <div class="home-bolt home-bolt--soft left-[20%] bottom-[12%] hidden h-20 w-12 md:block"></div>
+  <div>
+    <div class="flex items-baseline justify-between">
+      <%= f.label :password, 'Senha', class: 'settings-label' %>
+      <%= link_to 'Esqueceu a senha?', new_password_path(resource_name), class: 'workspace-link text-[0.8125rem]' %>
     </div>
-    <div class="mx-auto w-full max-w-md">
-
-      <!-- Título -->
-      <h2 class="text-4xl font-black text-gray-900 mb-1">Entrar</h2>
-      <p class="text-gray-500 mb-8 text-base">Insira suas credenciais para gerenciar sua base.</p>
-
-      <!-- Erro -->
-      <% if alert %>
-        <div class="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-6">
-          <%= alert %>
-        </div>
-      <% end %>
-
-      <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-
-        <!-- E-mail -->
-        <div class="mb-5">
-          <%= f.label :email, "E-mail corporativo",
-              class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
-          <%= f.email_field :email,
-              autofocus: true,
-              autocomplete: "email",
-              placeholder: "exemplo@empresa.com",
-              class: "w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" %>
-        </div>
-
-        <!-- Senha -->
-        <div class="mb-5">
-          <%= f.label :password, "Senha",
-              class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
-          <%= f.password_field :password,
-              autocomplete: "current-password",
-              placeholder: "••••••••",
-              class: "w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" %>
-        </div>
-
-        <!-- Lembrar + Esqueci -->
-        <div class="flex items-center justify-between mb-7">
-          <% if devise_mapping.rememberable? %>
-            <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-              <%= f.check_box :remember_me, class: "w-4 h-4 rounded accent-blue-600" %>
-              Lembrar acesso
-            </label>
-          <% end %>
-          <%= link_to "Esqueci a senha", new_password_path(resource_name),
-              class: "text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors" %>
-        </div>
-
-        <!-- Botão submit -->
-        <%= f.submit "Acessar painel",
-            class: "w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-lg transition-all hover:-translate-y-0.5 shadow-lg shadow-blue-200 cursor-pointer" %>
-
-      <% end %>
-
-      <!-- Link cadastro -->
-      <p class="relative z-10 text-center text-sm text-gray-500 mt-8">
-        Novo por aqui?
-        <%= link_to "Crie sua conta gratuita", new_registration_path(resource_name),
-            class: "font-bold text-blue-600 hover:underline",
-            data: {
-              action: "click->auth-transition#rememberDirection",
-              auth_transition_direction: "forward"
-            } %>
-      </p>
-
-    </div>
+    <%= f.password_field :password, autocomplete: 'current-password', class: 'settings-input' %>
   </div>
 
-</div>
+  <% if devise_mapping.rememberable? %>
+    <label class="settings-check">
+      <%= f.check_box :remember_me %>
+      <span>Manter conectado neste dispositivo</span>
+    </label>
+  <% end %>
+
+  <%= f.submit 'Entrar', class: workspace_submit_class(:primary), data: { turbo_submits_with: 'Entrando…' } %>
+<% end %>
+
+<p class="auth-footer">
+  Ainda não tem conta?
+  <%= link_to 'Criar conta', new_registration_path(resource_name), class: 'workspace-link' %>
+</p>

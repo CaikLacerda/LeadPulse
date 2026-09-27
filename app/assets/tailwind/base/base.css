@@ -1,0 +1,81 @@
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  a[href],
+  button:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="button"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  summary,
+  [role="button"],
+  label[for] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  ::selection {
+    background: rgba(37, 99, 235, 0.16);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+  }
+
+  .tabular-nums,
+  .workspace-table td,
+  .workspace-metric-card__value {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Barra de progresso do Turbo em navegações e envios de formulário. */
+  .turbo-progress-bar {
+    height: 2px;
+    background: var(--color-brand);
+  }
+
+  /* Enquanto o Turbo envia um formulário, o botão fica indisponível e sinaliza espera. */
+  form[aria-busy="true"] [type="submit"],
+  form[aria-busy="true"] button:not([type]),
+  button[aria-busy="true"] {
+    cursor: progress;
+    opacity: 0.7;
+  }
+}
+
+/* Aplicada por um instante durante a troca de tema (appearance_controller). */
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

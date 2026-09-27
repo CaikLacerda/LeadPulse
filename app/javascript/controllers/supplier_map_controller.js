@@ -92,15 +92,15 @@ export default class extends Controller {
     groupedPoints.forEach(({ position, points }) => {
       const approximate = points.every((point) => point.approximate)
       const marker = leaflet.circleMarker(position, {
-        radius: approximate ? 7 : 8,
+        radius: approximate ? 6 : 7,
         color: "#ffffff",
-        weight: 3,
-        fillColor: approximate ? "#2563eb" : "#f97316",
+        weight: 2,
+        fillColor: approximate ? "#98a2b3" : "#2563eb",
         fillOpacity: 1,
       }).addTo(this.map)
 
       marker.bindTooltip(this.markerLabel(points), {
-        permanent: true,
+        permanent: false,
         direction: "top",
         offset: [0, -10],
         opacity: 1,

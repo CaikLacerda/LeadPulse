@@ -1,14 +1,20 @@
 <%= portlet_search(data: { tutorial_id: 'audit-filters' }) do %>
-  <%= form_with url: validation_audits_path, method: :get, local: true do |f| %>
-    <div class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
-      <%= f.text_field :q, value: params[:q],
+  <%= form_with url: validation_audits_path, method: :get, local: true, class: 'workspace-filters__row' do |f| %>
+    <label class="workspace-filters__search">
+      <span class="sr-only"><%= t('validation_audits.index.filters.query') %></span>
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <%= f.search_field :q, value: params[:q],
           placeholder: t('validation_audits.index.filters.query'),
           class: 'settings-input' %>
+    </label>
 
-      <div class="flex gap-2">
-        <%= workspace_link_button t('validation_audits.index.filters.clear'), validation_audits_path %>
-        <%= workspace_button_tag t('validation_audits.index.filters.submit'), type: :submit %>
-      </div>
+    <div class="workspace-filters__actions">
+      <%= workspace_button_tag t('validation_audits.index.filters.submit'), type: :submit, variant: :secondary %>
+      <% if params[:q].present? %>
+        <%= workspace_link_button t('validation_audits.index.filters.clear'), validation_audits_path, variant: :ghost %>
+      <% end %>
     </div>
+
+    <p class="ml-auto text-[0.8125rem] text-fg-muted tabular-nums"><%= t('validation_audits.index.table.count', count: @audit_total_count) %></p>
   <% end %>
 <% end %>

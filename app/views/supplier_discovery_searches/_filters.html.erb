@@ -1,16 +1,20 @@
 <%= portlet_search(data: { tutorial_id: 'search-filters' }) do %>
-  <%= form_with url: supplier_discovery_searches_path, method: :get, local: true do |f| %>
-    <div class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
-      <%= f.text_field :q, value: params[:q],
+  <%= form_with url: supplier_discovery_searches_path, method: :get, local: true, class: 'workspace-filters__row' do |f| %>
+    <label class="workspace-filters__search">
+      <span class="sr-only"><%= t('supplier_discovery_searches.index.filters.query') %></span>
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <%= f.search_field :q, value: params[:q],
           placeholder: t('supplier_discovery_searches.index.filters.query'),
           class: 'settings-input' %>
+    </label>
 
-      <div class="flex gap-2">
-        <%= workspace_link_button t('supplier_discovery_searches.index.filters.clear'), supplier_discovery_searches_path %>
-        <%= workspace_button_tag type: :submit do %>
-          <%= workspace_icon(:filter) %><span><%= t('supplier_discovery_searches.index.filters.submit') %></span>
-        <% end %>
-      </div>
+    <div class="workspace-filters__actions">
+      <%= workspace_button_tag t('supplier_discovery_searches.index.filters.submit'), type: :submit, variant: :secondary %>
+      <% if params[:q].present? %>
+        <%= workspace_link_button t('supplier_discovery_searches.index.filters.clear'), supplier_discovery_searches_path, variant: :ghost %>
+      <% end %>
     </div>
+
+    <p class="ml-auto text-[0.8125rem] text-fg-muted tabular-nums"><%= t('supplier_discovery_searches.index.table.count', count: @searches_total_count) %></p>
   <% end %>
 <% end %>

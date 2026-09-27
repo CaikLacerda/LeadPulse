@@ -31,22 +31,12 @@
         plans: "Planos"
         about: "Sobre"
         contact: "Contato"
-      workspace:
-        home: "Início"
-        search: "Busca"
-        validation: "Validação"
-        commercial: "Comercial"
-        audit: "Auditoria"
-        settings: "Configurações"
-        developer_docs: "For Devs"
       session:
         sign_in: "Entrar"
         sign_out: "Sair"
         open_menu: "Abrir menu"
         account: "Conta"
     tutorial:
-      launcher: ""
-      eyebrow: "Tutorial da tela"
       dialog_label: "Tutorial guiado da tela"
       previous: "Voltar"
       next: "Próximo"
@@ -57,16 +47,16 @@
           steps:
             actions:
               title: "Atalhos principais"
-              body: "Comece daqui. Use Nova busca para abrir um recorte novo, Novo lote para importar uma planilha e Configurações para revisar a conta."
+              body: "Use Nova busca para pesquisar fornecedores por segmento e região, e Novo lote para importar uma planilha para validação."
             metrics:
-              title: "Visão rápida da operação"
-              body: "Esses cards mostram o volume atual da conta, com buscas salvas, lotes importados, pendências e resultados já prontos."
+              title: "Estado dos lotes"
+              body: "Estes indicadores mostram os lotes em processamento, aguardando início, concluídos e com erro. Clique em um deles para abrir a lista filtrada."
             batches:
               title: "Últimos lotes"
               body: "Aqui você acompanha os lotes mais recentes e entra direto na tela de Validação para filtrar ou abrir um lote específico."
             integrations:
-              title: "Pontos de atenção"
-              body: "Aqui aparecem pendências operacionais da conta, como lotes parados, processamento em andamento e resultados já prontos para revisão ou exportação."
+              title: "Requer atenção"
+              body: "Aqui aparecem as pendências da conta: lotes parados ou com erro, processamento em andamento e resultados prontos para exportação."
         supplier_discovery_searches:
           steps:
             create:
@@ -171,18 +161,16 @@
       open: "Abrir"
   home:
     workspace:
-      kicker: "Workspace"
-      title: "Início"
-      welcome_html: "Bem-vindo, <span class=\"font-semibold text-slate-900\">%{name}</span>. Aqui você acompanha o que está pendente, o que já voltou da validação e qual é o próximo passo da operação."
+      title: "Visão geral"
+      welcome_html: "Olá, <strong>%{name}</strong>. Acompanhe o andamento das validações e o que precisa de ação."
       new_search: "Nova busca"
       new_batch: "Novo lote"
-      settings: "Configurações"
       latest_batches: "Últimos lotes"
-      open_validation: "Abrir Validação"
+      open_validation: "Ver todos"
       recent_searches: "Buscas recentes"
-      open_search: "Abrir Busca"
-      empty_batches: "Nenhum lote importado ainda. O primeiro lote aparece aqui assim que entrar em validação."
-      empty_searches: "Nenhuma busca salva ainda. Use a busca web para abrir segmentos antes da validação."
+      open_search: "Ver todas"
+      empty_batches: "Nenhum lote importado ainda."
+      empty_searches: "Nenhuma busca realizada ainda."
   supplier_imports:
     messages:
       select_file: "Selecione um arquivo antes de importar o lote."
@@ -198,10 +186,8 @@
       export_pending: "Esse lote ainda não está pronto para exportação."
       import_ready: "Importar lote"
     index:
-      kicker: "Operação"
-      title: "Validação"
-      description: "Acompanhe os lotes que entram na operação, revise o retorno e exporte a validação."
-      search_cta: "Busca de fornecedores"
+      title: "Lotes de validação"
+      description: "Importe planilhas, acompanhe o processamento das chamadas e exporte o resultado de cada lote."
       new_batch: "Novo lote"
       filters:
         query: "Buscar por código do lote"
@@ -218,8 +204,8 @@
       table:
         title: "Lotes de validação"
         count:
-          one: "%{count} registro"
-          other: "%{count} registros"
+          one: "%{count} lote"
+          other: "%{count} lotes"
         headers:
           batch: "Lote"
           date: "Data"
@@ -231,9 +217,11 @@
           status: "Status"
           actions: "Ações"
         empty: "Nenhum lote encontrado."
+        empty_hint: "Os lotes importados aparecem aqui com o status de cada validação."
+        empty_filtered_hint: "Nenhum lote corresponde aos filtros aplicados."
       actions:
         label: "Ações"
-        details: "Detalhes"
+        details: "Ver detalhes"
         restart: "Iniciar novamente"
         delete: "Excluir"
         start: "Iniciar validação"
@@ -247,7 +235,6 @@
         confirm: "Excluir"
         cancel: "Cancelar"
     modal:
-      eyebrow: "Novo lote"
       title: "Importar planilha"
       description: "Escolha o tipo do lote e envie a planilha correspondente."
       type_label: "Tipo do lote"
@@ -268,7 +255,6 @@
         cadastral_helper: "Para a validação cadastral, envie uma planilha com nome da empresa, telefone e CNPJ."
         supplier_helper: "Para a validação de segmento, envie a planilha baixada em Busca de fornecedores."
       preview:
-        eyebrow: "Pré-visualização"
         title: "Conferência antes de importar"
         empty: "Selecione uma planilha para visualizar a conferência antes de importar."
         loading: "Lendo arquivo e conferindo as linhas..."
@@ -294,9 +280,7 @@
         cadastral: "Importar lote cadastral"
         supplier: "Importar lote de segmento"
     show:
-      kicker: "Detalhe do lote"
       description: "Revise a linha do tempo, os registros retornados e as evidências disponíveis para auditoria."
-      back: "Voltar"
       export_csv: "Exportar CSV"
       export_xlsx: "Exportar XLSX"
       summary:
@@ -443,10 +427,8 @@
       concluido: "Concluída"
       erro: "Falhou"
     index:
-      kicker: "Busca web"
       title: "Busca de fornecedores"
-      description: "Abra segmentos, revise o retorno filtrado da web e só transforme em lote aquilo que já vale uma ligação."
-      validation_cta: "Ver Validação"
+      description: "Pesquise fornecedores por segmento e região e envie os resultados relevantes para validação."
       new_search: "Nova busca"
       filters:
         query: "Buscar por código, segmento ou região"
@@ -465,7 +447,9 @@
           status: "Status"
           found: "Encontrados"
           actions: "Ações"
-        empty: "Nenhuma busca salva ainda."
+        empty: "Nenhuma busca encontrada."
+        empty_hint: "As buscas por segmento e região aparecem aqui quando forem concluídas."
+        empty_filtered_hint: "Nenhuma busca corresponde ao filtro aplicado."
         no_region: "Sem filtro"
       actions:
         label: "Ações"
@@ -474,11 +458,10 @@
         retry: "Tentar novamente"
         wait: "Aguarde a conclusão"
       modal:
-        eyebrow: "Nova busca"
-        title: "Abrir segmento"
-        description: "A busca salva uma planilha local já filtrada para fornecedores com telefone e localização, pronta para revisão, mapa e importação em Validação."
+        title: "Nova busca de fornecedores"
+        description: "O resultado é salvo como planilha com fornecedores que têm telefone e localização, pronta para revisão e importação em um lote."
         close: "Fechar"
-        validation_pending: "A Validação ainda não está pronta nesta conta. Configure Empresa, Twilio, OpenAI e Token antes de importar este resultado em Validação."
+        validation_pending: "A validação ainda não está pronta nesta conta. Configure Empresa, Twilio, OpenAI e Token antes de importar este resultado como lote."
         fields:
           segment: "Segmento"
           segment_placeholder: "Ex.: Adubo, malha de ferro, resina"
@@ -493,16 +476,15 @@
       company: "Empresa"
       twilio: "Twilio"
       openai: "OpenAI"
-      api_token: "Token"
+      api_token: "Token de API"
       lgpd: "LGPD"
     api_token:
       copy_now: "Copie o token abaixo agora"
       copy: "Copiar token"
       copied: "Token copiado"
     lgpd:
-      kicker: "Governança"
-      title: "LGPD e privacidade operacional"
-      description: "Defina a leitura operacional usada pelo LeadPulse para tratamento de dados, evidências de chamada e integrações de validação."
+      title: "LGPD e privacidade"
+      description: "Política aplicada aos lotes, solicitações de titulares, operadores de dados e trilha de auditoria."
       operational_note: "Esta tela registra a política operacional dentro do SaaS. O lote enviado à API carrega aviso falado, base legal, finalidade, prazo de retenção, recusa/interrupção e ação de anonimização de evidências."
       items:
         - title: "Finalidade"
@@ -542,10 +524,8 @@
     review:
       saved: "Revisão salva com sucesso."
     index:
-      kicker: "Operação"
-      title: "Auditoria"
-      description: "Acompanhe cada validação já executada, com horário, resultado e as transcrições do cliente e da IA."
-      validation_cta: "Ver Validação"
+      title: "Auditoria de chamadas"
+      description: "Cada chamada executada pela IA, com resultado, gravação, transcrição e revisão manual."
       filters:
         query: "Buscar por lote, empresa ou resultado"
         clear: "Limpar"
@@ -553,8 +533,8 @@
       table:
         title: "Histórico de auditoria"
         count:
-          one: "%{count} auditoria"
-          other: "%{count} auditorias"
+          one: "%{count} chamada"
+          other: "%{count} chamadas"
         headers:
           lot: "Lote"
           datetime: "Data e hora"
@@ -567,7 +547,7 @@
         assistant_label: "IA"
         chronological_conversation: "Conversa na ordem real"
         interrupted_turn: "Interrompida"
-        view_transcripts: "Ver transcrições"
+        view_transcripts: "Conversa"
         missing_customer: "Sem transcrição do cliente."
         missing_assistant: "Sem transcrição da IA."
         evidence_label: "Evidência"
@@ -575,7 +555,9 @@
         missing_recording: "Sem gravação vinculada."
         privacy_refusal: "Recusa LGPD"
         evidence_anonymized: "Evidências anonimizadas."
-        empty: "Nenhuma auditoria disponível ainda."
+        empty: "Nenhuma chamada auditada ainda."
+        empty_hint: "As chamadas aparecem aqui quando os lotes começam a ser validados."
+        empty_filtered_hint: "Nenhuma chamada corresponde à busca."
       turn_questions:
         cadastral_contact_belongs: "Contato pertence à empresa"
         supplier_phone_belongs: "Contato pertence à empresa"

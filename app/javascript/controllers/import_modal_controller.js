@@ -91,16 +91,16 @@ export default class extends BaseModalController {
 
   dragOver(event) {
     event.preventDefault()
-    this.dropzoneTarget.classList.add("border-blue-500", "bg-blue-50")
+    this.dropzoneTarget.classList.add("workspace-dropzone--dragover")
   }
 
   dragLeave() {
-    this.dropzoneTarget.classList.remove("border-blue-500", "bg-blue-50")
+    this.dropzoneTarget.classList.remove("workspace-dropzone--dragover")
   }
 
   drop(event) {
     event.preventDefault()
-    this.dropzoneTarget.classList.remove("border-blue-500", "bg-blue-50")
+    this.dropzoneTarget.classList.remove("workspace-dropzone--dragover")
 
     const droppedFile = event.dataTransfer?.files?.[0]
     if (!droppedFile) return
@@ -128,8 +128,7 @@ export default class extends BaseModalController {
     if (!file) {
       this.labelTarget.textContent = this.defaultLabelValue
       this.hideSelectedFile()
-      this.dropzoneTarget.classList.remove("border-green-400", "bg-green-50", "bg-blue-50")
-      this.dropzoneTarget.classList.add("border-blue-300")
+      this.dropzoneTarget.classList.remove("workspace-dropzone--dragover")
       this.resetPreview()
       this.updateSubmitState(null)
       return
@@ -139,8 +138,7 @@ export default class extends BaseModalController {
     this.fileNameTarget.textContent = file.name
     this.fileMetaTarget.textContent = this.formatFileMeta(file)
     this.fileSelectedTarget.classList.remove("hidden")
-    this.dropzoneTarget.classList.remove("border-green-400", "bg-green-50", "bg-blue-50")
-    this.dropzoneTarget.classList.add("border-blue-300")
+    this.dropzoneTarget.classList.remove("workspace-dropzone--dragover")
     this.schedulePreviewRefresh()
     this.updateSubmitState(file)
   }

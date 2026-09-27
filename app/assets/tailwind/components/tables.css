@@ -1,0 +1,334 @@
+/* Tabelas de dados, códigos de registro, paginação e linhas expansíveis. */
+@layer components {
+  .workspace-table-wrap {
+    overflow-x: auto;
+  }
+
+  .workspace-table {
+    width: 100%;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.875rem;
+  }
+
+  .workspace-table th {
+    height: 2.5rem;
+    border-bottom: 1px solid var(--color-line);
+    background: var(--color-surface-subtle);
+    padding: 0 1rem;
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .workspace-table td {
+    border-bottom: 1px solid var(--color-line-subtle);
+    padding: 0.6875rem 1rem;
+    color: var(--color-fg-secondary);
+    line-height: 1.25rem;
+    vertical-align: middle;
+  }
+
+  .workspace-table th:first-child,
+  .workspace-table td:first-child {
+    padding-left: 1.25rem;
+  }
+
+  .workspace-table th:last-child,
+  .workspace-table td:last-child {
+    padding-right: 1.25rem;
+  }
+
+  .workspace-table tbody tr:last-child > td {
+    border-bottom: 0;
+  }
+
+  .workspace-table tbody tr:not(.workspace-table__detail-row):hover > td {
+    background: var(--lp-row-hover);
+  }
+
+  .workspace-table--top td {
+    vertical-align: top;
+  }
+
+  .workspace-table .is-numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .workspace-table .is-actions {
+    width: 1%;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .workspace-table td.is-actions {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
+
+  .workspace-table .is-nowrap {
+    white-space: nowrap;
+  }
+
+  .workspace-table__primary {
+    color: var(--color-fg);
+    font-weight: 500;
+  }
+
+  .workspace-table__secondary {
+    display: block;
+    margin-top: 0.125rem;
+    color: var(--color-fg-muted);
+    font-size: 0.8125rem;
+  }
+
+  .workspace-table__muted {
+    color: var(--color-fg-subtle);
+  }
+
+  .workspace-table__empty-dash {
+    color: var(--color-fg-subtle);
+  }
+
+  .workspace-datetime {
+    color: var(--color-fg-secondary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .workspace-datetime__time {
+    margin-left: 0.25rem;
+    color: var(--color-fg-muted);
+  }
+
+  /* Código do registro (LD-076, BS-015, RC-001) */
+  .workspace-compact-code,
+  .workspace-code {
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  a.workspace-compact-code {
+    color: var(--color-brand-fg);
+  }
+
+  a.workspace-compact-code:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .workspace-mono {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  /* Linha de detalhe expansível */
+  .workspace-table__detail-row[hidden] {
+    display: none;
+  }
+
+  .workspace-table__detail-row > td {
+    background: var(--color-surface-subtle);
+    padding: 0 !important;
+  }
+
+  .workspace-row-toggle {
+    display: inline-flex;
+    height: 2rem;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: var(--lp-radius-sm);
+    padding: 0 0.5rem;
+    color: var(--color-fg-secondary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color var(--lp-duration) var(--lp-ease), color var(--lp-duration) var(--lp-ease);
+  }
+
+  .workspace-row-toggle:hover {
+    background: var(--color-surface-active);
+    color: var(--color-fg);
+  }
+
+  .workspace-row-toggle .fa-chevron-down {
+    color: var(--color-fg-subtle);
+    font-size: 0.625rem;
+    transition: transform var(--lp-duration) var(--lp-ease);
+  }
+
+  .workspace-row-toggle[aria-expanded="true"] .fa-chevron-down {
+    transform: rotate(180deg);
+  }
+
+  /* Paginação */
+  .workspace-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-top: 1px solid var(--color-line);
+    padding: 0.625rem 1.25rem;
+    color: var(--color-fg-muted);
+    font-size: 0.8125rem;
+  }
+
+  .workspace-pagination__summary strong {
+    color: var(--color-fg-secondary);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .workspace-pagination__nav {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .workspace-pagination__link {
+    display: inline-flex;
+    height: 2rem;
+    min-width: 2rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border: 1px solid transparent;
+    border-radius: var(--lp-radius-sm);
+    padding: 0 0.5rem;
+    color: var(--color-fg-secondary);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    transition: background-color var(--lp-duration) var(--lp-ease), color var(--lp-duration) var(--lp-ease);
+  }
+
+  a.workspace-pagination__link:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-fg);
+  }
+
+  .workspace-pagination__link--current {
+    border-color: var(--color-line-strong);
+    background: var(--color-surface);
+    color: var(--color-fg);
+    box-shadow: var(--lp-shadow-xs);
+  }
+
+  .workspace-pagination__link--disabled {
+    color: var(--color-fg-subtle);
+  }
+
+  .workspace-pagination__gap {
+    padding: 0 0.25rem;
+    color: var(--color-fg-subtle);
+  }
+
+  /* Transcrição da chamada (auditoria) */
+  .workspace-transcript {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .workspace-transcript-turn {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .workspace-transcript-turn__speaker {
+    padding-top: 0.125rem;
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .workspace-transcript-turn--agent .workspace-transcript-turn__speaker {
+    color: var(--color-brand-fg);
+  }
+
+  .workspace-transcript-turn__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .workspace-transcript-block {
+    white-space: pre-wrap;
+    color: var(--color-fg);
+    font-size: 0.8125rem;
+    line-height: 1.375rem;
+  }
+
+  .workspace-result-note {
+    margin-top: 0.375rem;
+    max-width: 22rem;
+    color: var(--color-fg-muted);
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    white-space: normal;
+  }
+
+  .workspace-detail-grid {
+    display: grid;
+    gap: 1.5rem;
+    padding: 1.25rem;
+  }
+
+  @media (min-width: 1024px) {
+    .workspace-detail-grid {
+      grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 1fr);
+    }
+  }
+
+  .workspace-detail-grid__title {
+    margin-bottom: 0.625rem;
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  /* Tentativas de chamada (detalhe do lote) */
+  .workspace-attempts {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .workspace-attempt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.625rem;
+    font-size: 0.8125rem;
+  }
+
+  .workspace-attempt__number {
+    color: var(--color-fg);
+    font-weight: 500;
+  }
+
+  .workspace-attempt__meta {
+    color: var(--color-fg-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .workspace-attempt__id {
+    max-width: 14rem;
+    overflow: hidden;
+    color: var(--color-fg-subtle);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

@@ -8,13 +8,12 @@
      data-supplier-search-progress-fingerprint-value="<%= @active_search_fingerprint %>">
   <%= workspace_page do %>
     <%= workspace_page_header(
-      kicker: t('.kicker'),
       title: t('.title'),
       description: t('.description'),
       actions_data: { tutorial_id: 'search-create' }
     ) do %>
       <% if current_user.can_import_data? %>
-        <%= workspace_button_tag type: :button, variant: :accent, data: { action: 'search-modal#open' } do %>
+        <%= workspace_button_tag type: :button, variant: :primary, data: { action: 'search-modal#open' } do %>
           <%= workspace_icon(:plus) %><span><%= t('.new_search') %></span>
         <% end %>
       <% end %>
@@ -22,100 +21,104 @@
 
     <%= render 'filters' %>
     <%= render 'table' %>
+
     <% search_map_points = supplier_discovery_map_points(@searches, limit: 80) %>
     <div class="mt-6">
       <%= render 'shared/supplier_location_map',
           points: search_map_points,
-          title: 'Mapa de fornecedores encontrados',
+          title: 'Localização dos fornecedores',
           meta: supplier_location_map_meta(search_map_points),
-          empty_message: 'Faça uma busca com região ou aguarde fornecedores com localização para visualizar os pontos no mapa.' %>
+          empty_message: 'Buscas com região ou fornecedores com localização aparecem no mapa.' %>
     </div>
   <% end %>
 
-<% if current_user.can_import_data? %>
-<div id="supplier-search-modal"
-     data-search-modal-target="modal"
-     class="fixed inset-0 z-[70] <%= @open_new_search_modal ? '' : 'hidden' %>">
-  <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-sm" data-action="click->search-modal#close"></div>
+  <% if current_user.can_import_data? %>
+    <div id="supplier-search-modal"
+         data-search-modal-target="modal"
+         class="fixed inset-0 z-[70] <%= @open_new_search_modal ? '' : 'hidden' %>">
+      <div class="workspace-modal-backdrop" data-action="click->search-modal#close"></div>
 
-  <div class="relative flex min-h-full items-center justify-center px-4 py-10">
-    <div class="workspace-modal relative w-full max-w-3xl p-5 sm:p-6"
-         data-search-modal-target="panel"
-         tabindex="-1">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <p class="text-xs font-bold uppercase tracking-[0.26em] text-blue-600"><%= t('.modal.eyebrow') %></p>
-          <h2 class="mt-2 text-2xl font-black text-slate-950"><%= t('.modal.title') %></h2>
-          <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-            <%= t('.modal.description') %>
-          </p>
+      <div class="relative flex min-h-full items-center justify-center p-4">
+        <div class="workspace-modal w-full max-w-xl"
+             data-search-modal-target="panel"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="supplier-search-modal-title"
+             tabindex="-1">
+          <%= form_with url: supplier_discovery_searches_path, method: :post, local: true, class: 'flex min-h-0 flex-col' do |f| %>
+            <div class="workspace-modal__header">
+              <div>
+                <h2 class="workspace-modal__title" id="supplier-search-modal-title"><%= t('.modal.title') %></h2>
+                <p class="workspace-modal__description"><%= t('.modal.description') %></p>
+              </div>
+
+              <button type="button"
+                      data-action="search-modal#close"
+                      aria-label="<%= t('.modal.close') %>"
+                      class="workspace-modal__close">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+            </div>
+
+            <div class="workspace-modal__body space-y-4">
+              <% if modal_alert.present? %>
+                <div class="workspace-callout workspace-callout--danger" role="alert">
+                  <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span><%= modal_alert %></span>
+                </div>
+              <% end %>
+
+              <% if validation_pending_alert.present? %>
+                <div class="workspace-callout workspace-callout--warning">
+                  <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span><%= validation_pending_alert %></span>
+                </div>
+              <% end %>
+
+              <div class="settings-fields settings-fields--2">
+                <div class="settings-field settings-field--full">
+                  <label for="supplier_discovery_search_segment_name" class="settings-label"><%= t('.modal.fields.segment') %></label>
+                  <%= text_field_tag 'supplier_discovery_search[segment_name]', form_values[:segment_name],
+                      id: 'supplier_discovery_search_segment_name',
+                      placeholder: t('.modal.fields.segment_placeholder'),
+                      class: 'settings-input',
+                      required: true %>
+                </div>
+
+                <div class="settings-field">
+                  <label for="supplier_discovery_search_region" class="settings-label"><%= t('.modal.fields.region') %></label>
+                  <%= text_field_tag 'supplier_discovery_search[region]', form_values[:region],
+                      id: 'supplier_discovery_search_region',
+                      placeholder: t('.modal.fields.region_placeholder'),
+                      class: 'settings-input' %>
+                </div>
+
+                <div class="settings-field">
+                  <label for="supplier_discovery_search_max_suppliers" class="settings-label"><%= t('.modal.fields.max_suppliers') %></label>
+                  <%= number_field_tag 'supplier_discovery_search[max_suppliers]', form_values[:max_suppliers] || 10,
+                      id: 'supplier_discovery_search_max_suppliers',
+                      min: 1,
+                      max: 50,
+                      class: 'settings-input',
+                      required: true %>
+                  <p class="settings-field-hint">Entre 1 e 50 fornecedores.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="workspace-modal__footer">
+              <%= workspace_button_tag t('.modal.cancel'),
+                  type: :button,
+                  variant: :secondary,
+                  data: { action: 'search-modal#close' } %>
+
+              <%= f.submit t('.modal.submit'),
+                  class: workspace_submit_class(:primary),
+                  data: { turbo_submits_with: 'Iniciando busca…' } %>
+            </div>
+          <% end %>
         </div>
-
-        <button type="button"
-                data-action="search-modal#close"
-                aria-label="<%= t('.modal.close') %>"
-                class="inline-flex h-9 w-9 items-center justify-center border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-900">
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-        </button>
       </div>
-
-      <% if modal_alert.present? %>
-        <div class="mt-5 border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-700">
-          <%= modal_alert %>
-        </div>
-      <% end %>
-
-      <% if validation_pending_alert.present? %>
-        <div class="mt-5 border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">
-          <%= validation_pending_alert %>
-        </div>
-      <% end %>
-
-      <%= form_with url: supplier_discovery_searches_path, method: :post, local: true, class: 'mt-6 space-y-5' do |f| %>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <label for="supplier_discovery_search_segment_name" class="settings-label"><%= t('.modal.fields.segment') %></label>
-            <%= text_field_tag 'supplier_discovery_search[segment_name]', form_values[:segment_name],
-                id: 'supplier_discovery_search_segment_name',
-                placeholder: t('.modal.fields.segment_placeholder'),
-                class: 'settings-input',
-                required: true %>
-          </div>
-
-          <div>
-            <label for="supplier_discovery_search_region" class="settings-label"><%= t('.modal.fields.region') %></label>
-            <%= text_field_tag 'supplier_discovery_search[region]', form_values[:region],
-                id: 'supplier_discovery_search_region',
-                placeholder: t('.modal.fields.region_placeholder'),
-                class: 'settings-input' %>
-          </div>
-
-          <div>
-            <label for="supplier_discovery_search_max_suppliers" class="settings-label"><%= t('.modal.fields.max_suppliers') %></label>
-            <%= number_field_tag 'supplier_discovery_search[max_suppliers]', form_values[:max_suppliers] || 10,
-                id: 'supplier_discovery_search_max_suppliers',
-                min: 1,
-                max: 50,
-                class: 'settings-input',
-                required: true %>
-          </div>
-
-        </div>
-
-        <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <%= workspace_button_tag t('.modal.cancel'),
-              type: :button,
-              variant: :secondary,
-              data: { action: 'search-modal#close' } %>
-
-          <%= f.submit t('.modal.submit'),
-              class: workspace_submit_class(:accent) %>
-        </div>
-      <% end %>
     </div>
-  </div>
-</div>
-<% end %>
+  <% end %>
 
-<%= render 'shared/workspace_tutorial', steps: workspace_tutorial_steps(:supplier_discovery_searches) %>
+  <%= render 'shared/workspace_tutorial', steps: workspace_tutorial_steps(:supplier_discovery_searches) %>
 </div>

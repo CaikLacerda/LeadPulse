@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="<%= I18n.locale %>">
+<%# A landing e as páginas públicas têm visual próprio e ficam sempre no tema claro. %>
+<% page_theme = user_signed_in? ? html_theme_attribute : 'light' %>
+<html <%= tag.attributes(lang: I18n.locale, data: { theme: page_theme }) %>>
   <head>
     <title><%= content_for(:title) || t('shared.app_name') %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -15,36 +17,39 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" referrerpolicy="no-referrer">
     <%= stylesheet_link_tag :app, 'data-turbo-track': 'reload' %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="min-h-screen bg-white text-gray-900 <%= 'app-shell--authenticated' if user_signed_in? %>">
-    <%= render 'shared/site_header', auth_page: false %>
-    <main class="app-main pt-16 md:pt-20">
-      <% visible_flashes = controller_name == 'platform_settings' ? {} : flash.to_hash.except('generated_api_token').select { |_, message| message.present? } %>
-      <% if visible_flashes.any? %>
-        <div class="app-flash-overlay px-4 sm:px-6 lg:px-8">
-          <div class="app-flash-stack">
-            <% visible_flashes.each do |type, message| %>
-              <% variant = %w[alert error].include?(type.to_s) ? 'alert' : 'notice' %>
-              <% label = t("shared.flash.#{variant}") %>
-              <div class="app-flash app-flash--<%= variant %>"
-                   role="<%= variant == 'alert' ? 'alert' : 'status' %>"
-                   data-controller="flash"
-                   data-action="click->flash#dismiss"
-                   data-flash-delay-value="5000">
-                <span class="app-flash__label"><%= label %></span>
-                <span class="app-flash__message"><%= message %></span>
-                <span class="app-flash__bolt" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
-              </div>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
+  <% if user_signed_in? %>
+    <body class="app-body" <%= tag.attributes(data: { page_theme: page_theme }) %>>
+      <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:shadow">Ir para o conteúdo</a>
 
-      <%= yield %>
-    </main>
-  </body>
+      <div class="app-shell <%= 'app-shell--collapsed' if workspace_sidebar_collapsed? %>" data-controller="sidebar">
+        <%= render 'shared/app_sidebar' %>
+        <div class="app-sidebar-backdrop" data-action="click->sidebar#closeMobile" aria-hidden="true"></div>
+
+        <div class="app-frame">
+          <%= render 'shared/app_topbar' %>
+          <main class="app-content" id="main-content">
+            <%= yield %>
+          </main>
+        </div>
+      </div>
+
+      <%= render 'shared/flash_messages' %>
+    </body>
+  <% else %>
+    <body class="app-body--public min-h-screen bg-white text-gray-900" data-page-theme="light">
+      <%= render 'shared/site_header', auth_page: false %>
+      <main class="app-main pt-16 md:pt-20">
+        <%= render 'shared/flash_messages' %>
+        <%= yield %>
+      </main>
+    </body>
+  <% end %>
 </html>
