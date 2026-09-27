@@ -32,7 +32,8 @@
   <% end %>
 
   <section class="workspace-portlet mt-6">
-    <%= workspace_panel_header(title: "Tokens da empresa", count: "#{@tokens.count(&:active?)} ativos") %>
+    <% active_tokens = @tokens.count(&:active?) %>
+    <%= workspace_panel_header(title: "Tokens da empresa", count: "#{active_tokens} #{active_tokens == 1 ? "ativo" : "ativos"}") %>
     <div class="workspace-table-wrap">
       <table class="workspace-table">
         <thead>
