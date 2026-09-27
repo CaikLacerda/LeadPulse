@@ -24,6 +24,8 @@ class SupplierDiscoverySearch < ApplicationRecord
     LOCAL_STATUS_ERROR
   ].freeze
 
+  # Conta (tenant). Opcional só até a fase 5, quando o código passa a preenchê-la.
+  belongs_to :account, optional: true
   belongs_to :user
 
   validates :search_id, presence: true, length: { maximum: 120 }

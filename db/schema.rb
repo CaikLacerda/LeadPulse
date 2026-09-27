@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_26_152000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -62,6 +62,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
   end
 
   create_table "audit_reviews", force: :cascade do |t|
+    t.bigint "account_id"
     t.integer "attempt_number"
     t.datetime "created_at", null: false
     t.string "original_result"
@@ -73,12 +74,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
     t.bigint "supplier_import_id", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["account_id", "supplier_import_id", "record_external_id", "provider_call_id", "attempt_number"], name: "index_audit_reviews_on_account_lookup", unique: true
+    t.index ["account_id"], name: "index_audit_reviews_on_account_id"
     t.index ["supplier_import_id"], name: "index_audit_reviews_on_supplier_import_id"
     t.index ["user_id", "supplier_import_id", "record_external_id", "provider_call_id", "attempt_number"], name: "index_audit_reviews_on_lookup", unique: true
     t.index ["user_id"], name: "index_audit_reviews_on_user_id"
   end
 
   create_table "commercial_opportunities", force: :cascade do |t|
+    t.bigint "account_id"
     t.string "callback_phone", null: false
     t.string "callback_phone_choice"
     t.datetime "callback_preferred_at"
@@ -111,6 +115,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
     t.text "unit_price"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["account_id"], name: "index_commercial_opportunities_on_account_id"
     t.index ["remote_batch_id"], name: "index_commercial_opportunities_on_remote_batch_id"
     t.index ["supplier_import_id", "source_external_id"], name: "index_commercial_opportunities_on_source_record", unique: true
     t.index ["supplier_import_id"], name: "index_commercial_opportunities_on_supplier_import_id"
@@ -128,6 +133,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
   end
 
   create_table "privacy_audit_events", force: :cascade do |t|
+    t.bigint "account_id"
     t.string "action", null: false
     t.datetime "created_at", null: false
     t.jsonb "metadata", default: {}, null: false
@@ -137,6 +143,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
     t.bigint "supplier_import_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["account_id"], name: "index_privacy_audit_events_on_account_id"
     t.index ["supplier_import_id"], name: "index_privacy_audit_events_on_supplier_import_id"
     t.index ["user_id", "action"], name: "index_privacy_audit_events_on_user_id_and_action"
     t.index ["user_id", "occurred_at"], name: "index_privacy_audit_events_on_user_id_and_occurred_at"
@@ -144,6 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
   end
 
   create_table "privacy_requests", force: :cascade do |t|
+    t.bigint "account_id"
     t.datetime "created_at", null: false
     t.text "description"
     t.string "phone"
@@ -158,12 +166,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
     t.string "supplier_name"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["account_id"], name: "index_privacy_requests_on_account_id"
     t.index ["supplier_import_id"], name: "index_privacy_requests_on_supplier_import_id"
     t.index ["user_id", "status"], name: "index_privacy_requests_on_user_id_and_status"
     t.index ["user_id"], name: "index_privacy_requests_on_user_id"
   end
 
   create_table "supplier_discovery_searches", force: :cascade do |t|
+    t.bigint "account_id"
     t.string "callback_contact_name"
     t.string "callback_phone"
     t.datetime "created_at", null: false
@@ -181,6 +191,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
     t.integer "total_suppliers", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["account_id"], name: "index_supplier_discovery_searches_on_account_id"
     t.index ["user_id", "search_id"], name: "index_supplier_discovery_searches_on_user_id_and_search_id", unique: true
     t.index ["user_id"], name: "index_supplier_discovery_searches_on_user_id"
   end
@@ -196,6 +207,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
   end
 
   create_table "supplier_imports", force: :cascade do |t|
+    t.bigint "account_id"
     t.datetime "created_at", null: false
     t.text "error_message"
     t.string "file_name"
@@ -219,6 +231,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
     t.datetime "validation_started_at"
     t.string "workflow_kind", default: "cadastral_validation", null: false
     t.binary "xlsx_data"
+    t.index ["account_id"], name: "index_supplier_imports_on_account_id"
     t.index ["remote_batch_id"], name: "index_supplier_imports_on_remote_batch_id"
     t.index ["user_id"], name: "index_supplier_imports_on_user_id"
   end
@@ -240,6 +253,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
   end
 
   create_table "third_party_operators", force: :cascade do |t|
+    t.bigint "account_id"
     t.boolean "active", default: true, null: false
     t.string "contract_reference"
     t.string "country"
@@ -251,6 +265,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
     t.string "technical_owner"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["account_id"], name: "index_third_party_operators_on_account_id"
     t.index ["user_id", "active"], name: "index_third_party_operators_on_user_id_and_active"
     t.index ["user_id"], name: "index_third_party_operators_on_user_id"
   end
@@ -307,18 +322,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
 
   add_foreign_key "account_memberships", "accounts"
   add_foreign_key "account_memberships", "users"
+  add_foreign_key "audit_reviews", "accounts"
   add_foreign_key "audit_reviews", "supplier_imports"
   add_foreign_key "audit_reviews", "users"
+  add_foreign_key "commercial_opportunities", "accounts"
   add_foreign_key "commercial_opportunities", "supplier_imports"
   add_foreign_key "commercial_opportunities", "users"
+  add_foreign_key "privacy_audit_events", "accounts"
   add_foreign_key "privacy_audit_events", "supplier_imports"
   add_foreign_key "privacy_audit_events", "users"
+  add_foreign_key "privacy_requests", "accounts"
   add_foreign_key "privacy_requests", "supplier_imports"
   add_foreign_key "privacy_requests", "users"
+  add_foreign_key "supplier_discovery_searches", "accounts"
   add_foreign_key "supplier_discovery_searches", "users"
   add_foreign_key "supplier_import_versions", "supplier_imports"
+  add_foreign_key "supplier_imports", "accounts"
   add_foreign_key "supplier_imports", "users"
   add_foreign_key "suppliers", "supplier_imports"
+  add_foreign_key "third_party_operators", "accounts"
   add_foreign_key "third_party_operators", "users"
   add_foreign_key "workspace_notification_reads", "users"
 end

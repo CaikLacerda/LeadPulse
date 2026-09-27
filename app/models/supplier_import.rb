@@ -20,6 +20,8 @@ class SupplierImport < ApplicationRecord
     SOURCE_SUPPLIER_DISCOVERY => "Busca web"
   }.freeze
 
+  # Conta (tenant). Opcional só até a fase 5, quando o código passa a preenchê-la.
+  belongs_to :account, optional: true
   belongs_to :user
   has_many :suppliers, dependent: :destroy
   has_many :supplier_import_versions, dependent: :destroy
