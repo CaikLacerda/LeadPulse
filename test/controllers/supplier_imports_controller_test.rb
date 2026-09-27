@@ -265,7 +265,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "viewer cannot delete a lot" do
-    membership_of(@user).update!(role: "viewer")
+    change_role!(@user, "viewer")
     supplier_import = account_of(@user).supplier_imports.create!(
       user: @user,
       status: SupplierImport::LOCAL_STATUS_PENDING,
@@ -282,7 +282,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "viewer cannot open evidence or synchronize a lot by direct url" do
-    membership_of(@user).update!(role: "viewer")
+    change_role!(@user, "viewer")
     supplier_import = account_of(@user).supplier_imports.create!(
       user: @user,
       status: SupplierImport::LOCAL_STATUS_PROCESSING,

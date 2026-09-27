@@ -73,7 +73,7 @@ class SupplierDiscoverySearchesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "viewer sees saved searches without create or import controls" do
-    membership_of(@user).update!(role: "viewer")
+    change_role!(@user, "viewer")
     post user_session_url, params: { user: { email: @user.email, password: @password } }
 
     get supplier_discovery_searches_url

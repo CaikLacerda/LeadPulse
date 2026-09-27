@@ -103,7 +103,7 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "viewer cannot open audit evidence by direct url" do
-    membership_of(@user).update!(role: "viewer")
+    change_role!(@user, "viewer")
     post user_session_url, params: { user: { email: @user.email, password: @password } }
 
     get validation_audits_url

@@ -206,6 +206,15 @@ class MultiTenantIsolationTest < ActionDispatch::IntegrationTest
     assert_equal 180, @account_b.reload.lgpd_evidence_retention_days
   end
 
+  test "a disabled member loses access to the account" do
+    membership_of(@a2).disable!
+
+    sign_in_as(@a2)
+    get supplier_imports_url
+
+    assert_redirected_to new_user_session_url
+  end
+
   test "signs out a user who does not belong to any account" do
     orphan = User.create!(name: "Sem empresa", email: "orfao@example.test", password: PASSWORD, password_confirmation: PASSWORD)
     sign_in_as(orphan)

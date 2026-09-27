@@ -29,6 +29,16 @@ module TenancyTestHelpers
   def membership_of(user)
     user.account_memberships.order(:created_at).first
   end
+
+  # Muda o papel de um membro. Se ele for o único admin, outro admin entra na empresa antes,
+  # porque a empresa nunca fica sem administrador ativo.
+  def change_role!(user, role)
+    membership = membership_of(user)
+    if role != "admin" && membership.last_active_admin?
+      create_member!(name: "Admin reserva", email: "admin-reserva-#{SecureRandom.hex(4)}@example.test", account: membership.account, role: "admin")
+    end
+    membership.reload.update!(role: role)
+  end
 end
 
 module ActiveSupport

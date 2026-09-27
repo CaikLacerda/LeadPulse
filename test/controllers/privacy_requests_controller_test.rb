@@ -25,7 +25,7 @@ class PrivacyRequestsControllerTest < ActionDispatch::IntegrationTest
     get privacy_requests_url
     assert_redirected_to new_user_session_path
 
-    membership_of(@user).update!(role: "viewer")
+    change_role!(@user, "viewer")
     sign_in_user
     get privacy_requests_url
 

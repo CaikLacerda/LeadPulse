@@ -1,14 +1,15 @@
-# Único ponto que resolve a empresa (Account) e o vínculo do usuário logado.
+# Único ponto que resolve a empresa (Account) e o vínculo (AccountMembership) do usuário logado.
 #
-# Hoje cada usuário participa de uma empresa e ela é escolhida automaticamente. A escolha fica
-# na sessão, o que já permite, no futuro, trocar de empresa sem mudar quem consome current_account.
+# Só vínculos ativos contam. Com um vínculo, a empresa é escolhida automaticamente; com mais
+# de um, vale a escolha guardada na sessão (select_current_account!) e, sem escolha, o
+# vínculo mais antigo. Quem consome current_account não precisa saber como ela foi escolhida.
 module CurrentAccount
   extend ActiveSupport::Concern
 
   SESSION_KEY = :current_account_id
 
   included do
-    helper_method :current_account, :current_membership
+    helper_method :current_account, :current_membership, :available_memberships
   end
 
   private
@@ -17,15 +18,30 @@ module CurrentAccount
     return unless user_signed_in?
     return @current_membership if defined?(@current_membership)
 
-    memberships = current_user.account_memberships.includes(:account)
-    @current_membership = memberships.find_by(account_id: session[SESSION_KEY]) ||
-      memberships.order(:created_at, :id).first
+    @current_membership = available_memberships.find { |membership| membership.account_id == session[SESSION_KEY] } ||
+      available_memberships.first
     session[SESSION_KEY] = @current_membership&.account_id
     @current_membership
   end
 
   def current_account
     current_membership&.account
+  end
+
+  def available_memberships
+    return AccountMembership.none unless user_signed_in?
+
+    @available_memberships ||= current_user.account_memberships.active.includes(:account).order(:created_at, :id).to_a
+  end
+
+  # Troca de empresa: só para uma empresa em que o usuário tem vínculo ativo.
+  def select_current_account!(account_id)
+    membership = available_memberships.find { |candidate| candidate.account_id == account_id.to_i }
+    return false unless membership
+
+    session[SESSION_KEY] = membership.account_id
+    remove_instance_variable(:@current_membership) if defined?(@current_membership)
+    true
   end
 
   def require_current_account!

@@ -10,19 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_26_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_27_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "account_memberships", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.datetime "created_at", null: false
+    t.datetime "disabled_at"
+    t.bigint "invited_by_id"
     t.string "role", null: false
+    t.string "status", default: "active", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["account_id", "status"], name: "index_account_memberships_on_account_id_and_status"
     t.index ["account_id", "user_id"], name: "index_account_memberships_on_account_id_and_user_id", unique: true
     t.index ["account_id"], name: "index_account_memberships_on_account_id"
+    t.index ["invited_by_id"], name: "index_account_memberships_on_invited_by_id"
     t.index ["user_id"], name: "index_account_memberships_on_user_id"
+    t.check_constraint "role::text = ANY (ARRAY['admin'::character varying, 'manager'::character varying, 'operator'::character varying, 'auditor'::character varying, 'viewer'::character varying]::text[])", name: "account_memberships_role_check"
+    t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'disabled'::character varying]::text[])", name: "account_memberships_status_check"
   end
 
   create_table "accounts", force: :cascade do |t|
@@ -328,6 +335,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_160000) do
 
   add_foreign_key "account_memberships", "accounts"
   add_foreign_key "account_memberships", "users"
+  add_foreign_key "account_memberships", "users", column: "invited_by_id", on_delete: :nullify
   add_foreign_key "audit_reviews", "accounts"
   add_foreign_key "audit_reviews", "supplier_imports"
   add_foreign_key "audit_reviews", "users"
