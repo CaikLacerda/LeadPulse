@@ -101,7 +101,6 @@ module Analytics
         .find { |record| record.dig("supplier_validation", "outcome") == "qualified_supplier" && used.exclude?(record["external_id"]) }
         &.fetch("external_id")
       @account.commercial_opportunities.create!(
-        user: @user,
         supplier_import: batch,
         source_external_id: external_id || "op-#{SecureRandom.hex(4)}",
         supplier_name: "Fornecedor",
@@ -112,7 +111,7 @@ module Analytics
 
     def create_search(segment, found)
       @account.supplier_discovery_searches.create!(
-        user: @user,
+        created_by: @user,
         search_id: "search-#{SecureRandom.hex(4)}",
         status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
         segment_name: segment,
@@ -123,7 +122,7 @@ module Analytics
 
     def create_review(batch, external_id, original:, reviewed:)
       batch.audit_reviews.create!(
-        user: @user,
+        reviewed_by: @user,
         record_external_id: external_id,
         original_result: original,
         reviewed_result: reviewed,

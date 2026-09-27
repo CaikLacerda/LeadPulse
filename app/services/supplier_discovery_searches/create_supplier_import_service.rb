@@ -24,7 +24,7 @@ module SupplierDiscoverySearches
 
       batch_id = generate_batch_id
       import = @account.supplier_imports.new(
-        user: @user,
+        created_by: @user,
         file_name: @search.download_filename,
         xlsx_data: @search.results_xlsx_data,
         status: SupplierImport::LOCAL_STATUS_PENDING,

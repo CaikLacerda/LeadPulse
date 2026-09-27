@@ -10,7 +10,7 @@ class MultiTenantServicesTest < ActiveSupport::TestCase
     @b1 = create_member!(name: "Bruno B1", email: "b1@servicos-b.test", account: @account_b, role: "admin")
 
     @import_a = @account_a.supplier_imports.create!(
-      user: @a1,
+      created_by: @a1,
       status: SupplierImport::LOCAL_STATUS_PROCESSING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -32,7 +32,6 @@ class MultiTenantServicesTest < ActiveSupport::TestCase
       }
     )
     @opportunity_a = @account_a.commercial_opportunities.create!(
-      user: @a1,
       supplier_import: @import_a,
       source_external_id: "a-1",
       supplier_name: "Fornecedor A",
@@ -40,7 +39,7 @@ class MultiTenantServicesTest < ActiveSupport::TestCase
       remote_batch_id: "commercial-a"
     )
     @search_a = @account_a.supplier_discovery_searches.create!(
-      user: @a1,
+      created_by: @a1,
       search_id: "search-a",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Ferro"
@@ -88,7 +87,6 @@ class MultiTenantServicesTest < ActiveSupport::TestCase
   test "records linked to a lot cannot be moved to another account" do
     opportunity = CommercialOpportunity.new(
       account: @account_b,
-      user: @b1,
       supplier_import: @import_a,
       source_external_id: "b-invasao",
       supplier_name: "Invasão",
@@ -96,7 +94,7 @@ class MultiTenantServicesTest < ActiveSupport::TestCase
     )
     review = AuditReview.new(
       account: @account_b,
-      user: @b1,
+      reviewed_by: @b1,
       supplier_import: @import_a,
       reviewed_result: "wrong_company",
       reviewed_at: Time.current
@@ -108,7 +106,7 @@ class MultiTenantServicesTest < ActiveSupport::TestCase
   end
 
   test "records linked to a lot inherit its account" do
-    review = @import_a.audit_reviews.create!(user: @a1, reviewed_result: "wrong_company", reviewed_at: Time.current)
+    review = @import_a.audit_reviews.create!(reviewed_by: @a1, reviewed_result: "wrong_company", reviewed_at: Time.current)
 
     assert_equal @account_a, review.account
   end

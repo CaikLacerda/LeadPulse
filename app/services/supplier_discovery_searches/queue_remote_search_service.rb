@@ -15,7 +15,7 @@ module SupplierDiscoverySearches
 
       payload = build_payload
       search = @account.supplier_discovery_searches.create!(
-        user: @user,
+        created_by: @user,
         search_id: "local_#{SecureRandom.uuid}",
         status: SupplierDiscoverySearch::LOCAL_STATUS_PENDING,
         segment_name: payload.fetch(:segment_name),

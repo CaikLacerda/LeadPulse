@@ -13,7 +13,7 @@ module SupplierImports
 
       supplier_import = SupplierImport.create!(
         account: account_of(user),
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_ERROR,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -84,7 +84,7 @@ module SupplierImports
 
       supplier_import = SupplierImport.create!(
         account: account_of(user),
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_PENDING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -136,7 +136,7 @@ module SupplierImports
       )
       supplier_import = SupplierImport.create!(
         account: account_of(user),
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_PENDING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,

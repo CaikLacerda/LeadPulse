@@ -5,7 +5,7 @@ module SupplierImports
     test "reads call times without offset as UTC, like the result export" do
       user = users(:one)
       account_of(user).supplier_imports.create!(
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,

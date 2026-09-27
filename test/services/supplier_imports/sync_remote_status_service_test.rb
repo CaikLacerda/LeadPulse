@@ -13,7 +13,7 @@ module SupplierImports
 
       supplier_import = SupplierImport.create!(
         account: account_of(user),
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_PROCESSING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -79,7 +79,7 @@ module SupplierImports
 
       supplier_import = SupplierImport.create!(
         account: account_of(user),
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_PROCESSING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -151,7 +151,7 @@ module SupplierImports
       }
       supplier_import = SupplierImport.create!(
         account: account_of(user),
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -196,7 +196,7 @@ module SupplierImports
       )
       supplier_import = SupplierImport.create!(
         account: account_of(user),
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_PROCESSING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -229,7 +229,7 @@ module SupplierImports
       user = users(:one)
       account_of(user).update!(validation_api_token: "lp_test_token")
       supplier_import = account_of(user).supplier_imports.create!(
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_ERROR,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -261,7 +261,7 @@ module SupplierImports
       user = users(:one)
       account_of(user).update!(validation_api_token: "lp_test_token")
       supplier_import = account_of(user).supplier_imports.create!(
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_PROCESSING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -290,7 +290,7 @@ module SupplierImports
       user = users(:one)
       account_of(user).update!(validation_api_token: "lp_test_token")
       supplier_import = account_of(user).supplier_imports.create!(
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_PROCESSING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,

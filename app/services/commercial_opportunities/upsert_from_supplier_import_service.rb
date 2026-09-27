@@ -21,7 +21,6 @@ module CommercialOpportunities
           source_external_id: record["external_id"].to_s
         )
         opportunity.account = @supplier_import.account
-        opportunity.user ||= @supplier_import.user
         attributes = {
           supplier_name: supplier_name(record),
           source_phone: record["validated_phone"].presence || record["phone_normalized"].presence || record["phone_original"],

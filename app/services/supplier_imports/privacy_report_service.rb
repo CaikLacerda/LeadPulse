@@ -29,7 +29,7 @@ module SupplierImports
       notice = @supplier_import.privacy_notice
       [
         [ "Lote", @supplier_import.display_code ],
-        [ "Usuário responsável", @supplier_import.user.email ],
+        [ "Usuário responsável", @supplier_import.created_by&.email || "—" ],
         [ "Data da importação", @supplier_import.created_at&.iso8601 ],
         [ "Finalidade declarada", notice["purpose"] ],
         [ "Base legal informada", notice["legal_basis"] ],

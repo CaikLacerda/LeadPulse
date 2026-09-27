@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -55,7 +55,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
 
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.bigint "legacy_user_id"
     t.string "lgpd_controller_email"
     t.string "lgpd_controller_name"
     t.integer "lgpd_evidence_retention_days", default: 180, null: false
@@ -84,7 +83,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
     t.string "validation_twilio_account_sid"
     t.jsonb "validation_twilio_phone_numbers", default: [], null: false
     t.string "validation_twilio_webhook_base_url"
-    t.index ["legacy_user_id"], name: "index_accounts_on_legacy_user_id", unique: true, where: "(legacy_user_id IS NOT NULL)"
     t.index ["validation_account_id"], name: "index_accounts_on_validation_account_id", unique: true, where: "(validation_account_id IS NOT NULL)"
     t.index ["validation_external_account_id"], name: "index_accounts_on_validation_external_account_id", unique: true, where: "(validation_external_account_id IS NOT NULL)"
   end
@@ -116,15 +114,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
     t.string "record_external_id"
     t.text "review_note"
     t.datetime "reviewed_at", null: false
+    t.bigint "reviewed_by_id"
     t.string "reviewed_result", null: false
     t.bigint "supplier_import_id", null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["account_id", "supplier_import_id", "record_external_id", "provider_call_id", "attempt_number"], name: "index_audit_reviews_on_account_lookup", unique: true
     t.index ["account_id"], name: "index_audit_reviews_on_account_id"
+    t.index ["reviewed_by_id"], name: "index_audit_reviews_on_reviewed_by_id"
     t.index ["supplier_import_id"], name: "index_audit_reviews_on_supplier_import_id"
-    t.index ["user_id", "supplier_import_id", "record_external_id", "provider_call_id", "attempt_number"], name: "index_audit_reviews_on_lookup", unique: true
-    t.index ["user_id"], name: "index_audit_reviews_on_user_id"
   end
 
   create_table "commercial_opportunities", force: :cascade do |t|
@@ -160,15 +157,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
     t.string "supplier_name", null: false
     t.text "unit_price"
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["account_id", "created_at"], name: "index_commercial_opportunities_on_account_id_and_created_at"
     t.index ["account_id", "status"], name: "index_commercial_opportunities_on_account_id_and_status"
     t.index ["account_id"], name: "index_commercial_opportunities_on_account_id"
     t.index ["remote_batch_id"], name: "index_commercial_opportunities_on_remote_batch_id"
     t.index ["supplier_import_id", "source_external_id"], name: "index_commercial_opportunities_on_source_record", unique: true
     t.index ["supplier_import_id"], name: "index_commercial_opportunities_on_supplier_import_id"
-    t.index ["user_id", "status"], name: "index_commercial_opportunities_on_user_id_and_status"
-    t.index ["user_id"], name: "index_commercial_opportunities_on_user_id"
   end
 
   create_table "plans", force: :cascade do |t|
@@ -186,21 +180,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
     t.datetime "created_at", null: false
     t.jsonb "metadata", default: {}, null: false
     t.datetime "occurred_at", null: false
+    t.bigint "performed_by_id"
     t.string "resource_id"
     t.string "resource_type"
     t.bigint "supplier_import_id"
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["account_id"], name: "index_privacy_audit_events_on_account_id"
+    t.index ["performed_by_id", "action"], name: "index_privacy_audit_events_on_performed_by_id_and_action"
+    t.index ["performed_by_id", "occurred_at"], name: "index_privacy_audit_events_on_performed_by_id_and_occurred_at"
+    t.index ["performed_by_id"], name: "index_privacy_audit_events_on_performed_by_id"
     t.index ["supplier_import_id"], name: "index_privacy_audit_events_on_supplier_import_id"
-    t.index ["user_id", "action"], name: "index_privacy_audit_events_on_user_id_and_action"
-    t.index ["user_id", "occurred_at"], name: "index_privacy_audit_events_on_user_id_and_occurred_at"
-    t.index ["user_id"], name: "index_privacy_audit_events_on_user_id"
   end
 
   create_table "privacy_requests", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
     t.text "description"
     t.string "phone"
     t.string "request_type", null: false
@@ -213,11 +208,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
     t.bigint "supplier_import_id"
     t.string "supplier_name"
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["account_id"], name: "index_privacy_requests_on_account_id"
+    t.index ["created_by_id", "status"], name: "index_privacy_requests_on_created_by_id_and_status"
+    t.index ["created_by_id"], name: "index_privacy_requests_on_created_by_id"
     t.index ["supplier_import_id"], name: "index_privacy_requests_on_supplier_import_id"
-    t.index ["user_id", "status"], name: "index_privacy_requests_on_user_id_and_status"
-    t.index ["user_id"], name: "index_privacy_requests_on_user_id"
   end
 
   create_table "supplier_discovery_searches", force: :cascade do |t|
@@ -225,6 +219,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
     t.string "callback_contact_name"
     t.string "callback_phone"
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
     t.text "error_message"
     t.datetime "generated_at"
     t.string "mode"
@@ -238,12 +233,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
     t.string "status", default: "concluido", null: false
     t.integer "total_suppliers", default: 0, null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.index ["account_id", "created_at"], name: "index_supplier_discovery_searches_on_account_id_and_created_at"
     t.index ["account_id", "search_id"], name: "index_supplier_discovery_searches_on_account_id_and_search_id", unique: true
     t.index ["account_id"], name: "index_supplier_discovery_searches_on_account_id"
-    t.index ["user_id", "search_id"], name: "index_supplier_discovery_searches_on_user_id_and_search_id", unique: true
-    t.index ["user_id"], name: "index_supplier_discovery_searches_on_user_id"
+    t.index ["created_by_id"], name: "index_supplier_discovery_searches_on_created_by_id"
   end
 
   create_table "supplier_import_versions", force: :cascade do |t|
@@ -259,6 +252,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
   create_table "supplier_imports", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
     t.text "error_message"
     t.string "file_name"
     t.datetime "finished_at"
@@ -275,7 +269,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
     t.string "status"
     t.integer "total_rows", default: 0, null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
     t.integer "valid_rows", default: 0, null: false
     t.binary "valid_xlsx_data"
     t.datetime "validation_started_at"
@@ -284,8 +277,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
     t.index ["account_id", "created_at"], name: "index_supplier_imports_on_account_id_and_created_at"
     t.index ["account_id", "validation_started_at"], name: "index_supplier_imports_on_account_id_and_validation_started_at"
     t.index ["account_id"], name: "index_supplier_imports_on_account_id"
+    t.index ["created_by_id"], name: "index_supplier_imports_on_created_by_id"
     t.index ["remote_batch_id"], name: "index_supplier_imports_on_remote_batch_id"
-    t.index ["user_id"], name: "index_supplier_imports_on_user_id"
   end
 
   create_table "suppliers", force: :cascade do |t|
@@ -310,16 +303,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
     t.string "contract_reference"
     t.string "country"
     t.datetime "created_at", null: false
+    t.bigint "created_by_id"
     t.text "data_shared"
     t.string "name", null: false
     t.text "purpose"
     t.string "service_type", null: false
     t.string "technical_owner"
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
+    t.index ["account_id", "active"], name: "index_third_party_operators_on_account_id_and_active"
     t.index ["account_id"], name: "index_third_party_operators_on_account_id"
-    t.index ["user_id", "active"], name: "index_third_party_operators_on_user_id_and_active"
-    t.index ["user_id"], name: "index_third_party_operators_on_user_id"
+    t.index ["created_by_id"], name: "index_third_party_operators_on_created_by_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -356,23 +349,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_170000) do
   add_foreign_key "analytics_api_tokens", "users", column: "revoked_by_id", on_delete: :nullify
   add_foreign_key "audit_reviews", "accounts"
   add_foreign_key "audit_reviews", "supplier_imports"
-  add_foreign_key "audit_reviews", "users"
+  add_foreign_key "audit_reviews", "users", column: "reviewed_by_id", on_delete: :nullify
   add_foreign_key "commercial_opportunities", "accounts"
   add_foreign_key "commercial_opportunities", "supplier_imports"
-  add_foreign_key "commercial_opportunities", "users"
   add_foreign_key "privacy_audit_events", "accounts"
   add_foreign_key "privacy_audit_events", "supplier_imports"
-  add_foreign_key "privacy_audit_events", "users"
+  add_foreign_key "privacy_audit_events", "users", column: "performed_by_id", on_delete: :nullify
   add_foreign_key "privacy_requests", "accounts"
   add_foreign_key "privacy_requests", "supplier_imports"
-  add_foreign_key "privacy_requests", "users"
+  add_foreign_key "privacy_requests", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "supplier_discovery_searches", "accounts"
-  add_foreign_key "supplier_discovery_searches", "users"
+  add_foreign_key "supplier_discovery_searches", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "supplier_import_versions", "supplier_imports"
   add_foreign_key "supplier_imports", "accounts"
-  add_foreign_key "supplier_imports", "users"
+  add_foreign_key "supplier_imports", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "suppliers", "supplier_imports"
   add_foreign_key "third_party_operators", "accounts"
-  add_foreign_key "third_party_operators", "users"
+  add_foreign_key "third_party_operators", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "workspace_notification_reads", "users"
 end

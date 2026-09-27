@@ -33,7 +33,7 @@ class SupplierDiscoverySearchesControllerTest < ActionDispatch::IntegrationTest
 
   test "renders supplier locations through the OpenStreetMap controller" do
     account_of(@user).supplier_discovery_searches.create!(
-      user: @user,
+      created_by: @user,
       search_id: "search-map-001",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Ferro",
@@ -106,7 +106,7 @@ class SupplierDiscoverySearchesControllerTest < ActionDispatch::IntegrationTest
 
   test "reports active progress and allows retrying a failed search" do
     search = account_of(@user).supplier_discovery_searches.create!(
-      user: @user,
+      created_by: @user,
       search_id: "local-test-retry",
       status: SupplierDiscoverySearch::LOCAL_STATUS_ERROR,
       segment_name: "Ferro",

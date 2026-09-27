@@ -10,7 +10,7 @@ class ThirdPartyOperatorsController < ApplicationController
   end
 
   def create
-    @operator = current_account.third_party_operators.new(operator_params.merge(user: current_user))
+    @operator = current_account.third_party_operators.new(operator_params.merge(created_by: current_user))
 
     if @operator.save
       PrivacyAudit::Logger.log!(

@@ -3,7 +3,8 @@ class PrivacyAuditEvent < ApplicationRecord
 
   belongs_to :account
   # Quem fez a ação; o isolamento entre empresas é por account.
-  belongs_to :user
+  # Quem fez a ação. Vazio em ações automáticas do sistema (ex.: retenção).
+  belongs_to :performed_by, class_name: "User", optional: true
   belongs_to :supplier_import, optional: true
 
   validates :action, :occurred_at, presence: true

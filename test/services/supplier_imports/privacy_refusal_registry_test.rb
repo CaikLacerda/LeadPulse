@@ -11,7 +11,7 @@ module SupplierImports
       )
       SupplierImport.create!(
         account: account_of(user),
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,

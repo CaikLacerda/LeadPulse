@@ -18,7 +18,7 @@ class SupplierDiscoverySearchJob < ApplicationJob
 
     PrivacyAudit::Logger.log!(
       account: search.account,
-      user: search.user,
+      user: search.created_by,
       action: "supplier_discovery_created",
       resource: search,
       metadata: {

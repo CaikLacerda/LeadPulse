@@ -26,7 +26,8 @@ class SupplierDiscoverySearch < ApplicationRecord
 
   belongs_to :account
   # Quem fez a ação; o isolamento entre empresas é por account.
-  belongs_to :user
+  # Autoria (opcional): a empresa é a dona; quem criou pode deixar de existir.
+  belongs_to :created_by, class_name: "User", optional: true
 
   validates :search_id, presence: true, length: { maximum: 120 }
   validates :segment_name, presence: true, length: { maximum: 120 }

@@ -43,7 +43,7 @@ module ThirdPartyOperators
     def call
       DEFAULTS.each do |attrs|
         @account.third_party_operators.find_or_create_by!(name: attrs[:name]) do |operator|
-          operator.assign_attributes(attrs.merge(active: true, user: @user))
+          operator.assign_attributes(attrs.merge(active: true, created_by: @user))
         end
       end
     end

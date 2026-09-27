@@ -20,7 +20,8 @@ class AuditReview < ApplicationRecord
 
   belongs_to :account
   # Quem fez a ação; o isolamento entre empresas é por account.
-  belongs_to :user
+  # Quem revisou (autoria); a revisão é da empresa.
+  belongs_to :reviewed_by, class_name: "User", optional: true
   belongs_to :supplier_import
 
   validates :reviewed_result, presence: true, inclusion: { in: RESULT_OPTIONS }

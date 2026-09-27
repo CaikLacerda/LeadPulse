@@ -13,7 +13,7 @@ class ValidationAuditReviewsController < ApplicationController
     )
 
     review.assign_attributes(
-      user: current_user,
+      reviewed_by: current_user,
       original_result: review_params[:original_result],
       reviewed_result: review_params[:reviewed_result],
       review_note: review_params[:review_note],

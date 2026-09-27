@@ -4,7 +4,7 @@ class CommercialOpportunities::UpsertFromSupplierImportServiceTest < ActiveSuppo
   test "creates one pending opportunity for an accepted commercial callback" do
     user = users(:one)
     supplier_import = account_of(user).supplier_imports.create!(
-      user: user,
+      created_by: user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -57,7 +57,7 @@ class CommercialOpportunities::UpsertFromSupplierImportServiceTest < ActiveSuppo
   test "uses the latest human decision before the automatic commercial interest" do
     user = users(:one)
     supplier_import = account_of(user).supplier_imports.create!(
-      user: user,
+      created_by: user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -83,14 +83,14 @@ class CommercialOpportunities::UpsertFromSupplierImportServiceTest < ActiveSuppo
       }
     )
     supplier_import.audit_reviews.create!(
-      user: user,
+      reviewed_by: user,
       record_external_id: "supplier-blocked-by-review",
       original_result: "qualified_supplier",
       reviewed_result: "not_interested",
       reviewed_at: 2.minutes.ago
     )
     supplier_import.audit_reviews.create!(
-      user: user,
+      reviewed_by: user,
       record_external_id: "supplier-approved-by-review",
       original_result: "not_interested",
       reviewed_result: "qualified_supplier",

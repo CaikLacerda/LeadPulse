@@ -31,7 +31,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
 
   test "renders import detail for signed users" do
     supplier_import = account_of(@user).supplier_imports.create!(
-      user: @user,
+      created_by: @user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -116,7 +116,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
 
   test "sync status requires a started remote batch" do
     supplier_import = account_of(@user).supplier_imports.create!(
-      user: @user,
+      created_by: @user,
       status: SupplierImport::LOCAL_STATUS_PENDING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -134,7 +134,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
 
   test "sync status reports missing api token" do
     supplier_import = account_of(@user).supplier_imports.create!(
-      user: @user,
+      created_by: @user,
       status: SupplierImport::LOCAL_STATUS_PROCESSING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -156,7 +156,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   test "sync status updates the local import from the validation api" do
     account_of(@user).update!(validation_api_token: "lp_test_token")
     supplier_import = account_of(@user).supplier_imports.create!(
-      user: @user,
+      created_by: @user,
       status: SupplierImport::LOCAL_STATUS_PROCESSING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -226,7 +226,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   test "json sync reports terminal state for automatic page reconciliation" do
     account_of(@user).update!(validation_api_token: "lp_test_token")
     supplier_import = account_of(@user).supplier_imports.create!(
-      user: @user,
+      created_by: @user,
       status: SupplierImport::LOCAL_STATUS_PROCESSING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -267,7 +267,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   test "viewer cannot delete a lot" do
     change_role!(@user, "viewer")
     supplier_import = account_of(@user).supplier_imports.create!(
-      user: @user,
+      created_by: @user,
       status: SupplierImport::LOCAL_STATUS_PENDING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD
@@ -284,7 +284,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   test "viewer cannot open evidence or synchronize a lot by direct url" do
     change_role!(@user, "viewer")
     supplier_import = account_of(@user).supplier_imports.create!(
-      user: @user,
+      created_by: @user,
       status: SupplierImport::LOCAL_STATUS_PROCESSING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,

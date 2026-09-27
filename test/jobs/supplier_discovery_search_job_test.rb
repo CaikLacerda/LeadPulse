@@ -5,7 +5,7 @@ class SupplierDiscoverySearchJobTest < ActiveJob::TestCase
     @user = users(:one)
     account_of(@user).update!(validation_api_token: "lp_test_token")
     @search = account_of(@user).supplier_discovery_searches.create!(
-      user: @user,
+      created_by: @user,
       search_id: "local-job-test",
       status: SupplierDiscoverySearch::LOCAL_STATUS_PENDING,
       segment_name: "Adubo",

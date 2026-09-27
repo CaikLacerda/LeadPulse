@@ -80,9 +80,9 @@ module Analytics
       end
       batch = create_analytics_batch!(account: account, user: user, started_at: brasilia(2026, 9, 20, 10), records: records)
 
-      account.commercial_opportunities.create!(user: user, supplier_import: batch, source_external_id: "op-#{SecureRandom.hex(3)}", supplier_name: "Fornecedor", callback_phone: "+5511987654321")
-      account.supplier_discovery_searches.create!(user: user, search_id: "s-#{SecureRandom.hex(3)}", status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED, segment_name: "Adubo", created_at: brasilia(2026, 9, 20))
-      batch.audit_reviews.create!(user: user, record_external_id: records.first["external_id"], original_result: "confirmed", reviewed_result: "wrong_company", reviewed_at: brasilia(2026, 9, 21))
+      account.commercial_opportunities.create!(supplier_import: batch, source_external_id: "op-#{SecureRandom.hex(3)}", supplier_name: "Fornecedor", callback_phone: "+5511987654321")
+      account.supplier_discovery_searches.create!(created_by: user, search_id: "s-#{SecureRandom.hex(3)}", status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED, segment_name: "Adubo", created_at: brasilia(2026, 9, 20))
+      batch.audit_reviews.create!(reviewed_by: user, record_external_id: records.first["external_id"], original_result: "confirmed", reviewed_result: "wrong_company", reviewed_at: brasilia(2026, 9, 21))
       batch
     end
   end

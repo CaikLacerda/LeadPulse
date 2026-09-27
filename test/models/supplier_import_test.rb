@@ -9,7 +9,7 @@ class SupplierImportTest < ActiveSupport::TestCase
       password_confirmation: "Password123!"
     )
     supplier_import = account_of(user).supplier_imports.create!(
-      user: user,
+      created_by: user,
       status: SupplierImport::LOCAL_STATUS_PENDING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD
@@ -28,7 +28,7 @@ class SupplierImportTest < ActiveSupport::TestCase
 
   test "rejects inconsistent row counters" do
     supplier_import = accounts(:one).supplier_imports.new(
-      user: users(:one),
+      created_by: users(:one),
       status: SupplierImport::LOCAL_STATUS_PENDING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,

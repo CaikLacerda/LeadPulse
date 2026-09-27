@@ -137,7 +137,7 @@ class AnalyticsApiTest < ActionDispatch::IntegrationTest
       get json.dig("links", "next"), headers: auth(@token_a.token)
     end
     event = PrivacyAuditEvent.where(action: "analytics_api_accessed").last
-    assert_equal @admin_a, event.user
+    assert_equal @admin_a, event.performed_by
     assert_equal "records", event.metadata["endpoint"]
     assert @token_a.reload.last_used_at.present?
   end

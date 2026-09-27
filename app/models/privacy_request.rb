@@ -19,7 +19,8 @@ class PrivacyRequest < ApplicationRecord
 
   belongs_to :account
   # Quem fez a ação; o isolamento entre empresas é por account.
-  belongs_to :user
+  # Autoria (opcional): a empresa é a dona; quem criou pode deixar de existir.
+  belongs_to :created_by, class_name: "User", optional: true
   belongs_to :supplier_import, optional: true
 
   validates :request_type, presence: true, inclusion: { in: REQUEST_TYPES.keys.map(&:to_s) }

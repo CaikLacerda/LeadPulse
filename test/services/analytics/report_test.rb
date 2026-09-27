@@ -93,13 +93,13 @@ module Analytics
       assert_equal 0, report.qualification[:reviews].data[:reviews].value
       assert_equal 0, report.qualification[:searches].data[:metrics][:searches].current.value
 
-      @account.commercial_opportunities.create!(user: @user, supplier_import: batch, source_external_id: "op-1", supplier_name: "Fornecedor", callback_phone: "+5511987654321")
+      @account.commercial_opportunities.create!(supplier_import: batch, source_external_id: "op-1", supplier_name: "Fornecedor", callback_phone: "+5511987654321")
       assert_equal 1, report.qualification[:summary].data[:metrics][:opportunities].current.value
 
-      batch.audit_reviews.create!(user: @user, record_external_id: "x", original_result: "confirmed", reviewed_result: "wrong_company", reviewed_at: brasilia(2026, 9, 21))
+      batch.audit_reviews.create!(reviewed_by: @user, record_external_id: "x", original_result: "confirmed", reviewed_result: "wrong_company", reviewed_at: brasilia(2026, 9, 21))
       assert_equal 1, report.qualification[:reviews].data[:reviews].value
 
-      @account.supplier_discovery_searches.create!(user: @user, search_id: "s-1", status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED, segment_name: "Adubo", created_at: brasilia(2026, 9, 21))
+      @account.supplier_discovery_searches.create!(created_by: @user, search_id: "s-1", status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED, segment_name: "Adubo", created_at: brasilia(2026, 9, 21))
       assert_equal 1, report.qualification[:searches].data[:metrics][:searches].current.value
 
       assert_equal 2, report.overview[:summary].data[:metrics][:records].current.value

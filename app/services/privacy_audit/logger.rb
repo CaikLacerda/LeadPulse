@@ -1,12 +1,13 @@
 module PrivacyAudit
   class Logger
-    # account: empresa dona do evento (trilha LGPD é da empresa); user: quem executou a ação.
+    # account: empresa dona do evento (a trilha LGPD é da empresa).
+    # user: quem executou a ação; nil em ações automáticas do sistema.
     def self.log!(account:, user:, action:, supplier_import: nil, resource: nil, metadata: {})
-      return if account.blank? || user.blank?
+      return if account.blank?
 
       PrivacyAuditEvent.create!(
         account: account,
-        user: user,
+        performed_by: user,
         supplier_import: supplier_import,
         action: action.to_s,
         resource_type: resource&.class&.name,

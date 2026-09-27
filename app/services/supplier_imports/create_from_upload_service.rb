@@ -46,7 +46,7 @@ module SupplierImports
 
       batch_id = generate_batch_id
       supplier_import = @account.supplier_imports.new(
-        user: @user,
+        created_by: @user,
         file_name: @file.original_filename,
         xlsx_data: file_bytes,
         status: SupplierImport::LOCAL_STATUS_PENDING,

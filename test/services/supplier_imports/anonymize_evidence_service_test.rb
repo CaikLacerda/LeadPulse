@@ -10,7 +10,7 @@ module SupplierImports
         password_confirmation: "Password123!"
       )
       supplier_import = account_of(user).supplier_imports.create!(
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -69,7 +69,7 @@ module SupplierImports
         password_confirmation: "Password123!"
       )
       supplier_import = account_of(owner).supplier_imports.create!(
-        user: owner,
+        created_by: owner,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
         source: SupplierImport::SOURCE_UPLOAD

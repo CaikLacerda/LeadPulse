@@ -22,7 +22,7 @@ class MultiTenantIsolationTest < ActionDispatch::IntegrationTest
     @import_b = create_import(@account_b, @b1, supplier_name: "Fornecedor Exclusivo B")
 
     @search_a = @account_a.supplier_discovery_searches.create!(
-      user: @a1,
+      created_by: @a1,
       search_id: "search-empresa-a",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Segmento Exclusivo A",
@@ -30,7 +30,6 @@ class MultiTenantIsolationTest < ActionDispatch::IntegrationTest
       results_xlsx_data: "planilha-a"
     )
     @opportunity_a = @account_a.commercial_opportunities.create!(
-      user: @a1,
       supplier_import: @import_a,
       source_external_id: "a-1",
       supplier_name: "Retorno Exclusivo A",
@@ -39,13 +38,13 @@ class MultiTenantIsolationTest < ActionDispatch::IntegrationTest
       result_ready: true
     )
     @privacy_request_a = @account_a.privacy_requests.create!(
-      user: @a1,
+      created_by: @a1,
       request_type: "access",
       subject_name: "Titular Exclusivo A",
       subject_contact: "titular@empresa-a.test"
     )
     @operator_a = @account_a.third_party_operators.create!(
-      user: @a1,
+      created_by: @a1,
       name: "Operador Exclusivo A",
       service_type: "telephony"
     )
@@ -230,7 +229,7 @@ class MultiTenantIsolationTest < ActionDispatch::IntegrationTest
 
   def create_import(account, user, supplier_name:)
     account.supplier_imports.create!(
-      user: user,
+      created_by: user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD,

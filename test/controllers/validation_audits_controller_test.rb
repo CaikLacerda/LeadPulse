@@ -11,7 +11,7 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
     )
 
     @supplier_import = account_of(@user).supplier_imports.create!(
-      user: @user,
+      created_by: @user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -96,7 +96,7 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
     end
 
     review = AuditReview.last
-    assert_equal @user, review.user
+    assert_equal @user, review.reviewed_by
     assert_equal @supplier_import, review.supplier_import
     assert_equal "qualified_supplier", review.reviewed_result
     assert_redirected_to validation_audits_url

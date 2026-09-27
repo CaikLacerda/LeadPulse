@@ -11,7 +11,7 @@ class PrivacyRequestsControllerTest < ActionDispatch::IntegrationTest
       role: "admin"
     )
     @supplier_import = account_of(@user).supplier_imports.create!(
-      user: @user,
+      created_by: @user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -43,7 +43,7 @@ class PrivacyRequestsControllerTest < ActionDispatch::IntegrationTest
     end
 
     request = PrivacyRequest.order(:id).last
-    assert_equal @user, request.user
+    assert_equal @user, request.created_by
     assert_equal @supplier_import, request.supplier_import
     assert_redirected_to privacy_requests_path
   end
@@ -56,7 +56,7 @@ class PrivacyRequestsControllerTest < ActionDispatch::IntegrationTest
       password_confirmation: @password
     )
     other_import = account_of(other_user).supplier_imports.create!(
-      user: other_user,
+      created_by: other_user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD
@@ -74,7 +74,7 @@ class PrivacyRequestsControllerTest < ActionDispatch::IntegrationTest
 
   test "resolving anonymization removes local evidence and records completion" do
     privacy_request = account_of(@user).privacy_requests.create!(
-      user: @user,
+      created_by: @user,
       supplier_import: @supplier_import,
       request_type: "anonymization",
       subject_name: "Titular",

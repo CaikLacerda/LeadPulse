@@ -49,7 +49,7 @@ module Maintenance
 
     def create_import(validation_started_at:, finished_at:, payload_finished_at:)
       @account.supplier_imports.create!(
-        user: @user,
+        created_by: @user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,

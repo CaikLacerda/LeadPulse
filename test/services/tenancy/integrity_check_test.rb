@@ -8,7 +8,7 @@ module Tenancy
 
     test "reports a lot child stored in another account" do
       batch = create_analytics_batch!(account: accounts(:one), started_at: 1.day.ago)
-      review = batch.audit_reviews.create!(user: users(:one), reviewed_result: "wrong_company", reviewed_at: Time.current)
+      review = batch.audit_reviews.create!(reviewed_by: users(:one), reviewed_result: "wrong_company", reviewed_at: Time.current)
       review.update_columns(account_id: accounts(:two).id)
 
       problems = IntegrityCheck.new.call

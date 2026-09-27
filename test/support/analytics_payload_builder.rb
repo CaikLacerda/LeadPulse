@@ -13,7 +13,7 @@ module AnalyticsPayloadBuilder
     user ||= account.users.first || create_member!(name: "Analytics", email: "analytics-#{SecureRandom.hex(4)}@example.test", account: account)
     account.supplier_imports.create!(
       {
-        user: user,
+        created_by: user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,

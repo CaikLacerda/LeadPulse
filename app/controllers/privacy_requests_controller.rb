@@ -10,7 +10,7 @@ class PrivacyRequestsController < ApplicationController
 
   def create
     attributes = privacy_request_params.except(:supplier_import_id).merge(requested_at: Time.current)
-    @privacy_request = current_account.privacy_requests.new(attributes.merge(user: current_user))
+    @privacy_request = current_account.privacy_requests.new(attributes.merge(created_by: current_user))
     @privacy_request.supplier_import = selected_supplier_import
 
     if @privacy_request.save

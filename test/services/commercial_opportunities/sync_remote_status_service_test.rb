@@ -149,13 +149,12 @@ class CommercialOpportunities::SyncRemoteStatusServiceTest < ActiveSupport::Test
     user = users(:one)
     account_of(user).update!(validation_api_token: "lp_test_token")
     supplier_import = account_of(user).supplier_imports.create!(
-      user: user,
+      created_by: user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD
     )
     opportunity = account_of(user).commercial_opportunities.create!({
-      user: user,
       supplier_import: supplier_import,
       source_external_id: "supplier-#{SecureRandom.hex(4)}",
       supplier_name: "Fornecedor Exemplo",

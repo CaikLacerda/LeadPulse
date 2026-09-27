@@ -5,7 +5,7 @@ class SupplierLocationsHelperTest < ActionView::TestCase
   test "builds an OpenStreetMap point without a Google place id" do
     search = SupplierDiscoverySearch.create!(
       account: account_of(users(:one)),
-      user: users(:one),
+      created_by: users(:one),
       search_id: "search-with-openstreetmap-location",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Ferro",
@@ -37,7 +37,7 @@ class SupplierLocationsHelperTest < ActionView::TestCase
   test "builds clickable Google Maps points from supplier coordinates" do
     search = SupplierDiscoverySearch.create!(
       account: account_of(users(:one)),
-      user: users(:one),
+      created_by: users(:one),
       search_id: "search-with-location",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Adubo",
@@ -68,7 +68,7 @@ class SupplierLocationsHelperTest < ActionView::TestCase
   test "does not plot city or state fallback when exact coordinates are absent" do
     search = SupplierDiscoverySearch.create!(
       account: account_of(users(:one)),
-      user: users(:one),
+      created_by: users(:one),
       search_id: "search-with-state",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Embalagem",
@@ -93,7 +93,7 @@ class SupplierLocationsHelperTest < ActionView::TestCase
   test "does not present approximate coordinates as an exact supplier point" do
     search = SupplierDiscoverySearch.create!(
       account: account_of(users(:one)),
-      user: users(:one),
+      created_by: users(:one),
       search_id: "search-with-approximate-location",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Ferro",
@@ -116,7 +116,7 @@ class SupplierLocationsHelperTest < ActionView::TestCase
   test "plots an OpenStreetMap road fallback as approximate" do
     search = SupplierDiscoverySearch.create!(
       account: account_of(users(:one)),
-      user: users(:one),
+      created_by: users(:one),
       search_id: "search-with-road-fallback",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Ferro",
@@ -143,7 +143,7 @@ class SupplierLocationsHelperTest < ActionView::TestCase
   test "opens Maps by supplier name instead of explicit street url" do
     search = SupplierDiscoverySearch.create!(
       account: account_of(users(:one)),
-      user: users(:one),
+      created_by: users(:one),
       search_id: "search-with-street-maps-url",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Ferro",
@@ -175,7 +175,7 @@ class SupplierLocationsHelperTest < ActionView::TestCase
   test "opens the exact Google place when the API returns a place id" do
     search = SupplierDiscoverySearch.create!(
       account: account_of(users(:one)),
-      user: users(:one),
+      created_by: users(:one),
       search_id: "search-with-place-id",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Ferro",
@@ -204,7 +204,7 @@ class SupplierLocationsHelperTest < ActionView::TestCase
   test "uses the exact address in the Maps query when city fields are absent" do
     search = SupplierDiscoverySearch.create!(
       account: account_of(users(:one)),
-      user: users(:one),
+      created_by: users(:one),
       search_id: "search-with-address-only",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Ferro",

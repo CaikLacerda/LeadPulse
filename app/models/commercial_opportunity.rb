@@ -10,7 +10,6 @@ class CommercialOpportunity < ApplicationRecord
 
   belongs_to :account
   # Quem fez a ação; o isolamento entre empresas é por account.
-  belongs_to :user
   belongs_to :supplier_import
 
   validates :source_external_id, :supplier_name, :callback_phone, presence: true

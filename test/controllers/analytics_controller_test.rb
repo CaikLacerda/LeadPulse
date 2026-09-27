@@ -96,7 +96,7 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
 
   test "qualification page shows the nested commercial funnel" do
     @batch_a.response_payload["records"].first.then do |record|
-      @account_a.commercial_opportunities.create!(user: @admin_a, supplier_import: @batch_a, source_external_id: record["external_id"],
+      @account_a.commercial_opportunities.create!(supplier_import: @batch_a, source_external_id: record["external_id"],
         supplier_name: "Fornecedor", callback_phone: "+5511987654321", status: CommercialOpportunity::STATUS_COMPLETED)
     end
     sign_in_as(@admin_a)
@@ -163,7 +163,7 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_match(/attachment; filename="leadpulse_analytics_\d{4}-\d{2}-\d{2}\.xlsx"/, response.headers["Content-Disposition"])
     event = PrivacyAuditEvent.where(action: "analytics_exported").last
     assert_equal @account_a, event.account
-    assert_equal @viewer_a, event.user
+    assert_equal @viewer_a, event.performed_by
     assert_equal "xlsx", event.metadata["export"]
     assert_equal false, event.metadata["records_included"]
     assert_equal({ "fluxo" => "supplier_validation" }, event.metadata["filters"])
@@ -193,7 +193,7 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     csv = CSV.parse(response.body.delete_prefix("\uFEFF"), headers: true)
     assert_equal [ @batch_b.display_code ] * 2, csv.map { |row| row["batch_code"] }
     event = PrivacyAuditEvent.where(action: "analytics_exported").last
-    assert_equal [ @account_b, @admin_b, "csv_registros" ], [ event.account, event.user, event.metadata["export"] ]
+    assert_equal [ @account_b, @admin_b, "csv_registros" ], [ event.account, event.performed_by, event.metadata["export"] ]
   end
 
   test "the export menu follows the profile" do
