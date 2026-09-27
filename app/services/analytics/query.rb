@@ -42,6 +42,21 @@ module Analytics
       "jsonb_array_elements(#{Sql.array("#{record_alias}.record -> 'call_attempts'")})"
     end
 
+    # Percorre os lotes em grupos, na ordem de início da validação, para ler linha a linha
+    # sem carregar todos os payloads de uma vez.
+    def each_batch_group(relation, size)
+      relation.reorder(:validation_started_at, :id).pluck(:id).each_slice(size) do |ids|
+        yield relation.unscope(:order).where(id: ids)
+      end
+    end
+
+    def utc_time(value)
+      return if value.blank?
+      return value.utc if value.respond_to?(:utc)
+
+      Time.find_zone!("UTC").parse(value.to_s)
+    end
+
     def integer(value)
       value.to_i
     end

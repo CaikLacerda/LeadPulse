@@ -44,6 +44,19 @@ module Analytics
       Page.new(rows: rows.map { |row| cast(row) }, page: page, total_pages: total_pages, total_count: total_count, sort: sort, direction: direction)
     end
 
+    # Todas as linhas na ordem pedida, até o limite (exportação).
+    def rows(sort: nil, direction: nil, limit: 50_000)
+      sort = SORTS.key?(sort) ? sort : DEFAULT_SORT
+      direction = %w[asc desc].include?(direction) ? direction : "desc"
+
+      select_all(<<~SQL).map { |row| cast(row) }
+        #{per_batch_cte}
+        SELECT * FROM per_batch
+        ORDER BY #{SORTS.fetch(sort)} #{direction.upcase} NULLS LAST, id DESC
+        LIMIT #{limit.to_i}
+      SQL
+    end
+
     def top(limit: 5)
       select_all(<<~SQL).map { |row| cast(row) }
         #{per_batch_cte}

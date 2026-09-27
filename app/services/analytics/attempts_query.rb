@@ -79,7 +79,52 @@ module Analytics
       fill(rows, @window.buckets(grouping), DAILY_KEYS).each { |day| day[:median_duration] = medians[day[:date]] }
     end
 
+    # Uma tentativa por linha, para a exportação. Sem telefone discado, transcrição nem gravação.
+    def each_row(group_size: 200)
+      return enum_for(:each_row, group_size: group_size) unless block_given?
+
+      each_batch_group(@batches, group_size) do |group|
+        select_all(row_sql(group)).each do |row|
+          yield(
+            batch_id: row["batch_id"].to_i,
+            workflow_kind: row["workflow_kind"],
+            source: row["source"],
+            external_id: row["external_id"],
+            attempt_number: row["attempt_number"]&.to_i,
+            started_at: utc_time(row["started_at"]),
+            finished_at: utc_time(row["finished_at"]),
+            status: row["status"],
+            result: row["result"],
+            duration_seconds: decimal(row["duration_seconds"]),
+            privacy_refusal_detected: row["privacy_refusal_detected"] == "true"
+          )
+        end
+      end
+    end
+
     private
+
+    def row_sql(group)
+      started_at = Sql.timestamp("t.attempt ->> 'started_at'")
+
+      <<~SQL
+        SELECT
+          si.id AS batch_id, si.workflow_kind, si.source,
+          r.record ->> 'external_id' AS external_id,
+          #{Sql.number("t.attempt ->> 'attempt_number'")} AS attempt_number,
+          #{started_at} AS started_at,
+          #{Sql.timestamp("t.attempt ->> 'finished_at'")} AS finished_at,
+          t.attempt ->> 'status' AS status,
+          t.attempt ->> 'result' AS result,
+          COALESCE(#{Sql.number("t.attempt ->> 'duration_seconds'")}, #{Sql.number("t.attempt ->> 'call_duration_seconds'")}) AS duration_seconds,
+          t.attempt ->> 'privacy_refusal_detected' AS privacy_refusal_detected
+        FROM (#{relation_sql(group, :id, :workflow_kind, :source, :response_payload)}) si
+        CROSS JOIN LATERAL jsonb_array_elements(#{Sql.array("si.response_payload -> 'records'")}) WITH ORDINALITY AS r(record, position)
+        CROSS JOIN LATERAL jsonb_array_elements(#{Sql.array("r.record -> 'call_attempts'")}) WITH ORDINALITY AS t(attempt, attempt_position)
+        WHERE #{started_at} >= #{time_literal(@window.starts_at)} AND #{started_at} < #{time_literal(@window.ends_at)}
+        ORDER BY 6, si.id, r.position, t.attempt_position
+      SQL
+    end
 
     def attempts_cte
       <<~SQL

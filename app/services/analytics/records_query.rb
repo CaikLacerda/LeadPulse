@@ -53,6 +53,15 @@ module Analytics
       }
     end
 
+    # Um registro por linha, para as exportações. Sem telefone, e-mail, transcrição nem gravação.
+    def each_row(group_size: 200)
+      return enum_for(:each_row, group_size: group_size) unless block_given?
+
+      each_batch_group(@batches, group_size) do |group|
+        select_all(row_sql(group)).each { |row| yield cast_row(row) }
+      end
+    end
+
     # Registros por resultado em cada dia (ou semana) de início da validação.
     def series(window, grouping)
       rows = select_all(<<~SQL)
@@ -66,6 +75,69 @@ module Analytics
       SQL
 
       fill(rows, window.buckets(grouping), SERIES_KEYS)
+    end
+
+    private
+
+    def row_sql(group)
+      answered_duration = "CASE WHEN t.attempt ->> 'status' = 'answered' THEN #{Sql.number("t.attempt ->> 'duration_seconds'")} END"
+
+      <<~SQL
+        SELECT
+          si.id AS batch_id, si.workflow_kind, si.source, si.status AS batch_status, si.validation_started_at,
+          r.record ->> 'external_id' AS external_id,
+          COALESCE(NULLIF(r.record ->> 'client_name', ''), r.record ->> 'company_name') AS company_name,
+          COALESCE(NULLIF(r.record ->> 'cnpj_original', ''), r.record ->> 'cnpj_normalized') AS cnpj,
+          r.record -> 'supplier_validation' ->> 'segment_name' AS segment_name,
+          r.record ->> 'final_status' AS final_status,
+          r.record ->> 'call_result' AS call_result,
+          r.record ->> 'call_status' AS call_status,
+          r.record ->> 'business_status' AS business_status,
+          r.record -> 'supplier_validation' ->> 'outcome' AS qualification_outcome,
+          r.record -> 'supplier_validation' ->> 'phone_belongs_to_company' AS phone_belongs_to_company,
+          r.record -> 'supplier_validation' ->> 'supplies_segment' AS supplies_segment,
+          r.record -> 'supplier_validation' ->> 'commercial_interest' AS commercial_interest,
+          #{Sql.number("r.record ->> 'attempts_count'")} AS attempts_count,
+          (r.record ->> 'privacy_refusal_detected' = 'true'
+            OR EXISTS (SELECT 1 FROM #{attempts_of('r')} AS t(attempt) WHERE t.attempt ->> 'privacy_refusal_detected' = 'true')) AS privacy_refusal_detected,
+          (SELECT MAX(#{Sql.timestamp("t.attempt ->> 'started_at'")}) FROM #{attempts_of('r')} AS t(attempt)) AS last_attempt_at,
+          (SELECT SUM(#{answered_duration}) FROM #{attempts_of('r')} AS t(attempt)) AS answered_duration_seconds
+        FROM (#{relation_sql(group, :id, :workflow_kind, :source, :status, :validation_started_at, :response_payload)}) si
+        CROSS JOIN LATERAL jsonb_array_elements(#{Sql.array("si.response_payload -> 'records'")}) WITH ORDINALITY AS r(record, position)
+        ORDER BY si.validation_started_at, si.id, r.position
+      SQL
+    end
+
+    def cast_row(row)
+      {
+        batch_id: row["batch_id"].to_i,
+        workflow_kind: row["workflow_kind"],
+        source: row["source"],
+        batch_status: row["batch_status"],
+        validation_started_at: utc_time(row["validation_started_at"]),
+        external_id: row["external_id"],
+        company_name: row["company_name"],
+        cnpj: row["cnpj"],
+        segment_name: row["segment_name"],
+        final_status: row["final_status"],
+        call_result: row["call_result"],
+        call_status: row["call_status"],
+        business_status: row["business_status"],
+        qualification_outcome: row["qualification_outcome"],
+        phone_belongs_to_company: boolean(row["phone_belongs_to_company"]),
+        supplies_segment: boolean(row["supplies_segment"]),
+        commercial_interest: boolean(row["commercial_interest"]),
+        attempts_count: row["attempts_count"]&.to_i,
+        privacy_refusal_detected: ActiveModel::Type::Boolean.new.cast(row["privacy_refusal_detected"]) || false,
+        last_attempt_at: utc_time(row["last_attempt_at"]),
+        answered_duration_seconds: decimal(row["answered_duration_seconds"])
+      }
+    end
+
+    def boolean(value)
+      return if value.nil?
+
+      value == "true"
     end
   end
 end

@@ -1,4 +1,5 @@
 require "test_helper"
+require "csv"
 
 class AnalyticsControllerTest < ActionDispatch::IntegrationTest
   PASSWORD = TenancyTestHelpers::DEFAULT_PASSWORD
@@ -139,6 +140,59 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".analytics-batches-table tbody tr", count: 1
   end
 
+  test "any role exports the spreadsheet; the records sheet needs data export permission" do
+    sign_in_as(@viewer_a)
+
+    assert_difference -> { PrivacyAuditEvent.where(action: "analytics_exported").count }, 1 do
+      get export_analytics_url(format: :xlsx, fluxo: "supplier_validation")
+    end
+
+    assert_response :success
+    assert_equal Analytics::XlsxExport::CONTENT_TYPE, response.media_type
+    assert_match(/attachment; filename="leadpulse_analytics_\d{4}-\d{2}-\d{2}\.xlsx"/, response.headers["Content-Disposition"])
+    event = PrivacyAuditEvent.where(action: "analytics_exported").last
+    assert_equal @account_a, event.account
+    assert_equal @viewer_a, event.user
+    assert_equal({ "fluxo" => "supplier_validation" }, event.metadata["filters"])
+    assert_equal [ "Resumo", "Lotes", "Chamadas por dia" ], event.metadata["sheets"]
+  end
+
+  test "CSV needs data export permission" do
+    sign_in_as(@viewer_a)
+
+    assert_no_difference -> { PrivacyAuditEvent.count } do
+      get export_analytics_url(format: :csv, conjunto: "registros")
+    end
+
+    assert_redirected_to analytics_url
+    assert_equal "Seu perfil não pode exportar dados por registro.", flash[:alert]
+  end
+
+  test "CSV streams only the account records and is logged" do
+    sign_in_as(@admin_b)
+
+    get export_analytics_url(format: :csv, conjunto: "registros", lote: @batch_a.id)
+
+    assert_response :success
+    assert_equal "text/csv", response.media_type
+    assert_equal "no-cache", response.headers["Cache-Control"]
+    csv = CSV.parse(response.body.delete_prefix("\uFEFF"), headers: true)
+    assert_equal [ @batch_b.display_code ] * 2, csv.map { |row| row["batch_code"] }
+    assert_equal "registros", PrivacyAuditEvent.where(action: "analytics_exported").last.metadata["dataset"]
+  end
+
+  test "the export menu follows the profile" do
+    sign_in_as(@viewer_a)
+    get analytics_url(periodo: "90d")
+    assert_select ".analytics-export a[href*='exportar.xlsx'][href*='periodo=90d'][data-turbo='false']", count: 1
+    assert_select ".analytics-export a[href*='exportar.csv']", count: 0
+    sign_out_current
+
+    sign_in_as(@admin_a)
+    get analytics_url
+    assert_select ".analytics-export a[href*='exportar.csv']", count: 2
+  end
+
   test "B only sees B, even with a batch of A in the URL" do
     sign_in_as(@admin_b)
 
@@ -175,5 +229,9 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
 
   def sign_in_as(user)
     post user_session_url, params: { user: { email: user.email, password: PASSWORD } }
+  end
+
+  def sign_out_current
+    delete destroy_user_session_url
   end
 end
