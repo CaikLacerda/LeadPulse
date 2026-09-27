@@ -700,6 +700,60 @@
         batches:
           label: "Lotes"
           hint: "Lotes com validação iniciada no período."
+      calls:
+        attempts:
+          label: "Tentativas"
+          hint: "Tentativas de chamada feitas no período, pelo horário de cada tentativa."
+        answered:
+          label: "Atendidas"
+          hint: "Tentativas em que a chamada foi atendida."
+        answer_rate:
+          label: "Taxa de atendimento"
+          hint: "Tentativas atendidas ÷ (atendidas + não atendidas + falhas)."
+        median_duration:
+          label: "Duração mediana"
+          hint: "Mediana da duração das chamadas atendidas que informaram duração."
+        average_duration:
+          label: "Duração média"
+          hint: "Média da duração das chamadas atendidas que informaram duração. Chamadas muito longas pesam mais que na mediana."
+        duration_coverage:
+          label: "Duração informada"
+          hint: "Chamadas atendidas que informaram duração ÷ chamadas atendidas."
+      qualification:
+        qualified:
+          label: "Qualificados"
+          hint: "Registros do fluxo Segmento com resultado Fornecedor qualificado, nos lotes com validação iniciada no período."
+        qualification_rate:
+          label: "Taxa de qualificação"
+          hint: "Qualificados ÷ registros do fluxo Segmento que têm resultado de qualificação."
+        opportunities:
+          label: "Retornos comerciais"
+          hint: "Retornos comerciais criados a partir dos lotes com validação iniciada no período."
+        collected:
+          label: "Coletas concluídas"
+          hint: "Retornos comerciais com a coleta de informações concluída."
+        searches:
+          label: "Buscas"
+          hint: "Buscas de fornecedores feitas no período. Os filtros de fluxo, origem e lote não se aplicam."
+      batches:
+        batches:
+          label: "Lotes"
+          hint: "Lotes criados no período."
+        records:
+          label: "Registros"
+          hint: "Registros já sincronizados dos lotes criados no período."
+        invalid_rate:
+          label: "Linhas inválidas"
+          hint: "Linhas inválidas na importação ÷ linhas importadas."
+        median_wait:
+          label: "Tempo até o início"
+          hint: "Mediana do tempo entre a criação do lote e o início da validação."
+        median_processing:
+          label: "Processamento (mediana)"
+          hint: "Mediana do tempo entre a criação do lote na API e a conclusão, pelo relógio da própria API."
+        p90_processing:
+          label: "Processamento (p90)"
+          hint: "90% dos lotes concluíram em até este tempo, pelo relógio da própria API."
     sections:
       evolution: "Evolução dos registros por resultado"
       evolution_previous: "Total no período de comparação"
@@ -707,7 +761,21 @@
       funnel: "Funil operacional"
       funnel_drop: "Passagem da etapa anterior"
       top_batches: "Lotes com mais registros no período"
-      see_all_batches: "Ver todos os lotes"
+      see_all_batches: "Ver lotes no Analytics"
+      attempts_timeline:
+        dia: "Tentativas por dia"
+        semana: "Tentativas por semana"
+      by_hour: "Atendimento por hora do dia"
+      attempt_results: "Resultado das tentativas"
+      calls_table:
+        dia: "Chamadas por dia"
+        semana: "Chamadas por semana"
+      commercial_funnel: "Funil comercial"
+      outcomes: "Resultado da qualificação"
+      by_source: "Origem dos lotes"
+      segments: "Segmentos buscados"
+      reviews: "Revisões humanas"
+      batches_table: "Lotes do período"
     grouping:
       aria: "Agrupamento"
       dia: "Diário"
@@ -730,6 +798,44 @@
       not_answered: "Não atendido"
       pending_dispatch: "Aguardando disparo"
       other: "Outros"
+    statuses:
+      answered: "Atendida"
+      not_answered: "Não atendida"
+      failed: "Falha"
+      other: "Outros"
+    commercial_funnel:
+      records: "Registros"
+      qualified: "Qualificados"
+      opportunities: "Retorno criado"
+      collected: "Coleta concluída"
+    outcomes:
+      qualified_supplier: "Qualificado"
+      does_not_supply_segment: "Não fornece o segmento"
+      not_interested: "Sem interesse comercial"
+      wrong_company: "Número de outra empresa"
+      privacy_refusal: "Recusa LGPD"
+      inconclusive: "Inconclusivo"
+      not_answered: "Não atendido"
+      other: "Outros"
+    hour: "%{hour}h"
+    hourly_note: "Horas com menos de 20 tentativas aparecem em cinza: a taxa é mostrada, mas com baixa amostra."
+    attempts_per_record: "Em média, %{value} tentativa(s) por registro (%{count} registros)."
+    searches_note: "Buscas consideram só o período; os filtros de fluxo, origem e lote não se aplicam."
+    processing_note: "Processamento pelo relógio da API: da criação do lote na API até a conclusão. Lotes com horários inconsistentes na API ficam fora."
+    reviews:
+      count: "Revisões"
+      altered: "Alteradas na revisão"
+      definition: "Uma revisão conta como alterada quando o resultado revisado difere de todas as classificações automáticas do registro. As outras seções mostram a classificação automática."
+      unmatched:
+        one: "1 revisão aponta para um registro que não está mais no lote e não entra na taxa."
+        other: "%{count} revisões apontam para registros que não estão mais no lote e não entram na taxa."
+      empty: "Nenhuma revisão humana no período."
+    outside_funnel:
+      one: "1 retorno comercial destes lotes vem de um registro que hoje não está como qualificado. Ele conta no total de retornos, mas fica fora do funil."
+      other: "%{count} retornos comerciais destes lotes vêm de registros que hoje não estão como qualificados. Eles contam no total de retornos, mas ficam fora do funil."
+    empty_calls: "Nenhuma tentativa de chamada no período."
+    empty_searches: "Nenhuma busca de fornecedores no período."
+    empty_batches: "Nenhum lote criado no período."
     funnel:
       sent: "Enviados"
       called: "Com ligação"
@@ -738,11 +844,32 @@
     table:
       batch: "Lote"
       workflow: "Fluxo"
+      workflow_source: "Fluxo e origem"
       records: "Registros"
       confirmed: "Confirmados"
       confirmation_rate: "Taxa de confirmação"
       not_answered: "Não atendidos"
       started_at: "Iniciado em"
+      created_at: "Criado em"
+      source: "Origem"
+      status: "Status"
+      validated: "Validados"
+      invalid_rows: "Inválidas"
+      processing: "Processamento"
+      period: "Período"
+      hour: "Hora"
+      attempts: "Tentativas"
+      answered: "Atendidas"
+      answer_rate: "Taxa de atendimento"
+      median_duration: "Duração mediana"
+      qualified: "Qualificados"
+      qualification_rate: "Taxa de qualificação"
+      segment: "Segmento"
+      searches: "Buscas"
+      found: "Fornecedores encontrados"
+      converted: "Buscas que viraram lote"
+      batches: "Lotes criados"
+      sort: "Ordenar por %{column}"
     duration_coverage: "Duração informada em %{value} das chamadas atendidas (%{count} de %{total})."
     awaiting_sync:
       one: "1 lote iniciado no período ainda não tem registros sincronizados e não entra nos números."

@@ -63,6 +63,82 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     charts.each_value { |data| assert_no_match(/\+55|gravacao|texto|rec-/, data.to_json) }
   end
 
+  test "calls page shows attempts by their own time with the duration coverage" do
+    records = [
+      analytics_record("confirmed", attempts: [ analytics_attempt("answered", started_at: 2.days.ago.change(hour: 10), duration: 40) ]),
+      analytics_record("not_answered", attempts: [ analytics_attempt("not_answered", started_at: 2.days.ago.change(hour: 11), duration: 0) ])
+    ]
+    create_analytics_batch!(account: @account_a, user: @admin_a, started_at: 2.days.ago.change(hour: 9), records: records)
+    sign_in_as(@viewer_a)
+
+    get calls_analytics_url
+
+    assert_response :success
+    assert_select "[data-metric='attempts'] .workspace-metric-card__value", text: "2"
+    assert_select "[data-metric='answer_rate'] .workspace-metric-card__value", text: "50,0%"
+    assert_select "[data-metric='median_duration'] .workspace-metric-card__value", text: "40 s"
+    assert_select "[data-metric='duration_coverage'] .workspace-metric-card__value", text: "100,0%"
+    assert_select "[data-analytics-chart-kind-value='hourly_rate']"
+    assert_select "a.settings-tab--active[aria-current='page']", text: "Chamadas"
+  end
+
+  test "qualification page shows the nested commercial funnel" do
+    @batch_a.response_payload["records"].first.then do |record|
+      @account_a.commercial_opportunities.create!(user: @admin_a, supplier_import: @batch_a, source_external_id: record["external_id"],
+        supplier_name: "Fornecedor", callback_phone: "+5511987654321", status: CommercialOpportunity::STATUS_COMPLETED)
+    end
+    sign_in_as(@admin_a)
+
+    get qualification_analytics_url
+
+    assert_response :success
+    assert_select "[data-metric='qualified'] .workspace-metric-card__value", text: "5"
+    assert_select "[data-metric='opportunities'] .workspace-metric-card__value", text: "1"
+    funnel = JSON.parse(css_select("#analytics-chart-commercial-funnel")[0]["data-analytics-chart-data-value"])
+    assert_equal [ 8, 5, 1, 1 ], funnel["values"]
+  end
+
+  test "batches page sorts only by allowed columns and filters by status" do
+    other = create_analytics_batch!(account: @account_a, user: @admin_a, started_at: 1.day.ago, records: analytics_records(confirmed: 1),
+      status: SupplierImport::LOCAL_STATUS_ERROR)
+    sign_in_as(@admin_a)
+
+    get batches_analytics_url(ordem: "registros", direcao: "asc")
+    assert_response :success
+    codes = css_select(".analytics-batches-table tbody tr td:first-child").map { |cell| cell.text.strip }
+    assert_equal [ other.display_code, @batch_a.display_code ], codes
+    assert_select "th[aria-sort='ascending']", text: /Registros/
+
+    get batches_analytics_url(ordem: "id; DROP TABLE users", status: "erro")
+    assert_response :success
+    assert_select ".analytics-batches-table tbody tr", count: 1
+    assert_select ".analytics-batches-table tbody", text: /#{other.display_code}/
+  end
+
+  test "each page renders its empty state" do
+    sign_in_as(@admin_a)
+
+    { calls_analytics_url(periodo: "7d") => "Nenhuma tentativa de chamada no período.",
+      batches_analytics_url(periodo: "personalizado", de: "2025-01-01", ate: "2025-01-31") => "Nenhum lote criado no período." }.each do |url, message|
+      get url
+      assert_response :success
+      assert_select ".workspace-empty-state__title", text: message
+    end
+  end
+
+  test "B only sees B on every page, even with a batch of A in the URL" do
+    sign_in_as(@admin_b)
+
+    [ calls_analytics_url(lote: @batch_a.id), qualification_analytics_url(lote: @batch_a.id), batches_analytics_url(lote: @batch_a.id) ].each do |url|
+      get url
+      assert_response :success, url
+      assert_not_includes response.body, @batch_a.display_code, url
+    end
+
+    get batches_analytics_url
+    assert_select ".analytics-batches-table tbody tr", count: 1
+  end
+
   test "B only sees B, even with a batch of A in the URL" do
     sign_in_as(@admin_b)
 

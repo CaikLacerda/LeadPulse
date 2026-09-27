@@ -31,7 +31,22 @@ module Analytics
       create_opportunity(batch, CommercialOpportunity::STATUS_PENDING)
       create_opportunity(old_batch, CommercialOpportunity::STATUS_COMPLETED)
 
-      assert_equal({ opportunities: 2, collected: 1 }, query.funnel)
+      assert_equal({ opportunities: 2, collected: 1, funnel_opportunities: 2, funnel_collected: 1, outside_funnel: 0 }, query.funnel)
+    end
+
+    test "the funnel only follows returns of records that are qualified, so no step exceeds the previous one" do
+      qualified = analytics_record("confirmed")
+      no_longer_qualified = analytics_record("inconclusive")
+      batch = create_analytics_batch!(account: @account, started_at: brasilia(2026, 9, 20), records: [ qualified, no_longer_qualified ])
+      create_opportunity(batch, CommercialOpportunity::STATUS_COMPLETED, external_id: qualified["external_id"])
+      create_opportunity(batch, CommercialOpportunity::STATUS_PENDING, external_id: no_longer_qualified["external_id"])
+
+      funnel = query.funnel
+
+      assert_equal 2, funnel[:opportunities]
+      assert_equal 1, funnel[:funnel_opportunities]
+      assert_equal 1, funnel[:funnel_collected]
+      assert_equal 1, funnel[:outside_funnel]
     end
 
     test "searches by segment with the batches they became" do
@@ -80,11 +95,15 @@ module Analytics
       )
     end
 
-    def create_opportunity(batch, status)
+    def create_opportunity(batch, status, external_id: nil)
+      used = batch.commercial_opportunities.pluck(:source_external_id)
+      external_id ||= batch.response_payload["records"]
+        .find { |record| record.dig("supplier_validation", "outcome") == "qualified_supplier" && used.exclude?(record["external_id"]) }
+        &.fetch("external_id")
       @account.commercial_opportunities.create!(
         user: @user,
         supplier_import: batch,
-        source_external_id: "op-#{SecureRandom.hex(4)}",
+        source_external_id: external_id || "op-#{SecureRandom.hex(4)}",
         supplier_name: "Fornecedor",
         callback_phone: "+5511987654321",
         status: status

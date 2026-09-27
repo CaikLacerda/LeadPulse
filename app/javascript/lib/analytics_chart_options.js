@@ -4,6 +4,7 @@ import { prefersReducedMotion } from "lib/analytics_chart_theme"
 // com o tom semântico, textos já formatados); aqui só se decide a aparência LeadPulse.
 const integer = new Intl.NumberFormat("pt-BR")
 const percent = new Intl.NumberFormat("pt-BR", { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const wholePercent = new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 0 })
 
 const escapeHtml = (value) =>
   String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char])
@@ -191,7 +192,7 @@ function hourlyRate(data, theme) {
     ...base(theme),
     grid: { top: 12, left: 4, right: 8, bottom: 4, containLabel: true },
     xAxis: categoryAxis(theme, data.labels),
-    yAxis: { ...valueAxis(theme, (value) => percent.format(value)), max: 1, minInterval: 0.25 },
+    yAxis: { ...valueAxis(theme, (value) => wholePercent.format(value)), min: 0, max: 1, interval: 0.25 },
     tooltip: {
       ...base(theme).tooltip,
       trigger: "axis",

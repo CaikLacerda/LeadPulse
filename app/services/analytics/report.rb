@@ -6,7 +6,8 @@ module Analytics
   # registrada no log com conta e filtros, e o restante da página continua. Cada seção tem cache
   # próprio, com chave por conta, filtros e versão das fontes que ela lê.
   class Report
-    CACHE_VERSION = "v1".freeze
+    # Mude a versão sempre que o formato dos dados de uma seção mudar: o cache guarda esse formato.
+    CACHE_VERSION = "v2".freeze
     CACHE_TTL = 10.minutes
     STATEMENT_TIMEOUT = "5s".freeze
 
@@ -225,9 +226,10 @@ module Analytics
         funnel: [
           [ :records, current[:records] ],
           [ :qualified, current[:qualified] ],
-          [ :opportunities, current[:opportunities] ],
-          [ :collected, current[:collected] ]
-        ]
+          [ :opportunities, current[:funnel_opportunities] ],
+          [ :collected, current[:funnel_collected] ]
+        ],
+        outside_funnel: current[:outside_funnel]
       }
     end
 

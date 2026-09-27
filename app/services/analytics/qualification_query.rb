@@ -47,16 +47,38 @@ module Analytics
       }
     end
 
-    # Registros qualificados → retorno comercial criado → coleta concluída, na mesma coorte de lotes.
+    # Retornos comerciais dos mesmos lotes. O funil conta só os que vêm de um registro que está
+    # qualificado no payload atual, para cada etapa caber na anterior; os demais ficam em
+    # outside_funnel e aparecem numa nota.
     def funnel
+      completed = quote(CommercialOpportunity::STATUS_COMPLETED)
       row = select_one(<<~SQL)
         SELECT
           COUNT(*) AS opportunities,
-          COUNT(*) FILTER (WHERE co.status = #{quote(CommercialOpportunity::STATUS_COMPLETED)}) AS collected
-        FROM (#{relation_sql(@opportunities, :id, :status)}) co
+          COUNT(*) FILTER (WHERE co.status = #{completed}) AS collected,
+          COUNT(*) FILTER (WHERE qualified.found) AS funnel_opportunities,
+          COUNT(*) FILTER (WHERE qualified.found AND co.status = #{completed}) AS funnel_collected
+        FROM (#{relation_sql(@opportunities, :id, :status, :supplier_import_id, :source_external_id)}) co
+        LEFT JOIN LATERAL (
+          SELECT TRUE AS found
+          FROM (#{relation_sql(@batches, :id, :response_payload)}) si
+          CROSS JOIN LATERAL #{records_of('si')} AS r(record)
+          WHERE si.id = co.supplier_import_id
+            AND r.record ->> 'external_id' = co.source_external_id
+            AND r.record -> 'supplier_validation' ->> 'outcome' = #{quote(QUALIFIED)}
+          LIMIT 1
+        ) qualified ON TRUE
       SQL
 
-      { opportunities: integer(row["opportunities"]), collected: integer(row["collected"]) }
+      opportunities = integer(row["opportunities"])
+      funnel_opportunities = integer(row["funnel_opportunities"])
+      {
+        opportunities: opportunities,
+        collected: integer(row["collected"]),
+        funnel_opportunities: funnel_opportunities,
+        funnel_collected: integer(row["funnel_collected"]),
+        outside_funnel: opportunities - funnel_opportunities
+      }
     end
 
     # Buscas do período por segmento, com quantas viraram lote.

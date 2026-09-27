@@ -8,11 +8,7 @@
     <%= render "analytics/empty" %>
   <% else %>
     <% data = summary.data %>
-    <%= workspace_metrics(classes: "analytics-kpis") do %>
-      <% data[:metrics].each do |key, comparison| %>
-        <%= analytics_kpi(key, comparison, page: :overview) %>
-      <% end %>
-    <% end %>
+    <%= render "analytics/kpis", metrics: data[:metrics], page: :overview %>
 
     <% coverage = data[:duration_coverage] %>
     <%= render "analytics/notes", notes: [

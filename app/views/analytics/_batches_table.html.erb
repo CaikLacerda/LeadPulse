@@ -1,0 +1,48 @@
+<% page = section.data unless section.failed? %>
+<%= portlet_form(t("analytics.sections.batches_table"), [], count: (analytics_count(page.total_count) if page), body_class: "workspace-portlet-body--flush") do %>
+  <% if section.failed? %>
+    <div class="workspace-portlet-body"><%= analytics_section_error %></div>
+  <% else %>
+    <div class="workspace-table-wrap">
+      <table class="workspace-table analytics-batches-table">
+        <thead>
+          <tr>
+            <%= analytics_sort_header(t("analytics.table.batch"), "lote", page, numeric: false) %>
+            <th scope="col"><%= t("analytics.table.workflow_source") %></th>
+            <th scope="col"><%= t("analytics.table.status") %></th>
+            <%= analytics_sort_header(t("analytics.table.records"), "registros", page) %>
+            <%= analytics_sort_header(t("analytics.table.confirmed"), "confirmados", page) %>
+            <%= analytics_sort_header(t("analytics.table.confirmation_rate"), "taxa", page) %>
+            <%= analytics_sort_header(t("analytics.table.not_answered"), "nao_atendidos", page) %>
+            <%= analytics_sort_header(t("analytics.table.invalid_rows"), "invalidas", page) %>
+            <%= analytics_sort_header(t("analytics.table.created_at"), "criado_em", page, numeric: false) %>
+            <%= analytics_sort_header(t("analytics.table.processing"), "processamento", page) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% page.rows.each do |row| %>
+            <tr>
+              <td><%= workspace_code_tag(analytics_batch_code(row[:id]), current_membership.can_view_evidence? ? supplier_import_path(row[:id]) : nil) %></td>
+              <td class="is-nowrap">
+                <span class="analytics-stacked-cell">
+                  <span><%= SupplierImport::WORKFLOW_KIND_LABELS.fetch(row[:workflow_kind], row[:workflow_kind]) %></span>
+                  <span class="analytics-stacked-cell__secondary"><%= SupplierImport::SOURCE_LABELS.fetch(row[:source], row[:source]) %></span>
+                </span>
+              </td>
+              <td><%= workspace_status_tag(row[:status]) %></td>
+              <td class="is-numeric"><%= analytics_count(row[:records]) %></td>
+              <td class="is-numeric"><%= analytics_count(row[:confirmed]) %></td>
+              <td class="is-numeric"><%= render "analytics/rate_cell", metric: Analytics::Metric.rate(row[:confirmed], row[:terminal]) %></td>
+              <td class="is-numeric"><%= analytics_count(row[:not_answered]) %></td>
+              <td class="is-numeric <%= 'text-danger-fg' if row[:invalid_rows].positive? %>"><%= analytics_count(row[:invalid_rows]) %></td>
+              <td class="is-nowrap"><time datetime="<%= row[:created_at]&.iso8601 %>" title="<%= workspace_datetime(row[:created_at]) %>"><%= workspace_date(row[:created_at]) %></time></td>
+              <td class="is-numeric is-nowrap"><%= analytics_duration(row[:processing_seconds]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <p class="analytics-chart__note"><%= t("analytics.processing_note") %></p>
+    <%= render "shared/pagination", current_page: page.page, total_pages: page.total_pages %>
+  <% end %>
+<% end %>

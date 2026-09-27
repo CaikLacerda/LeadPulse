@@ -55,6 +55,9 @@ Rails.application.routes.draw do
   end
 
   get "analytics", to: "analytics#overview", as: :analytics
+  get "analytics/chamadas", to: "analytics#calls", as: :calls_analytics
+  get "analytics/qualificacao", to: "analytics#qualification", as: :qualification_analytics
+  get "analytics/lotes", to: "analytics#batches", as: :batches_analytics
 
   get "auditoria", to: "validation_audits#index", as: :validation_audits
   post "auditoria/revisoes", to: "validation_audit_reviews#create", as: :validation_audit_reviews

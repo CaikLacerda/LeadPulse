@@ -16,6 +16,18 @@ module AnalyticsHelper
     p90_processing: :down
   }.freeze
 
+  ATTEMPT_STATUSES = %w[answered not_answered failed other].freeze
+  STATUS_CHART_TONES = { "answered" => "confirmed", "not_answered" => "not_answered", "failed" => "rejected", "other" => "other" }.freeze
+  OUTCOME_CHART_TONES = {
+    "qualified_supplier" => "confirmed",
+    "does_not_supply_segment" => "rejected",
+    "not_interested" => "rejected",
+    "wrong_company" => "rejected",
+    "privacy_refusal" => "rejected",
+    "inconclusive" => "inconclusive",
+    "not_answered" => "not_answered"
+  }.freeze
+
   # Tom de cada resultado nos gráficos (tokens --lp-chart-*).
   RESULT_CHART_TONES = {
     "confirmed" => "confirmed",
@@ -26,9 +38,14 @@ module AnalyticsHelper
     "other" => "other"
   }.freeze
 
+  # O status do lote só existe na página Lotes; as outras abas não o carregam.
   def analytics_tabs
+    params = @filters.to_params.except(:status)
     [
-      [ :overview, analytics_path(@filters.to_params) ]
+      [ :overview, analytics_path(params) ],
+      [ :calls, calls_analytics_path(params) ],
+      [ :qualification, qualification_analytics_path(params) ],
+      [ :batches, batches_analytics_path(@filters.to_params) ]
     ]
   end
 
@@ -168,22 +185,34 @@ module AnalyticsHelper
   # Cada gráfico devolve a tabela de dados (versão acessível, sempre no documento) e os dados
   # do ECharts, calculados juntos para que os dois mostrem exatamente os mesmos números.
   def analytics_evolution_chart(data)
-    labels = data[:rows].map { |row| analytics_bucket_label(row[:date], data[:grouping]) }
     series = EVOLUTION_RESULTS.map do |code|
       { name: analytics_result_label(code), tone: code, values: data[:rows].map { |row| row[code.to_sym] } }
     end
     previous = data[:previous_totals] && { name: t("analytics.sections.evolution_previous"), values: data[:previous_totals] }
 
+    analytics_stacked_chart(data, series: series, totals: data[:rows].map { |row| row[:records] }, previous: previous, unit: "registros")
+  end
+
+  def analytics_attempts_timeline_chart(data)
+    series = ATTEMPT_STATUSES.map do |status|
+      { name: t("analytics.statuses.#{status}"), tone: STATUS_CHART_TONES.fetch(status), values: data[:rows].map { |row| row[status.to_sym] } }
+    end
+
+    analytics_stacked_chart(data, series: series, totals: data[:rows].map { |row| row[:attempts] }, unit: "tentativas")
+  end
+
+  # Colunas empilhadas por dia ou semana; a tabela traz cada série, o total e a comparação.
+  def analytics_stacked_chart(data, series:, totals:, unit:, previous: nil)
+    labels = data[:rows].map { |row| analytics_bucket_label(row[:date], data[:grouping]) }
     head = [ t("analytics.chart.period") ] + series.map { |item| item[:name] } + [ t("analytics.chart.total") ]
     head << previous[:name] if previous
-    rows = data[:rows].each_with_index.map do |row, index|
-      cells = [ labels[index] ] + EVOLUTION_RESULTS.map { |code| analytics_count(row[code.to_sym]) } + [ analytics_count(row[:records]) ]
+    rows = labels.each_with_index.map do |label, index|
+      cells = [ label ] + series.map { |item| analytics_count(item[:values][index]) } + [ analytics_count(totals[index]) ]
       cells << analytics_count(previous[:values][index]) if previous
       cells
     end
-
-    total = data[:rows].sum { |row| row[:records] }
     parts = series.filter_map { |item| "#{item[:name]}: #{analytics_count(item[:values].sum)}" if item[:values].sum.positive? }
+
     {
       head: head,
       rows: rows,
@@ -191,9 +220,66 @@ module AnalyticsHelper
         kind: "stacked_timeline",
         height: 280,
         data: { labels: labels, series: series, previous: previous, totalLabel: t("analytics.chart.total") },
-        summary: t("analytics.chart.summary.evolution", total: analytics_count(total), window: @filters.window.label, parts: parts.join("; "))
+        summary: "#{analytics_count(totals.sum)} #{unit} em #{@filters.window.label}. #{parts.join('; ')}."
       }
     }
+  end
+
+  # Taxa de atendimento por hora; horas abaixo do mínimo de amostra ficam em cinza.
+  def analytics_hourly_chart(rows)
+    labels = rows.map { |row| t("analytics.hour", hour: row[:hour]) }
+    metrics = rows.map { |row| Analytics::Metric.rate(row[:answered], row[:answer_base]) }
+    with_attempts = rows.each_index.select { |index| rows[index][:attempts].positive? }
+
+    {
+      head: [ t("analytics.table.hour"), t("analytics.table.attempts"), t("analytics.table.answered"), t("analytics.table.answer_rate") ],
+      rows: with_attempts.map do |index|
+        [ labels[index], analytics_count(rows[index][:attempts]), analytics_count(rows[index][:answered]), analytics_rate_text(metrics[index]) ]
+      end,
+      chart: {
+        kind: "hourly_rate",
+        height: 260,
+        data: {
+          labels: labels,
+          rates: metrics.map(&:value),
+          attempts: rows.map { |row| row[:attempts] },
+          low: metrics.map(&:low_sample?),
+          rateLabel: t("analytics.table.answer_rate"),
+          attemptsLabel: t("analytics.table.attempts"),
+          lowSampleLabel: t("analytics.metric.low_sample")
+        },
+        summary: "#{t('analytics.sections.by_hour')}. " + with_attempts.map { |index| "#{labels[index]}: #{analytics_rate_text(metrics[index])}" }.join("; ")
+      }
+    }
+  end
+
+  def analytics_rate_text(metric)
+    parts = [ analytics_percent(metric.value), t("analytics.metric.sample", count: analytics_count(metric.sample)) ]
+    parts << t("analytics.metric.low_sample") if metric.available? && metric.low_sample?
+    parts.join(" · ")
+  end
+
+  def analytics_outcome_label(code)
+    t("analytics.outcomes.#{code}", default: t("analytics.outcomes.other"))
+  end
+
+  def analytics_outcomes_chart(title, counts)
+    analytics_distribution_chart(title, counts, label: method(:analytics_outcome_label), tone: ->(code) { OUTCOME_CHART_TONES.fetch(code, "other") })
+  end
+
+  # Cabeçalho ordenável da tabela de lotes: alterna a direção e anuncia a ordem atual.
+  def analytics_sort_header(label, key, page, numeric: true)
+    active = page.sort == key
+    direction = active && page.direction == "desc" ? "asc" : "desc"
+    icon = if active then page.direction == "asc" ? "fa-arrow-up" : "fa-arrow-down" else "fa-sort" end
+
+    content_tag(:th, scope: "col", class: workspace_class_names(("is-numeric" if numeric), "analytics-sortable"), aria: { sort: (active ? (page.direction == "asc" ? "ascending" : "descending") : nil) }) do
+      link_to url_for(@filters.to_params.merge(ordem: key, direcao: direction)),
+        class: workspace_class_names("analytics-sort", ("analytics-sort--active" if active)),
+        aria: { label: t("analytics.table.sort", column: label) } do
+        safe_join([ content_tag(:span, label), content_tag(:i, "", class: "fa-solid #{icon}", aria: { hidden: true }) ])
+      end
+    end
   end
 
   def analytics_distribution_chart(title, counts, label: method(:analytics_result_label), tone: ->(code) { RESULT_CHART_TONES.fetch(code, "other") })

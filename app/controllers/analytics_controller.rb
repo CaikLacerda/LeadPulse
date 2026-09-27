@@ -8,6 +8,18 @@ class AnalyticsController < ApplicationController
     @page = @report.overview
   end
 
+  def calls
+    @page = @report.calls
+  end
+
+  def qualification
+    @page = @report.qualification
+  end
+
+  def batches
+    @page = @report.batches
+  end
+
   private
 
   def load_report

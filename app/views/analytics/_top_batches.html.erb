@@ -1,5 +1,6 @@
 <% section = @page[:top_batches] %>
-<%= portlet_form(t("analytics.sections.top_batches"), [], body_class: "workspace-portlet-body--flush") do %>
+<% see_all = link_to(t("analytics.sections.see_all_batches"), batches_analytics_path(@filters.to_params), class: "workspace-portlet-link") %>
+<%= portlet_form(t("analytics.sections.top_batches"), [see_all], body_class: "workspace-portlet-body--flush") do %>
   <% if section.failed? %>
     <div class="workspace-portlet-body"><%= analytics_section_error %></div>
   <% else %>

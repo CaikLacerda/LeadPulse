@@ -1,0 +1,25 @@
+<%= portlet_form(t("analytics.sections.by_source"), [], body_class: "workspace-portlet-body--flush") do %>
+  <div class="workspace-table-wrap">
+    <table class="workspace-table">
+      <thead>
+        <tr>
+          <th scope="col"><%= t("analytics.table.source") %></th>
+          <th scope="col" class="is-numeric"><%= t("analytics.table.records") %></th>
+          <th scope="col" class="is-numeric"><%= t("analytics.table.qualified") %></th>
+          <th scope="col" class="is-numeric"><%= t("analytics.table.qualification_rate") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% SupplierImport::SOURCE_LABELS.each do |source, label| %>
+          <% row = sources[source] || { records: 0, qualified: 0, qualification_rate: Analytics::Metric.rate(0, 0) } %>
+          <tr>
+            <td><%= label %></td>
+            <td class="is-numeric"><%= analytics_count(row[:records]) %></td>
+            <td class="is-numeric"><%= analytics_count(row[:qualified]) %></td>
+            <td class="is-numeric"><%= render "analytics/rate_cell", metric: row[:qualification_rate] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

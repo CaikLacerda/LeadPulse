@@ -1,0 +1,13 @@
+<% summary = @page[:summary] %>
+<% table = @page[:table] %>
+
+<%= render layout: "analytics/frame" do %>
+  <% if summary.failed? %>
+    <%= analytics_section_error %>
+  <% elsif summary.data[:metrics][:batches].current.value.zero? %>
+    <%= render "analytics/empty", message: t("analytics.empty_batches") %>
+  <% else %>
+    <%= render "analytics/kpis", metrics: summary.data[:metrics], page: :batches %>
+    <%= render "analytics/batches_table", section: table %>
+  <% end %>
+<% end %>

@@ -114,11 +114,65 @@
     .analytics-kpis .workspace-metrics__grid {
       grid-template-columns: repeat(6, minmax(0, 1fr));
     }
+
+    .analytics-kpis--5 .workspace-metrics__grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  .analytics-kpis--2 .workspace-metrics__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Cabeçalhos ordenáveis da tabela de lotes */
+  .analytics-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: inherit;
+  }
+
+  .analytics-sort .fa-solid {
+    color: var(--color-fg-subtle);
+    font-size: 0.625rem;
+  }
+
+  .analytics-sort:hover,
+  .analytics-sort--active {
+    color: var(--color-fg);
+  }
+
+  .analytics-sort--active .fa-solid {
+    color: var(--color-brand-fg);
+  }
+
+  .analytics-sort:focus-visible {
+    border-radius: 4px;
+    outline: none;
+    box-shadow: var(--lp-focus-ring);
+  }
+
+  .analytics-stacked-cell {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1.125rem;
+  }
+
+  .analytics-stacked-cell__secondary {
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+  }
+
+  /* Rótulo em bloco: se quebrar em duas linhas, o ícone de ajuda acompanha o texto. */
+  .analytics-kpi .workspace-metric-card__label {
+    display: block;
   }
 
   .analytics-kpi__hint {
+    margin-left: 0.375rem;
     color: var(--color-fg-subtle);
     font-size: 0.6875rem;
+    vertical-align: 1px;
     cursor: help;
   }
 
@@ -399,5 +453,16 @@
     color: var(--color-fg-muted);
     font-size: 0.6875rem;
     white-space: nowrap;
+  }
+
+  /* Tabela de lotes: mais colunas, espaçamento e texto menores */
+  .analytics-batches-table {
+    font-size: 0.8125rem;
+  }
+
+  .analytics-batches-table th:not(:first-child):not(:last-child),
+  .analytics-batches-table td:not(:first-child):not(:last-child) {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
   }
 }

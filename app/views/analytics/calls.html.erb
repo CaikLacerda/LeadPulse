@@ -1,0 +1,42 @@
+<% summary = @page[:summary] %>
+<% daily = @page[:daily] %>
+<% by_hour = @page[:by_hour] %>
+
+<%= render layout: "analytics/frame" do %>
+  <% if summary.failed? %>
+    <%= analytics_section_error %>
+  <% elsif summary.data[:metrics][:attempts].current.value.zero? %>
+    <%= render "analytics/empty", message: t("analytics.empty_calls") %>
+  <% else %>
+    <% data = summary.data %>
+    <%= render "analytics/kpis", metrics: data[:metrics], page: :calls %>
+
+    <% per_record = data[:attempts_per_record] %>
+    <%= render "analytics/notes", notes: [
+          (t("analytics.attempts_per_record", value: analytics_decimal(per_record.value), count: analytics_count(per_record.sample)) if per_record.available?)
+        ] %>
+
+    <%= render "analytics/chart",
+        key: "attempts",
+        title: t("analytics.sections.attempts_timeline.#{@filters.grouping}"),
+        section: daily,
+        controls: render("analytics/grouping_toggle"),
+        **(daily.failed? ? { head: [], rows: [] } : analytics_attempts_timeline_chart(daily.data)) %>
+
+    <div class="analytics-grid">
+      <%= render "analytics/chart",
+          key: "hours",
+          title: t("analytics.sections.by_hour"),
+          section: by_hour,
+          note: t("analytics.hourly_note"),
+          **(by_hour.failed? ? { head: [], rows: [] } : analytics_hourly_chart(by_hour.data)) %>
+
+      <%= render "analytics/chart",
+          key: "attempt-results",
+          title: t("analytics.sections.attempt_results"),
+          **analytics_distribution_chart(t("analytics.sections.attempt_results"), data[:results]) %>
+    </div>
+
+    <%= render "analytics/calls_table", section: daily %>
+  <% end %>
+<% end %>
