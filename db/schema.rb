@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_26_152000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_26_153000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -62,7 +62,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_152000) do
   end
 
   create_table "audit_reviews", force: :cascade do |t|
-    t.bigint "account_id"
+    t.bigint "account_id", null: false
     t.integer "attempt_number"
     t.datetime "created_at", null: false
     t.string "original_result"
@@ -82,7 +82,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_152000) do
   end
 
   create_table "commercial_opportunities", force: :cascade do |t|
-    t.bigint "account_id"
+    t.bigint "account_id", null: false
     t.string "callback_phone", null: false
     t.string "callback_phone_choice"
     t.datetime "callback_preferred_at"
@@ -133,7 +133,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_152000) do
   end
 
   create_table "privacy_audit_events", force: :cascade do |t|
-    t.bigint "account_id"
+    t.bigint "account_id", null: false
     t.string "action", null: false
     t.datetime "created_at", null: false
     t.jsonb "metadata", default: {}, null: false
@@ -151,7 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_152000) do
   end
 
   create_table "privacy_requests", force: :cascade do |t|
-    t.bigint "account_id"
+    t.bigint "account_id", null: false
     t.datetime "created_at", null: false
     t.text "description"
     t.string "phone"
@@ -173,7 +173,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_152000) do
   end
 
   create_table "supplier_discovery_searches", force: :cascade do |t|
-    t.bigint "account_id"
+    t.bigint "account_id", null: false
     t.string "callback_contact_name"
     t.string "callback_phone"
     t.datetime "created_at", null: false
@@ -207,7 +207,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_152000) do
   end
 
   create_table "supplier_imports", force: :cascade do |t|
-    t.bigint "account_id"
+    t.bigint "account_id", null: false
     t.datetime "created_at", null: false
     t.text "error_message"
     t.string "file_name"
@@ -253,7 +253,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_152000) do
   end
 
   create_table "third_party_operators", force: :cascade do |t|
-    t.bigint "account_id"
+    t.bigint "account_id", null: false
     t.boolean "active", default: true, null: false
     t.string "contract_reference"
     t.string "country"
