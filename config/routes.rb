@@ -54,6 +54,8 @@ Rails.application.routes.draw do
     end
   end
 
+  post "empresa/selecionar", to: "account_selections#create", as: :account_selection
+
   get "analytics", to: "analytics#overview", as: :analytics
   get "analytics/chamadas", to: "analytics#calls", as: :calls_analytics
   get "analytics/qualificacao", to: "analytics#qualification", as: :qualification_analytics

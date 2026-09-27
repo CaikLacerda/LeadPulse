@@ -108,6 +108,23 @@
           <p class="app-account-menu__role"><span class="workspace-tag"><%= current_membership.role_label %></span></p>
         </div>
 
+        <% if available_memberships.size > 1 %>
+          <p class="app-account-menu__section" id="app-account-switch-label">Trocar de empresa</p>
+          <div role="group" aria-labelledby="app-account-switch-label">
+            <% available_memberships.each do |membership| %>
+              <% current = membership.account_id == current_account.id %>
+              <%= button_to account_selection_path, params: { account_id: membership.account_id },
+                  class: "workspace-menu-item app-account-menu__account #{'is-current' if current}",
+                  disabled: current, aria: { current: (current ? 'true' : nil) }, form: { data: { turbo: false } } do %>
+                <i class="fa-solid fa-building" aria-hidden="true"></i>
+                <span class="app-account-menu__account-name"><%= membership.account.validation_company_name_value %></span>
+                <span class="app-account-menu__account-role"><%= membership.role_label %></span>
+              <% end %>
+            <% end %>
+          </div>
+          <div class="workspace-menu-separator" role="separator"></div>
+        <% end %>
+
         <%= link_to edit_user_registration_path, class: 'workspace-menu-item' do %>
           <i class="fa-solid fa-user" aria-hidden="true"></i><span>Minha conta</span>
         <% end %>

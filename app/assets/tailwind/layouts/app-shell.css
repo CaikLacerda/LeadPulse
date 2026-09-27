@@ -670,6 +670,38 @@
     margin-top: 0.375rem;
   }
 
+  /* Troca de empresa (só para quem participa de mais de uma) */
+  .app-account-menu__section {
+    padding: 0.5rem 0.75rem 0.25rem;
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .app-account-menu__account {
+    width: 100%;
+  }
+
+  .app-account-menu__account-name {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-account-menu__account-role {
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+  }
+
+  .app-account-menu__account.is-current {
+    background: var(--color-surface-subtle);
+    color: var(--color-fg);
+    cursor: default;
+  }
+
   /* Flash (toasts) */
   .app-flash-overlay {
     position: fixed;
