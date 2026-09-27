@@ -16,7 +16,14 @@ module TenancyTestHelpers
     user_attributes[:password_confirmation] ||= user_attributes[:password]
 
     user = User.create!(user_attributes)
-    account ||= Account.create!(name: "Empresa de #{user.name}")
+    unless account
+      account = Account.create!(name: "Empresa de #{user.name}")
+      # Como no cadastro, toda empresa nasce com um administrador ativo.
+      unless role == "admin"
+        owner = User.create!(name: "Admin de #{user.name}", email: "admin-#{SecureRandom.hex(4)}@example.test", password: DEFAULT_PASSWORD, password_confirmation: DEFAULT_PASSWORD)
+        AccountMembership.create!(account:, user: owner, role: "admin")
+      end
+    end
     account.update!(account_attributes) if account_attributes.any?
     AccountMembership.create!(account:, user:, role:)
     user

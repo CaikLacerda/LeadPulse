@@ -1,9 +1,8 @@
 # Pessoa que acessa o LeadPulse. Os dados de negócio pertencem à empresa (Account);
 # o usuário participa de uma ou mais empresas por AccountMembership, onde fica o seu papel.
 #
-# Nas tabelas de negócio, user_id indica quem fez a ação (importou, revisou, registrou), não o tenant.
-# As colunas de empresa, integração e role que ainda existem em users foram copiadas para
-# accounts/account_memberships e não são mais lidas pela aplicação.
+# User guarda só identificação e autenticação. Credenciais, integrações e política LGPD são
+# da empresa (Account); o papel é do vínculo (AccountMembership).
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable

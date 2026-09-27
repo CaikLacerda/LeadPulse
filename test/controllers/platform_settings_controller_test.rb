@@ -22,7 +22,7 @@ class PlatformSettingsControllerTest < ActionDispatch::IntegrationTest
 
   test "viewer cannot change company settings by direct request" do
     patch company_platform_settings_url, params: {
-      user: {
+      account: {
         validation_company_name: "Empresa alterada",
         validation_spoken_company_name: "Empresa alterada",
         validation_owner_name: "Outro responsável",
@@ -31,7 +31,7 @@ class PlatformSettingsControllerTest < ActionDispatch::IntegrationTest
     }
 
     assert_redirected_to root_url
-    assert_nil @user.reload.validation_company_name
+    assert_nil account_of(@user).reload.validation_company_name
   end
 
 

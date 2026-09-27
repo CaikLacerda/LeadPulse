@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_27_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_27_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -287,38 +287,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_130000) do
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
-    t.string "lgpd_controller_email"
-    t.string "lgpd_controller_name"
-    t.integer "lgpd_evidence_retention_days", default: 180, null: false
-    t.string "lgpd_legal_basis", default: "legitimate_interest", null: false
-    t.text "lgpd_notice_script"
-    t.string "lgpd_purpose", default: "qualificacao_de_fornecedores_por_chamada_automatizada", null: false
-    t.boolean "lgpd_recording_allowed", default: true, null: false
-    t.boolean "lgpd_stop_automatic_calls_on_refusal", default: true, null: false
     t.string "name", null: false
     t.datetime "remember_created_at"
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
-    t.string "role", default: "admin", null: false
     t.datetime "updated_at", null: false
-    t.bigint "validation_account_id"
-    t.jsonb "validation_account_response", default: {}, null: false
-    t.text "validation_api_token"
-    t.datetime "validation_api_token_created_at"
-    t.string "validation_api_token_prefix"
-    t.text "validation_calling_profile"
-    t.string "validation_company_name"
-    t.string "validation_external_account_id"
-    t.string "validation_openai_realtime_model", default: "gpt-realtime-2.1-mini", null: false
-    t.decimal "validation_openai_realtime_output_speed", precision: 4, scale: 2
-    t.string "validation_openai_realtime_voice", default: "cedar", null: false
-    t.text "validation_openai_style_instructions"
-    t.string "validation_owner_email"
-    t.string "validation_owner_name"
-    t.string "validation_spoken_company_name"
-    t.string "validation_twilio_account_sid"
-    t.jsonb "validation_twilio_phone_numbers", default: [], null: false
-    t.string "validation_twilio_webhook_base_url"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end

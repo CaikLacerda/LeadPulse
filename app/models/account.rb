@@ -139,7 +139,7 @@ class Account < ApplicationRecord
       TOKEN_ENCRYPTION_PREFIX + validation_api_token_encryptor.encrypt_and_sign(raw_token)
     end
 
-    # Mesma chave derivada que era usada em users.validation_api_token: o texto copiado no backfill continua legível.
+    # Mesma chave derivada usada desde que o token ficava no usuário: tokens antigos continuam legíveis.
     def validation_api_token_encryptor
       secret = Rails.application.secret_key_base
       key = ActiveSupport::KeyGenerator.new(secret).generate_key(
