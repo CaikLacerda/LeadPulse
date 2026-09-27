@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_26_153000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_26_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -115,6 +115,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_153000) do
     t.text "unit_price"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["account_id", "created_at"], name: "index_commercial_opportunities_on_account_id_and_created_at"
+    t.index ["account_id", "status"], name: "index_commercial_opportunities_on_account_id_and_status"
     t.index ["account_id"], name: "index_commercial_opportunities_on_account_id"
     t.index ["remote_batch_id"], name: "index_commercial_opportunities_on_remote_batch_id"
     t.index ["supplier_import_id", "source_external_id"], name: "index_commercial_opportunities_on_source_record", unique: true
@@ -191,6 +193,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_153000) do
     t.integer "total_suppliers", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["account_id", "created_at"], name: "index_supplier_discovery_searches_on_account_id_and_created_at"
+    t.index ["account_id", "search_id"], name: "index_supplier_discovery_searches_on_account_id_and_search_id", unique: true
     t.index ["account_id"], name: "index_supplier_discovery_searches_on_account_id"
     t.index ["user_id", "search_id"], name: "index_supplier_discovery_searches_on_user_id_and_search_id", unique: true
     t.index ["user_id"], name: "index_supplier_discovery_searches_on_user_id"
@@ -231,6 +235,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_153000) do
     t.datetime "validation_started_at"
     t.string "workflow_kind", default: "cadastral_validation", null: false
     t.binary "xlsx_data"
+    t.index ["account_id", "created_at"], name: "index_supplier_imports_on_account_id_and_created_at"
+    t.index ["account_id", "validation_started_at"], name: "index_supplier_imports_on_account_id_and_validation_started_at"
     t.index ["account_id"], name: "index_supplier_imports_on_account_id"
     t.index ["remote_batch_id"], name: "index_supplier_imports_on_remote_batch_id"
     t.index ["user_id"], name: "index_supplier_imports_on_user_id"
