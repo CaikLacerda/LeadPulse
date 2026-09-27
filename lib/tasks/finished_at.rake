@@ -51,4 +51,19 @@ namespace :finished_at do
     end
     puts "Com anomalia para revisão manual: #{rows.count { |row| row.anomalies.any? }}"
   end
+
+  desc "Aplica a correção de finished_at só nos registros seguros e salva antes/depois em tmp/backups."
+  task apply: :environment do
+    result = Maintenance::FinishedAtCorrection.new.call
+    puts "Corrigidos: #{result.applied.size} (antes/depois em #{result.backup_path})"
+    result.applied.each { |row| puts "  #{row.code}: #{row.current_value.utc.iso8601} -> #{row.new_value.utc.iso8601}" }
+    puts "Preservados sem correção: #{result.kept.size}"
+    result.kept.each { |row| puts "  #{row.code}: #{row.anomalies.join('; ').presence || 'valor gravado não corresponde à leitura antiga do payload'}" }
+  end
+
+  desc "Desfaz uma correção a partir do arquivo gerado por finished_at:apply. FILE=tmp/backups/finished_at-....json"
+  task restore: :environment do
+    path = ENV.fetch("FILE")
+    puts "Restaurados: #{Maintenance::FinishedAtCorrection.restore(path)} registros de #{path}"
+  end
 end
