@@ -585,13 +585,11 @@ module ApplicationHelper
     duration = attempt["duration_seconds"].presence || attempt["call_duration_seconds"].presence
     return "#{duration.to_f.round(1)} s" if duration.present?
 
-    started_at = Time.zone.parse(attempt["started_at"].to_s) if attempt["started_at"].present?
-    finished_at = Time.zone.parse(attempt["finished_at"].to_s) if attempt["finished_at"].present?
+    started_at = ValidationApi::Timestamp.parse(attempt["started_at"])
+    finished_at = ValidationApi::Timestamp.parse(attempt["finished_at"])
     return "-" if started_at.blank? || finished_at.blank?
 
     "#{(finished_at - started_at).round(1)} s"
-  rescue ArgumentError, TypeError
-    "-"
   end
 
   def supplier_import_privacy_notice(supplier_import)

@@ -131,20 +131,7 @@ module SupplierImports
     end
 
     def parse_time(value)
-      return if value.blank?
-
-      return value.in_time_zone("UTC") if value.respond_to?(:in_time_zone) && !value.is_a?(String)
-
-      raw = value.to_s.strip
-      return if raw.blank?
-
-      if raw.match?(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/) && raw !~ /(z|[+-]\d{2}:\d{2})\z/i
-        Time.find_zone!("UTC").parse(raw)
-      else
-        Time.zone.parse(raw)
-      end
-    rescue ArgumentError, TypeError
-      nil
+      ValidationApi::Timestamp.parse(value)
     end
 
     def result_label(record)

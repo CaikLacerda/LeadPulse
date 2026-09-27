@@ -34,7 +34,7 @@ module SupplierImports
         result_ready: response["result_ready"] || false,
         validation_started_at: Time.current,
         last_synced_at: Time.current,
-        finished_at: response["finished_at"],
+        finished_at: ValidationApi::Timestamp.parse(response["finished_at"]),
         error_message: status_mapper.error_message(response, status: status),
         status: status
       )

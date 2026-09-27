@@ -49,7 +49,7 @@ module SupplierImports
           response_payload: response,
           result_ready: @supplier_import.result_ready? || response["result_ready"] == true,
           last_synced_at: Time.current,
-          finished_at: response["finished_at"].presence || @supplier_import.finished_at,
+          finished_at: ValidationApi::Timestamp.parse(response["finished_at"]) || @supplier_import.finished_at,
           error_message: status_mapper.error_message(response, status: status),
           status: status
         )

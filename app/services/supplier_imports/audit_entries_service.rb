@@ -156,11 +156,7 @@ module SupplierImports
     end
 
     def parse_time(value)
-      return if value.blank?
-
-      Time.zone.parse(value.to_s)
-    rescue ArgumentError, TypeError
-      nil
+      ValidationApi::Timestamp.parse(value)
     end
   end
 end

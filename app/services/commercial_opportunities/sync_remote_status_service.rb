@@ -56,7 +56,7 @@ module CommercialOpportunities
           minimum_order: details["minimum_order"].presence || @commercial_opportunity.minimum_order,
           outcome: details["outcome"].presence || @commercial_opportunity.outcome,
           last_synced_at: Time.current,
-          finished_at: response["finished_at"].presence || @commercial_opportunity.finished_at,
+          finished_at: ValidationApi::Timestamp.parse(response["finished_at"]) || @commercial_opportunity.finished_at,
           error_message: mapper.error_message(response, status: status)
         }
         normalized_attributes = {

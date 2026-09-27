@@ -121,6 +121,28 @@ class CommercialOpportunities::SyncRemoteStatusServiceTest < ActiveSupport::Test
     assert_equal replacement_batch_id, opportunity.response_payload["batch_id"]
   end
 
+  test "stores a finished_at without offset as UTC" do
+    opportunity, user = build_opportunity(
+      status: CommercialOpportunity::STATUS_PROCESSING,
+      remote_batch_status: "processing"
+    )
+    fake_service = fake_remote_service(
+      "batch_status" => "completed",
+      "result_ready" => true,
+      "finished_at" => "2026-07-24T18:57:14.562726",
+      "records" => []
+    )
+    service = CommercialOpportunities::SyncRemoteStatusService.new(
+      account: account_of(user),
+      commercial_opportunity: opportunity
+    )
+    service.define_singleton_method(:show_remote_batch_service) { fake_service }
+
+    service.call
+
+    assert_equal Time.utc(2026, 7, 24, 18, 57, 14.562726r), opportunity.reload.finished_at
+  end
+
   private
 
   def build_opportunity(**attributes)

@@ -115,7 +115,7 @@ module CommercialOpportunities
           status: status,
           result_ready: @commercial_opportunity.result_ready? || response["result_ready"] == true,
           last_synced_at: Time.current,
-          finished_at: response["finished_at"].presence || @commercial_opportunity.finished_at,
+          finished_at: ValidationApi::Timestamp.parse(response["finished_at"]) || @commercial_opportunity.finished_at,
           error_message: mapper.error_message(response, status: status)
         )
       end

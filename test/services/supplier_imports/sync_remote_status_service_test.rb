@@ -257,6 +257,34 @@ module SupplierImports
       assert_nil supplier_import.error_message
     end
 
+    test "stores a finished_at without offset as UTC" do
+      user = users(:one)
+      account_of(user).update!(validation_api_token: "lp_test_token")
+      supplier_import = account_of(user).supplier_imports.create!(
+        user: user,
+        status: SupplierImport::LOCAL_STATUS_PROCESSING,
+        workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
+        source: SupplierImport::SOURCE_UPLOAD,
+        remote_batch_id: "remote-naive-finished-at"
+      )
+      fake_service = Struct.new(:response) do
+        def call(**)
+          response
+        end
+      end.new({
+        "batch_status" => "completed",
+        "result_ready" => true,
+        "finished_at" => "2026-07-21T17:34:15.088290",
+        "records" => []
+      })
+      service = SyncRemoteStatusService.new(account: account_of(user), supplier_import: supplier_import)
+      service.define_singleton_method(:show_remote_batch_service) { fake_service }
+
+      service.call
+
+      assert_equal Time.utc(2026, 7, 21, 17, 34, 15.088290r), supplier_import.reload.finished_at
+    end
+
 
     test "ignores a response from a batch replaced while the request was in flight" do
       user = users(:one)
