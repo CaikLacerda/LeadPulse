@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_27_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -46,7 +46,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
     t.bigint "user_id", null: false
     t.index ["account_id", "status"], name: "index_account_memberships_on_account_id_and_status"
     t.index ["account_id", "user_id"], name: "index_account_memberships_on_account_id_and_user_id", unique: true
-    t.index ["account_id"], name: "index_account_memberships_on_account_id"
     t.index ["invited_by_id"], name: "index_account_memberships_on_invited_by_id"
     t.index ["user_id"], name: "index_account_memberships_on_user_id"
     t.check_constraint "role::text = ANY (ARRAY['admin'::character varying, 'manager'::character varying, 'operator'::character varying, 'auditor'::character varying, 'viewer'::character varying]::text[])", name: "account_memberships_role_check"
@@ -99,10 +98,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
     t.string "token_prefix", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id", "revoked_at"], name: "index_analytics_api_tokens_on_account_id_and_revoked_at"
-    t.index ["account_id"], name: "index_analytics_api_tokens_on_account_id"
     t.index ["created_by_id"], name: "index_analytics_api_tokens_on_created_by_id"
     t.index ["revoked_by_id"], name: "index_analytics_api_tokens_on_revoked_by_id"
     t.index ["token_digest"], name: "index_analytics_api_tokens_on_token_digest", unique: true
+    t.check_constraint "token_prefix::text ~~ 'lpbi\\_%'::text", name: "analytics_api_tokens_prefix_check"
   end
 
   create_table "audit_reviews", force: :cascade do |t|
@@ -119,7 +118,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
     t.bigint "supplier_import_id", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id", "supplier_import_id", "record_external_id", "provider_call_id", "attempt_number"], name: "index_audit_reviews_on_account_lookup", unique: true
-    t.index ["account_id"], name: "index_audit_reviews_on_account_id"
     t.index ["reviewed_by_id"], name: "index_audit_reviews_on_reviewed_by_id"
     t.index ["supplier_import_id"], name: "index_audit_reviews_on_supplier_import_id"
   end
@@ -159,10 +157,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
     t.datetime "updated_at", null: false
     t.index ["account_id", "created_at"], name: "index_commercial_opportunities_on_account_id_and_created_at"
     t.index ["account_id", "status"], name: "index_commercial_opportunities_on_account_id_and_status"
-    t.index ["account_id"], name: "index_commercial_opportunities_on_account_id"
     t.index ["remote_batch_id"], name: "index_commercial_opportunities_on_remote_batch_id"
     t.index ["supplier_import_id", "source_external_id"], name: "index_commercial_opportunities_on_source_record", unique: true
-    t.index ["supplier_import_id"], name: "index_commercial_opportunities_on_supplier_import_id"
+    t.check_constraint "status::text = ANY (ARRAY['pendente'::character varying, 'processando'::character varying, 'concluido'::character varying, 'erro'::character varying]::text[])", name: "commercial_opportunities_status_check"
   end
 
   create_table "plans", force: :cascade do |t|
@@ -185,9 +182,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
     t.string "resource_type"
     t.bigint "supplier_import_id"
     t.datetime "updated_at", null: false
-    t.index ["account_id"], name: "index_privacy_audit_events_on_account_id"
-    t.index ["performed_by_id", "action"], name: "index_privacy_audit_events_on_performed_by_id_and_action"
-    t.index ["performed_by_id", "occurred_at"], name: "index_privacy_audit_events_on_performed_by_id_and_occurred_at"
+    t.index ["account_id", "action"], name: "index_privacy_audit_events_on_account_id_and_action"
+    t.index ["account_id", "occurred_at"], name: "index_privacy_audit_events_on_account_id_and_occurred_at"
     t.index ["performed_by_id"], name: "index_privacy_audit_events_on_performed_by_id"
     t.index ["supplier_import_id"], name: "index_privacy_audit_events_on_supplier_import_id"
   end
@@ -208,10 +204,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
     t.bigint "supplier_import_id"
     t.string "supplier_name"
     t.datetime "updated_at", null: false
-    t.index ["account_id"], name: "index_privacy_requests_on_account_id"
-    t.index ["created_by_id", "status"], name: "index_privacy_requests_on_created_by_id_and_status"
+    t.index ["account_id", "created_at"], name: "index_privacy_requests_on_account_id_and_created_at"
+    t.index ["account_id", "status"], name: "index_privacy_requests_on_account_id_and_status"
     t.index ["created_by_id"], name: "index_privacy_requests_on_created_by_id"
     t.index ["supplier_import_id"], name: "index_privacy_requests_on_supplier_import_id"
+    t.check_constraint "status::text = ANY (ARRAY['open'::character varying, 'in_progress'::character varying, 'resolved'::character varying, 'rejected'::character varying]::text[])", name: "privacy_requests_status_check"
   end
 
   create_table "supplier_discovery_searches", force: :cascade do |t|
@@ -235,8 +232,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
     t.datetime "updated_at", null: false
     t.index ["account_id", "created_at"], name: "index_supplier_discovery_searches_on_account_id_and_created_at"
     t.index ["account_id", "search_id"], name: "index_supplier_discovery_searches_on_account_id_and_search_id", unique: true
-    t.index ["account_id"], name: "index_supplier_discovery_searches_on_account_id"
     t.index ["created_by_id"], name: "index_supplier_discovery_searches_on_created_by_id"
+    t.check_constraint "status::text = ANY (ARRAY['pendente'::character varying, 'processando'::character varying, 'concluido'::character varying, 'erro'::character varying]::text[])", name: "supplier_discovery_searches_status_check"
   end
 
   create_table "supplier_import_versions", force: :cascade do |t|
@@ -276,9 +273,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
     t.binary "xlsx_data"
     t.index ["account_id", "created_at"], name: "index_supplier_imports_on_account_id_and_created_at"
     t.index ["account_id", "validation_started_at"], name: "index_supplier_imports_on_account_id_and_validation_started_at"
-    t.index ["account_id"], name: "index_supplier_imports_on_account_id"
     t.index ["created_by_id"], name: "index_supplier_imports_on_created_by_id"
     t.index ["remote_batch_id"], name: "index_supplier_imports_on_remote_batch_id"
+    t.check_constraint "source::text = ANY (ARRAY['integracao_externa'::character varying, 'supplier_discovery'::character varying]::text[])", name: "supplier_imports_source_check"
+    t.check_constraint "status IS NULL OR (status::text = ANY (ARRAY['pendente'::character varying, 'processando'::character varying, 'concluido'::character varying, 'erro'::character varying]::text[]))", name: "supplier_imports_status_check"
+    t.check_constraint "workflow_kind::text = ANY (ARRAY['cadastral_validation'::character varying, 'supplier_validation'::character varying]::text[])", name: "supplier_imports_workflow_kind_check"
   end
 
   create_table "suppliers", force: :cascade do |t|
@@ -311,7 +310,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_180000) do
     t.string "technical_owner"
     t.datetime "updated_at", null: false
     t.index ["account_id", "active"], name: "index_third_party_operators_on_account_id_and_active"
-    t.index ["account_id"], name: "index_third_party_operators_on_account_id"
     t.index ["created_by_id"], name: "index_third_party_operators_on_created_by_id"
   end
 

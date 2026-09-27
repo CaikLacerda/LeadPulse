@@ -50,4 +50,19 @@ class TenancySchemaTest < ActiveSupport::TestCase
 
     assert_empty offenders.map { |path| path.delete_prefix(Rails.root.to_s + "/") }
   end
+
+  test "roles and statuses are also constrained in the database" do
+    connection = ActiveRecord::Base.connection
+    expected = {
+      "account_memberships" => %w[account_memberships_role_check account_memberships_status_check],
+      "account_invitations" => %w[account_invitations_role_check],
+      "supplier_imports" => %w[supplier_imports_status_check supplier_imports_workflow_kind_check supplier_imports_source_check],
+      "commercial_opportunities" => %w[commercial_opportunities_status_check],
+      "privacy_requests" => %w[privacy_requests_status_check]
+    }
+
+    expected.each do |table, names|
+      assert_empty names - connection.check_constraints(table).map(&:name), table
+    end
+  end
 end
