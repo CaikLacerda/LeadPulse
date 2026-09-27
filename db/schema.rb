@@ -10,9 +10,30 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_27_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_27_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "account_invitations", force: :cascade do |t|
+    t.datetime "accepted_at"
+    t.bigint "accepted_by_id"
+    t.bigint "account_id", null: false
+    t.datetime "canceled_at"
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.datetime "expires_at", null: false
+    t.bigint "invited_by_id"
+    t.string "role", null: false
+    t.datetime "sent_at", null: false
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.index "account_id, lower((email)::text)", name: "index_account_invitations_open_email", unique: true, where: "((accepted_at IS NULL) AND (canceled_at IS NULL))"
+    t.index ["accepted_by_id"], name: "index_account_invitations_on_accepted_by_id"
+    t.index ["account_id"], name: "index_account_invitations_on_account_id"
+    t.index ["invited_by_id"], name: "index_account_invitations_on_invited_by_id"
+    t.index ["token_digest"], name: "index_account_invitations_on_token_digest", unique: true
+    t.check_constraint "role::text = ANY (ARRAY['admin'::character varying, 'manager'::character varying, 'operator'::character varying, 'auditor'::character varying, 'viewer'::character varying]::text[])", name: "account_invitations_role_check"
+  end
 
   create_table "account_memberships", force: :cascade do |t|
     t.bigint "account_id", null: false
@@ -306,6 +327,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_140000) do
     t.index ["user_id"], name: "index_workspace_notification_reads_on_user_id"
   end
 
+  add_foreign_key "account_invitations", "accounts"
+  add_foreign_key "account_invitations", "users", column: "accepted_by_id", on_delete: :nullify
+  add_foreign_key "account_invitations", "users", column: "invited_by_id", on_delete: :nullify
   add_foreign_key "account_memberships", "accounts"
   add_foreign_key "account_memberships", "users"
   add_foreign_key "account_memberships", "users", column: "invited_by_id", on_delete: :nullify

@@ -1,4 +1,4 @@
-<%= platform_settings_page(title: 'Configurações', description: 'Dados da empresa, provedores de voz e IA e acesso à API.', tutorial_key: :platform_settings_company) do %>
+<%= platform_settings_page(title: 'Empresa', description: 'Dados da empresa usados nas chamadas, nos relatórios e na API de validação.', nav: :none, tutorial_key: :platform_settings_company) do %>
   <%= settings_panel do %>
     <%= form_with model: current_account, url: company_platform_settings_path, method: :patch, local: true do |f| %>
       <%= settings_feedback_messages %>

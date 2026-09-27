@@ -18,6 +18,12 @@ class ApplicationController < ActionController::Base
     devise_parameter_sanitizer.permit(:sign_up, keys: [ :name ])
   end
 
+  # Quem entrou a partir de um convite volta para a página do convite para aceitá-lo.
+  def after_sign_in_path_for(resource)
+    token = session[InvitationsController::SESSION_KEY]
+    token.present? ? invitation_path(token) : super
+  end
+
   private
 
   def use_default_locale(&action)

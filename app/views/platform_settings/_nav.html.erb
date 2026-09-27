@@ -1,11 +1,10 @@
 <% tabs = [
-  [t('platform_settings.tabs.company'), company_platform_settings_path],
   [t('platform_settings.tabs.twilio'), twilio_platform_settings_path],
   [t('platform_settings.tabs.openai'), openai_platform_settings_path],
   [t('platform_settings.tabs.api_token'), api_token_platform_settings_path]
 ] %>
 
-<nav class="settings-tab-rail mb-6" aria-label="Seções de configuração" data-tutorial-id="settings-tabs">
+<nav class="settings-tab-rail mb-6" aria-label="Integrações" data-tutorial-id="settings-tabs">
   <% tabs.each do |label, path| %>
     <% active = current_page?(path) %>
     <%= link_to label, path,

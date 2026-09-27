@@ -19,7 +19,6 @@ module ApplicationHelper
       { key: :results, selector: '[data-tutorial-id="imports-results"]' }
     ],
     platform_settings_company: [
-      { key: :tabs, selector: '[data-tutorial-id="settings-tabs"]' },
       { key: :form, selector: '[data-tutorial-id="company-fields"]' },
       { key: :account, selector: '[data-tutorial-id="company-account"]' },
       { key: :submit, selector: '[data-tutorial-id="company-submit"]' }
@@ -86,6 +85,9 @@ module ApplicationHelper
     "failed" => "erro"
   }.freeze
 
+  # Abas das páginas de configuração: Integrações e LGPD têm abas; Empresa não.
+  SETTINGS_NAVS = { integrations: "platform_settings/nav", lgpd: "platform_settings/lgpd_nav" }.freeze
+
   WORKSPACE_BUTTON_VARIANTS = {
     primary: "workspace-button--primary",
     secondary: "workspace-button--secondary",
@@ -106,6 +108,8 @@ module ApplicationHelper
     code: "fa-code",
     chart: "fa-chart-column",
     analytics: "fa-chart-line",
+    team: "fa-user-group",
+    integrations: "fa-plug",
     database: "fa-database",
     clock: "fa-clock",
     bell: "fa-bell",
@@ -429,12 +433,12 @@ module ApplicationHelper
     content_tag(:div, message, class: workspace_class_names("settings-feedback", "settings-feedback--#{variant}", ("settings-feedback--standalone" if standalone)), role: (variant == :alert ? "alert" : "status"))
   end
 
-  def platform_settings_page(title:, description: nil, max_width: "max-w-5xl", tutorial_key: nil, nav: :settings, &block)
+  def platform_settings_page(title:, description: nil, max_width: "max-w-5xl", tutorial_key: nil, nav: :integrations, &block)
     workspace_page(max_width:) do
       turbo_frame_tag "platform_settings_content" do
         safe_join([
           workspace_page_header(title:, description:),
-          render(nav == :lgpd ? "platform_settings/lgpd_nav" : "platform_settings/nav"),
+          (render(SETTINGS_NAVS.fetch(nav)) if SETTINGS_NAVS.key?(nav)),
           capture(&block),
           (render("shared/workspace_tutorial", steps: workspace_tutorial_steps(tutorial_key)) if tutorial_key.present?)
         ].compact)

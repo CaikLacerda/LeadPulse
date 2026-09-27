@@ -1,4 +1,4 @@
-<%= platform_settings_page(title: 'Configurações', description: 'Dados da empresa, provedores de voz e IA e acesso à API.', tutorial_key: :platform_settings_openai) do %>
+<%= platform_settings_page(title: 'Integrações', description: 'Provedores de voz e IA, token da API de validação e tokens de BI da empresa.', tutorial_key: :platform_settings_openai) do %>
   <%= settings_panel do %>
     <%= form_with model: current_account, url: openai_platform_settings_path, method: :patch, local: true do |f| %>
       <%= settings_feedback_messages %>

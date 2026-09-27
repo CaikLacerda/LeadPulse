@@ -1,0 +1,34 @@
+<% expired = invitation.status == :expired %>
+<tr>
+  <td>
+    <span class="team-person">
+      <span class="team-avatar team-avatar--pending" aria-hidden="true"><i class="fa-regular fa-envelope"></i></span>
+      <span class="text-fg-muted">Convite enviado</span>
+    </span>
+  </td>
+  <td class="team-table__email"><%= invitation.email %></td>
+  <td><%= invitation.role_label %></td>
+  <td><%= status_badge(expired ? "Convite expirado" : "Pendente", tone: expired ? :warning : :info) %></td>
+  <td class="is-nowrap">
+    <span class="team-stacked">
+      <span><%= workspace_date(invitation.sent_at) %></span>
+      <span class="team-stacked__secondary"><%= expired ? "Expirou" : "Expira" %> em <%= l(invitation.expires_at.in_time_zone("America/Sao_Paulo").to_date, format: "%d/%m") %></span>
+    </span>
+  </td>
+  <td class="is-actions">
+    <details data-controller="action-menu" data-action-menu-floating-value="true" class="relative inline-block text-left">
+      <summary class="workspace-row-menu-trigger" aria-label="Ações para o convite de <%= invitation.email %>">
+        <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+      </summary>
+      <div class="workspace-menu absolute right-0 top-full w-56">
+        <%= button_to resend_team_invitation_path(invitation), class: "workspace-menu-item" do %>
+          <i class="fa-solid fa-paper-plane" aria-hidden="true"></i><span>Reenviar convite</span>
+        <% end %>
+        <%= button_to team_invitation_path(invitation), method: :delete, class: "workspace-menu-item workspace-menu-item--danger",
+              form: { data: { turbo_confirm: "O link enviado para #{invitation.email} deixa de funcionar.", turbo_confirm_title: "Cancelar convite?", turbo_confirm_confirm_label: "Cancelar convite", turbo_confirm_cancel_label: "Voltar", turbo_confirm_variant: "danger" } } do %>
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i><span>Cancelar convite</span>
+        <% end %>
+      </div>
+    </details>
+  </td>
+</tr>

@@ -56,6 +56,18 @@ Rails.application.routes.draw do
 
   post "empresa/selecionar", to: "account_selections#create", as: :account_selection
 
+  get "equipe", to: "team#index", as: :team
+  scope "equipe" do
+    resources :team_members, path: "membros", only: [ :update, :destroy ] do
+      patch :reactivate, on: :member, path: "reativar"
+    end
+    resources :team_invitations, path: "convites", only: [ :create, :destroy ] do
+      post :resend, on: :member, path: "reenviar"
+    end
+  end
+  get "convites/:token", to: "invitations#show", as: :invitation
+  post "convites/:token/aceitar", to: "invitations#accept", as: :accept_invitation
+
   get "analytics", to: "analytics#overview", as: :analytics
   get "analytics/chamadas", to: "analytics#calls", as: :calls_analytics
   get "analytics/qualificacao", to: "analytics#qualification", as: :qualification_analytics

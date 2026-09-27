@@ -15,6 +15,7 @@ class Account < ApplicationRecord
   attr_accessor :validation_twilio_auth_token, :validation_openai_api_key
 
   has_many :account_memberships, dependent: :destroy
+  has_many :account_invitations, dependent: :destroy
   has_many :users, through: :account_memberships
 
   has_many :supplier_imports, dependent: :destroy

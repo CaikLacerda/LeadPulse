@@ -30,8 +30,10 @@ module WorkspaceNavigationHelper
       {
         title: "Administração",
         items: [
-          (workspace_nav_item(:settings, "Configurações", company_platform_settings_path, icon: :settings,
-            match: ->(path) { path.start_with?("/configuracoes") && !path.start_with?(lgpd_platform_settings_path) }) if current_membership.can_manage_settings?),
+          (workspace_nav_item(:company, "Empresa", company_platform_settings_path, icon: :building) if current_membership.can_manage_settings?),
+          workspace_nav_item(:team, "Equipe", team_path, icon: :team),
+          (workspace_nav_item(:integrations, "Integrações", twilio_platform_settings_path, icon: :integrations,
+            match: ->(path) { path.start_with?("/configuracoes") && !path.start_with?(company_platform_settings_path) && !path.start_with?(lgpd_platform_settings_path) }) if current_membership.can_manage_settings?),
           (workspace_nav_item(:lgpd, "LGPD e privacidade", lgpd_platform_settings_path, icon: :shield,
             match: ->(path) { path.start_with?(lgpd_platform_settings_path) || path.start_with?("/lgpd") }) if current_membership.can_manage_settings? && current_membership.can_manage_lgpd?),
           workspace_nav_item(:developer_docs, "API para desenvolvedores", developer_docs_path, icon: :code)
