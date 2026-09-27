@@ -381,6 +381,8 @@ module ApplicationHelper
         }
       end
 
+      # Leitura é pessoal, mas cada empresa tem as próprias notificações: a chave leva a empresa.
+      items.each { |item| item[:key] = "account:#{current_account.id}:#{item[:key]}" }
       read_keys = current_user.workspace_notification_reads
         .where(notification_key: items.pluck(:key))
         .pluck(:notification_key)

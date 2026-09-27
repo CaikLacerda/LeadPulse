@@ -45,4 +45,26 @@ class AccountSelectionTest < ActionDispatch::IntegrationTest
     get supplier_imports_url
     assert_includes response.body, @lot_a.display_code
   end
+
+  test "reading a notification in one company does not read it in the other" do
+    @account_b.supplier_imports.first.update!(status: SupplierImport::LOCAL_STATUS_ERROR)
+    @account_a.supplier_imports.first.update!(status: SupplierImport::LOCAL_STATUS_ERROR)
+
+    get root_url
+    key_a = unread_keys.find { |key| key.include?("import_errors") }
+    assert_match(/\Aaccount:#{@account_a.id}:import_errors:1\z/, key_a)
+    post mark_notifications_read_url, params: { notification_keys: [ key_a ] }, as: :json
+
+    post account_selection_url, params: { account_id: @account_b.id }
+    get root_url
+    key_b = unread_keys.find { |key| key.include?("import_errors") }
+    assert_equal "account:#{@account_b.id}:import_errors:1", key_b
+    assert_not @caio.workspace_notification_reads.exists?(notification_key: key_b)
+  end
+
+  private
+
+  def unread_keys
+    JSON.parse(css_select("[data-notification-read-keys-value]").first["data-notification-read-keys-value"])
+  end
 end

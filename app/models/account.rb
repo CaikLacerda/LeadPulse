@@ -54,7 +54,7 @@ class Account < ApplicationRecord
 
   # Primeiro administrador da empresa: referência padrão de responsável quando o campo não foi preenchido.
   def primary_admin
-    @primary_admin ||= users.merge(AccountMembership.where(role: "admin")).order("account_memberships.created_at, account_memberships.id").first
+    @primary_admin ||= users.merge(AccountMembership.admins).order("account_memberships.created_at, account_memberships.id").first
   end
 
   # Identificador desta empresa na API de validação. Contas migradas de usuários mantêm o valor já conhecido pela API.
