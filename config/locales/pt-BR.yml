@@ -631,3 +631,119 @@
         failed: "Falha"
         error: "Erro"
         unknown: "Sem resultado"
+  analytics:
+    title: "Analytics"
+    description: "Indicadores das validações, chamadas e lotes da empresa."
+    tabs:
+      aria: "Páginas do Analytics"
+      overview: "Visão geral"
+      calls: "Chamadas"
+      qualification: "Qualificação"
+      batches: "Lotes"
+    filters:
+      aria: "Filtros do Analytics"
+      period: "Período"
+      periods:
+        7d: "Últimos 7 dias"
+        30d: "Últimos 30 dias"
+        90d: "Últimos 90 dias"
+        12m: "Últimos 12 meses"
+        personalizado: "Período personalizado"
+      from: "De"
+      to: "Até"
+      compare: "Comparação"
+      comparisons:
+        anterior: "vs. período anterior"
+        ano_anterior: "vs. ano anterior"
+        nenhum: "Sem comparação"
+      workflow: "Fluxo"
+      all_workflows: "Todos os fluxos"
+      source: "Origem"
+      all_sources: "Todas as origens"
+      batch: "Lote"
+      all_batches: "Todos os lotes"
+      status: "Status do lote"
+      all_statuses: "Todos os status"
+      submit: "Filtrar"
+      clear: "Limpar filtros"
+      compared_with: "comparado com %{window}"
+      adjustments:
+        custom_period_too_long: "O período personalizado aceita até 366 dias. Mostrando os últimos 30 dias."
+        custom_period_incomplete: "Informe o início e o fim do período personalizado. Mostrando os últimos 30 dias."
+    metric:
+      sample: "n = %{count}"
+      low_sample: "Baixa amostra"
+      low_sample_hint: "Menos de 20 casos. Use o número como referência; a variação entre períodos não é conclusiva."
+      no_base: "Sem base anterior"
+      previous: "Período anterior: %{value}"
+      compared_to: "vs. %{window}"
+      increase: "Aumento de"
+      decrease: "Queda de"
+      unchanged: "Sem variação"
+    kpis:
+      overview:
+        records:
+          label: "Registros"
+          hint: "Registros de fornecedores nos lotes com validação iniciada no período."
+        validation_rate:
+          label: "Taxa de validação"
+          hint: "Validados ÷ (validados + não validados). Registros em processamento ficam fora da conta."
+        confirmation_rate:
+          label: "Taxa de confirmação"
+          hint: "Confirmados ÷ registros com resultado final (confirmado, rejeitado, inconclusivo ou não atendido)."
+        answer_rate:
+          label: "Taxa de atendimento"
+          hint: "Tentativas atendidas ÷ (atendidas + não atendidas + falhas), pelo horário de cada tentativa."
+        median_duration:
+          label: "Duração mediana"
+          hint: "Mediana da duração das chamadas atendidas que informaram duração."
+        batches:
+          label: "Lotes"
+          hint: "Lotes com validação iniciada no período."
+    sections:
+      evolution: "Evolução dos registros por resultado"
+      evolution_previous: "Total no período de comparação"
+      results: "Resultado da chamada"
+      funnel: "Funil operacional"
+      funnel_drop: "Passagem da etapa anterior"
+      top_batches: "Lotes com mais registros no período"
+      see_all_batches: "Ver todos os lotes"
+    grouping:
+      aria: "Agrupamento"
+      dia: "Diário"
+      semana: "Semanal"
+    chart:
+      period: "Período"
+      week_of: "Semana de %{date}"
+      total: "Total"
+      count: "Quantidade"
+      share: "Participação"
+    results:
+      confirmed: "Confirmado"
+      rejected: "Rejeitado"
+      inconclusive: "Inconclusivo"
+      not_answered: "Não atendido"
+      pending_dispatch: "Aguardando disparo"
+      other: "Outros"
+    funnel:
+      sent: "Enviados"
+      called: "Com ligação"
+      answered: "Atendidos"
+      confirmed: "Confirmados"
+    table:
+      batch: "Lote"
+      workflow: "Fluxo"
+      records: "Registros"
+      confirmed: "Confirmados"
+      confirmation_rate: "Taxa de confirmação"
+      not_answered: "Não atendidos"
+      started_at: "Iniciado em"
+    duration_coverage: "Duração informada em %{value} das chamadas atendidas (%{count} de %{total})."
+    awaiting_sync:
+      one: "1 lote iniciado no período ainda não tem registros sincronizados e não entra nos números."
+      other: "%{count} lotes iniciados no período ainda não têm registros sincronizados e não entram nos números."
+    empty:
+      title: "Ainda não há dados para este período."
+      hint: "Execute validações para acompanhar os indicadores."
+      widen: "Ver últimos 12 meses"
+    section_error: "Não foi possível carregar esta análise. Tente novamente em instantes."

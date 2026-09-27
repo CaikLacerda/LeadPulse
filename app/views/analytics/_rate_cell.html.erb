@@ -1,0 +1,6 @@
+<span class="analytics-rate-cell">
+  <span><%= analytics_percent(metric.value) %></span>
+  <span class="analytics-rate-cell__sample">
+    <%= t("analytics.metric.sample", count: analytics_count(metric.sample)) %><% if metric.available? && metric.low_sample? %> · <%= t("analytics.metric.low_sample") %><% end %>
+  </span>
+</span>

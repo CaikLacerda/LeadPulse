@@ -54,6 +54,8 @@ Rails.application.routes.draw do
     end
   end
 
+  get "analytics", to: "analytics#overview", as: :analytics
+
   get "auditoria", to: "validation_audits#index", as: :validation_audits
   post "auditoria/revisoes", to: "validation_audit_reviews#create", as: :validation_audit_reviews
 

@@ -1,0 +1,41 @@
+<%# Moldura de um gráfico. O conteúdo acessível é sempre a tabela de dados; o gráfico
+    (ECharts) entra por cima dela quando disponível.
+    locals: key, title, head, rows, controls (opcional), note (opcional), section (opcional) %>
+<% section = local_assigns[:section] %>
+<% controls = local_assigns[:controls] %>
+<% note = local_assigns[:note] %>
+
+<%= portlet_form(title, [controls].compact, class: "analytics-chart", id: "analytics-chart-#{key}", body_class: "analytics-chart__body") do %>
+  <% if section&.failed? %>
+    <%= analytics_section_error %>
+  <% else %>
+    <div class="workspace-table-wrap analytics-chart__table">
+      <table class="workspace-table">
+        <caption class="sr-only"><%= title %></caption>
+        <thead>
+          <tr>
+            <% head.each_with_index do |label, index| %>
+              <th scope="col" class="<%= 'is-numeric' unless index.zero? %>"><%= label %></th>
+            <% end %>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.each do |cells| %>
+            <tr>
+              <% cells.each_with_index do |cell, index| %>
+                <% if index.zero? %>
+                  <th scope="row"><%= cell %></th>
+                <% else %>
+                  <td class="is-numeric"><%= cell %></td>
+                <% end %>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <% if note.present? %>
+      <p class="analytics-chart__note"><%= note %></p>
+    <% end %>
+  <% end %>
+<% end %>

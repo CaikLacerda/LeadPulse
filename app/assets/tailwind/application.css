@@ -21,5 +21,6 @@
 @import "./components/chart.css";
 
 /* Páginas */
+@import "./pages/analytics.css";
 @import "./pages/developer.css";
 @import "./pages/landing.css";

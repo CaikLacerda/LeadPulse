@@ -23,6 +23,7 @@ module WorkspaceNavigationHelper
       {
         title: "Análise",
         items: [
+          workspace_nav_item(:analytics, "Analytics", analytics_path, icon: :analytics),
           (workspace_nav_item(:audit, "Auditoria de chamadas", validation_audits_path, icon: :audit) if current_membership.can_view_evidence?)
         ].compact
       },

@@ -1,0 +1,8 @@
+<div class="analytics-segmented" role="group" aria-label="<%= t("analytics.grouping.aria") %>">
+  <% Analytics::Filters::GROUPINGS.each do |grouping| %>
+    <% active = @filters.grouping == grouping %>
+    <%= link_to t("analytics.grouping.#{grouping}"), url_for(@filters.to_params.merge(agrupar: grouping)),
+        class: "analytics-segmented__item #{'analytics-segmented__item--active' if active}",
+        aria: { pressed: active } %>
+  <% end %>
+</div>

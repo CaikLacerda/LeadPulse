@@ -105,6 +105,7 @@ module ApplicationHelper
     shield: "fa-shield-halved",
     code: "fa-code",
     chart: "fa-chart-column",
+    analytics: "fa-chart-line",
     database: "fa-database",
     clock: "fa-clock",
     bell: "fa-bell",

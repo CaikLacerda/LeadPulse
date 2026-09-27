@@ -9,6 +9,14 @@ module HasDisplayCode
     def display_code_prefix(value)
       self.display_code_prefix_value = value
     end
+
+    # Código exibido a partir do id, para listas que não carregam o registro (ex.: Analytics).
+    def display_code_for(id)
+      prefix = display_code_prefix_value
+      raise NotImplementedError, "#{name} deve definir display_code_prefix." if prefix.blank?
+
+      "#{prefix}-#{id.to_s.rjust(3, '0')}"
+    end
   end
 
   def display_number
@@ -16,9 +24,6 @@ module HasDisplayCode
   end
 
   def display_code
-    prefix = self.class.display_code_prefix_value
-    raise NotImplementedError, "#{self.class.name} deve definir display_code_prefix." if prefix.blank?
-
-    "#{prefix}-#{display_number}"
+    self.class.display_code_for(id)
   end
 end

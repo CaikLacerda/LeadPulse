@@ -106,6 +106,11 @@ module Analytics
       period == PERIOD_CUSTOM
     end
 
+    # Pedido de período personalizado, mesmo que as datas tenham sido recusadas.
+    def custom_requested?
+      @params[:periodo].to_s == PERIOD_CUSTOM
+    end
+
     # Filtros não padrão, com os nomes da URL. Base das abas, links e exportações.
     def to_params(table: false)
       params = {

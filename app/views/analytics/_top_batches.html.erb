@@ -1,0 +1,36 @@
+<% section = @page[:top_batches] %>
+<%= portlet_form(t("analytics.sections.top_batches"), [], body_class: "workspace-portlet-body--flush") do %>
+  <% if section.failed? %>
+    <div class="workspace-portlet-body"><%= analytics_section_error %></div>
+  <% else %>
+    <div class="workspace-table-wrap">
+      <table class="workspace-table">
+        <thead>
+          <tr>
+            <th scope="col"><%= t("analytics.table.batch") %></th>
+            <th scope="col"><%= t("analytics.table.workflow") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.records") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.confirmed") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.confirmation_rate") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.not_answered") %></th>
+            <th scope="col"><%= t("analytics.table.started_at") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% section.data.each do |row| %>
+            <% rate = Analytics::Metric.rate(row[:confirmed], row[:terminal]) %>
+            <tr>
+              <td><%= workspace_code_tag(analytics_batch_code(row[:id]), current_membership.can_view_evidence? ? supplier_import_path(row[:id]) : nil) %></td>
+              <td><%= SupplierImport::WORKFLOW_KIND_LABELS.fetch(row[:workflow_kind], row[:workflow_kind]) %></td>
+              <td class="is-numeric"><%= analytics_count(row[:records]) %></td>
+              <td class="is-numeric"><%= analytics_count(row[:confirmed]) %></td>
+              <td class="is-numeric"><%= render "analytics/rate_cell", metric: rate %></td>
+              <td class="is-numeric"><%= analytics_count(row[:not_answered]) %></td>
+              <td><%= workspace_datetime_cell(row[:validation_started_at]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+<% end %>
