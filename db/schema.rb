@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_26_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_26_151000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,6 +27,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_150000) do
 
   create_table "accounts", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.bigint "legacy_user_id"
     t.string "lgpd_controller_email"
     t.string "lgpd_controller_name"
     t.integer "lgpd_evidence_retention_days", default: 180, null: false
@@ -55,6 +56,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_26_150000) do
     t.string "validation_twilio_account_sid"
     t.jsonb "validation_twilio_phone_numbers", default: [], null: false
     t.string "validation_twilio_webhook_base_url"
+    t.index ["legacy_user_id"], name: "index_accounts_on_legacy_user_id", unique: true, where: "(legacy_user_id IS NOT NULL)"
     t.index ["validation_account_id"], name: "index_accounts_on_validation_account_id", unique: true, where: "(validation_account_id IS NOT NULL)"
     t.index ["validation_external_account_id"], name: "index_accounts_on_validation_external_account_id", unique: true, where: "(validation_external_account_id IS NOT NULL)"
   end
