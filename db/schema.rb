@@ -10,9 +10,54 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_17_194500) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_26_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "account_memberships", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.string "role", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["account_id", "user_id"], name: "index_account_memberships_on_account_id_and_user_id", unique: true
+    t.index ["account_id"], name: "index_account_memberships_on_account_id"
+    t.index ["user_id"], name: "index_account_memberships_on_user_id"
+  end
+
+  create_table "accounts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "lgpd_controller_email"
+    t.string "lgpd_controller_name"
+    t.integer "lgpd_evidence_retention_days", default: 180, null: false
+    t.string "lgpd_legal_basis", default: "legitimate_interest", null: false
+    t.text "lgpd_notice_script"
+    t.string "lgpd_purpose", default: "qualificacao_de_fornecedores_por_chamada_automatizada", null: false
+    t.boolean "lgpd_recording_allowed", default: true, null: false
+    t.boolean "lgpd_stop_automatic_calls_on_refusal", default: true, null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "validation_account_id"
+    t.jsonb "validation_account_response", default: {}, null: false
+    t.text "validation_api_token"
+    t.datetime "validation_api_token_created_at"
+    t.string "validation_api_token_prefix"
+    t.text "validation_calling_profile"
+    t.string "validation_company_name"
+    t.string "validation_external_account_id"
+    t.string "validation_openai_realtime_model", default: "gpt-realtime-2.1-mini", null: false
+    t.decimal "validation_openai_realtime_output_speed", precision: 4, scale: 2
+    t.string "validation_openai_realtime_voice", default: "cedar", null: false
+    t.text "validation_openai_style_instructions"
+    t.string "validation_owner_email"
+    t.string "validation_owner_name"
+    t.string "validation_spoken_company_name"
+    t.string "validation_twilio_account_sid"
+    t.jsonb "validation_twilio_phone_numbers", default: [], null: false
+    t.string "validation_twilio_webhook_base_url"
+    t.index ["validation_account_id"], name: "index_accounts_on_validation_account_id", unique: true, where: "(validation_account_id IS NOT NULL)"
+    t.index ["validation_external_account_id"], name: "index_accounts_on_validation_external_account_id", unique: true, where: "(validation_external_account_id IS NOT NULL)"
+  end
 
   create_table "audit_reviews", force: :cascade do |t|
     t.integer "attempt_number"
@@ -258,6 +303,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_194500) do
     t.index ["user_id"], name: "index_workspace_notification_reads_on_user_id"
   end
 
+  add_foreign_key "account_memberships", "accounts"
+  add_foreign_key "account_memberships", "users"
   add_foreign_key "audit_reviews", "supplier_imports"
   add_foreign_key "audit_reviews", "users"
   add_foreign_key "commercial_opportunities", "supplier_imports"

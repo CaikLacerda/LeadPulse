@@ -23,6 +23,9 @@ class User < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 255 }
 
+  has_many :account_memberships, dependent: :destroy
+  has_many :accounts, through: :account_memberships
+
   has_many :supplier_imports, dependent: :destroy
   has_many :supplier_discovery_searches, dependent: :destroy
   has_many :commercial_opportunities, dependent: :destroy
