@@ -4,7 +4,7 @@ import { Controller } from "@hotwired/stimulus"
 // a URL limpa, sem campos vazios nem valores padrão. O botão "Filtrar" continua disponível
 // para quem navega pelo teclado ou sem JavaScript.
 export default class extends Controller {
-  static targets = ["period", "custom", "from", "to"]
+  static targets = ["period", "custom", "from", "to", "fields", "toggle"]
 
   connect() {
     this.toggleCustom()
@@ -33,6 +33,13 @@ export default class extends Controller {
 
     skipped.forEach((field) => { field.disabled = true })
     setTimeout(() => skipped.forEach((field) => { field.disabled = false }), 0)
+  }
+
+  // No celular, os campos ficam recolhidos atrás do botão "Filtros".
+  toggleFields() {
+    const open = !this.fieldsTarget.classList.contains("is-open")
+    this.fieldsTarget.classList.toggle("is-open", open)
+    this.toggleTarget.setAttribute("aria-expanded", String(open))
   }
 
   toggleCustom() {

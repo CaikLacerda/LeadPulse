@@ -9,6 +9,8 @@ module Analytics
     ].freeze
     # Diferença tolerada entre o relógio local e o da API ao buscar tentativas de uma janela.
     CLOCK_SKEW_MARGIN = 1.hour
+    # Folga para tentativas registradas depois da conclusão do lote (nos dados reais, até 4 min).
+    FINISHED_MARGIN = 1.day
     BATCH_OPTIONS_LIMIT = 200
 
     attr_reader :account, :filters
@@ -25,9 +27,12 @@ module Analytics
       batches.where(validation_started_at: window.range)
     end
 
-    # Lotes que podem ter tentativas na janela; o recorte fino é pelo horário de cada tentativa.
+    # Lotes que podem ter tentativas na janela: iniciados antes do fim dela e não concluídos
+    # antes do início (com folga). O recorte fino é pelo horário de cada tentativa.
     def attempt_batches(window)
-      batches.where(validation_started_at: ...(window.ends_at + CLOCK_SKEW_MARGIN))
+      batches
+        .where(validation_started_at: ...(window.ends_at + CLOCK_SKEW_MARGIN))
+        .where("supplier_imports.finished_at IS NULL OR supplier_imports.finished_at >= ?", window.starts_at - FINISHED_MARGIN)
     end
 
     # Lotes criados na janela (página Lotes), com o filtro de status local.

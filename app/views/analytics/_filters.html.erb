@@ -4,7 +4,18 @@
 <%= form_with url: request.path, method: :get, class: "analytics-filters",
     aria: { label: t("analytics.filters.aria") },
     data: { controller: "analytics-filters", action: "change->analytics-filters#change submit->analytics-filters#clean" } do |f| %>
-  <div class="analytics-filters__row">
+  <% active_filters = [@filters.workflow_kind, @filters.source, @filters.supplier_import_id, @filters.status].compact.size %>
+  <button type="button" class="<%= workspace_button_class(:secondary, "analytics-filters__toggle") %>"
+          aria-expanded="false" aria-controls="analytics-filters-fields"
+          data-analytics-filters-target="toggle" data-action="analytics-filters#toggleFields">
+    <%= workspace_icon(:filter) %>
+    <span><%= t("analytics.filters.toggle") %></span>
+    <% if active_filters.positive? %>
+      <span class="analytics-filters__count"><%= active_filters %></span>
+    <% end %>
+  </button>
+
+  <div class="analytics-filters__row" id="analytics-filters-fields" data-analytics-filters-target="fields">
     <%= f.select :periodo,
         Analytics::Filters::PERIODS.map { |period| [t("analytics.filters.periods.#{period}"), period] },
         { selected: custom_visible ? Analytics::Filters::PERIOD_CUSTOM : @filters.period },

@@ -132,8 +132,10 @@ module Analytics
       RecordsQuery.new(@scope.validated_batches(target_window))
     end
 
+    # Uma query por janela, reaproveitada entre as seções da mesma requisição.
     def attempts(target_window)
-      AttemptsQuery.new(@scope.attempt_batches(target_window), target_window)
+      @attempts ||= {}
+      @attempts[target_window] ||= AttemptsQuery.new(@scope.attempt_batches(target_window), target_window, grouping: filters.grouping)
     end
 
     def overview_summary

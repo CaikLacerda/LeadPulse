@@ -67,10 +67,16 @@ function valueAxis(theme, formatter = (value) => integer.format(value)) {
   }
 }
 
+// Uma linha só; em telas estreitas a legenda pagina com setas em vez de cobrir o gráfico.
 function legend(theme) {
   return {
+    type: "scroll",
+    pageIconColor: theme.textSecondary,
+    pageIconInactiveColor: theme.line,
+    pageTextStyle: { color: theme.muted },
     top: 0,
     left: 0,
+    right: 0,
     itemWidth: 10,
     itemHeight: 10,
     itemGap: 16,

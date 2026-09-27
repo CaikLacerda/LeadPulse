@@ -3,6 +3,6 @@
     <% active = @filters.grouping == grouping %>
     <%= link_to t("analytics.grouping.#{grouping}"), url_for(@filters.to_params.merge(agrupar: grouping)),
         class: "analytics-segmented__item #{'analytics-segmented__item--active' if active}",
-        aria: { pressed: active } %>
+        aria: { current: (active ? "true" : nil) } %>
   <% end %>
 </div>

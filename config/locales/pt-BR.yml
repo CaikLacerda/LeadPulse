@@ -643,6 +643,7 @@
       batches: "Lotes"
     filters:
       aria: "Filtros do Analytics"
+      toggle: "Filtros"
       period: "Período"
       periods:
         7d: "Últimos 7 dias"
