@@ -27,5 +27,8 @@ export default class extends Controller {
     this.optionTargets.forEach((option) => {
       option.setAttribute("aria-pressed", String(option.dataset.appearanceThemeParam === theme))
     })
+
+    // Componentes desenhados em JS (gráficos do Analytics) releem os tokens com o tema novo.
+    window.dispatchEvent(new CustomEvent("appearance:changed", { detail: { theme } }))
   }
 }

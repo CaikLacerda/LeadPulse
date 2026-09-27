@@ -16,13 +16,14 @@ module AnalyticsHelper
     p90_processing: :down
   }.freeze
 
-  RESULT_TONES = {
-    "confirmed" => :success,
-    "rejected" => :danger,
-    "inconclusive" => :warning,
-    "not_answered" => :neutral,
-    "pending_dispatch" => :info,
-    "other" => :neutral
+  # Tom de cada resultado nos gráficos (tokens --lp-chart-*).
+  RESULT_CHART_TONES = {
+    "confirmed" => "confirmed",
+    "rejected" => "rejected",
+    "inconclusive" => "inconclusive",
+    "not_answered" => "not_answered",
+    "pending_dispatch" => "other",
+    "other" => "other"
   }.freeze
 
   def analytics_tabs
@@ -164,40 +165,91 @@ module AnalyticsHelper
 
   EVOLUTION_RESULTS = %w[confirmed rejected inconclusive not_answered other].freeze
 
-  # Tabelas de dados dos gráficos: cabeçalho e linhas já formatados. São a versão acessível
-  # de cada gráfico e a fonte do que ele desenha.
-  def analytics_evolution_table(data)
-    head = [ t("analytics.chart.period") ] + EVOLUTION_RESULTS.map { |code| analytics_result_label(code) } + [ t("analytics.chart.total") ]
-    head << t("analytics.sections.evolution_previous") if data[:previous_totals]
+  # Cada gráfico devolve a tabela de dados (versão acessível, sempre no documento) e os dados
+  # do ECharts, calculados juntos para que os dois mostrem exatamente os mesmos números.
+  def analytics_evolution_chart(data)
+    labels = data[:rows].map { |row| analytics_bucket_label(row[:date], data[:grouping]) }
+    series = EVOLUTION_RESULTS.map do |code|
+      { name: analytics_result_label(code), tone: code, values: data[:rows].map { |row| row[code.to_sym] } }
+    end
+    previous = data[:previous_totals] && { name: t("analytics.sections.evolution_previous"), values: data[:previous_totals] }
 
+    head = [ t("analytics.chart.period") ] + series.map { |item| item[:name] } + [ t("analytics.chart.total") ]
+    head << previous[:name] if previous
     rows = data[:rows].each_with_index.map do |row, index|
-      cells = [ analytics_bucket_label(row[:date], data[:grouping]) ]
-      cells += EVOLUTION_RESULTS.map { |code| analytics_count(row[code.to_sym]) }
-      cells << analytics_count(row[:records])
-      cells << analytics_count(data[:previous_totals][index]) if data[:previous_totals]
+      cells = [ labels[index] ] + EVOLUTION_RESULTS.map { |code| analytics_count(row[code.to_sym]) } + [ analytics_count(row[:records]) ]
+      cells << analytics_count(previous[:values][index]) if previous
       cells
     end
 
-    { head: head, rows: rows }
+    total = data[:rows].sum { |row| row[:records] }
+    parts = series.filter_map { |item| "#{item[:name]}: #{analytics_count(item[:values].sum)}" if item[:values].sum.positive? }
+    {
+      head: head,
+      rows: rows,
+      chart: {
+        kind: "stacked_timeline",
+        height: 280,
+        data: { labels: labels, series: series, previous: previous, totalLabel: t("analytics.chart.total") },
+        summary: t("analytics.chart.summary.evolution", total: analytics_count(total), window: @filters.window.label, parts: parts.join("; "))
+      }
+    }
   end
 
-  def analytics_distribution_table(title, counts, label: method(:analytics_result_label))
+  def analytics_distribution_chart(title, counts, label: method(:analytics_result_label), tone: ->(code) { RESULT_CHART_TONES.fetch(code, "other") })
     total = counts.values.sum
-    rows = counts.reject { |_, count| count.zero? }.sort_by { |_, count| -count }.map do |code, count|
-      [ label.call(code), analytics_count(count), analytics_percent(total.positive? ? count.to_f / total : nil) ]
-    end
+    items = counts.reject { |_, count| count.zero? }.sort_by { |_, count| -count }
+    labels = items.map { |code, _| label.call(code) }
+    shares = items.map { |_, count| analytics_percent(total.positive? ? count.to_f / total : nil) }
 
-    { head: [ title, t("analytics.table.records"), t("analytics.chart.share") ], rows: rows }
+    {
+      head: [ title, t("analytics.table.records"), t("analytics.chart.share") ],
+      rows: items.each_with_index.map { |(_, count), index| [ labels[index], analytics_count(count), shares[index] ] },
+      chart: {
+        kind: "ranked_bars",
+        height: analytics_bar_chart_height(items.size),
+        data: {
+          labels: labels,
+          values: items.map(&:last),
+          tones: items.map { |code, _| tone.call(code) },
+          shares: shares,
+          valueLabel: t("analytics.table.records"),
+          shareLabel: t("analytics.chart.share")
+        },
+        summary: "#{title}. " + items.each_with_index.map { |(_, count), index| "#{labels[index]}: #{analytics_count(count)} (#{shares[index]})" }.join("; ")
+      }
+    }
   end
 
-  def analytics_funnel_table(title, steps, scope:)
-    rows = steps.each_with_index.map do |(step, count), index|
-      previous = steps[index - 1][1] if index.positive?
-      passage = if index.zero? then "—" else analytics_percent(previous.to_i.positive? ? count.to_f / previous : nil) end
-      [ t("analytics.#{scope}.#{step}"), analytics_count(count), passage ]
+  def analytics_funnel_chart(title, steps, scope:)
+    labels = steps.map { |step, _| t("analytics.#{scope}.#{step}") }
+    passages = steps.each_with_index.map do |(_, count), index|
+      next "—" if index.zero?
+
+      previous = steps[index - 1][1].to_i
+      analytics_percent(previous.positive? ? count.to_f / previous : nil)
     end
 
-    { head: [ title, t("analytics.table.records"), t("analytics.sections.funnel_drop") ], rows: rows }
+    {
+      head: [ title, t("analytics.table.records"), t("analytics.sections.funnel_drop") ],
+      rows: steps.each_with_index.map { |(_, count), index| [ labels[index], analytics_count(count), passages[index] ] },
+      chart: {
+        kind: "funnel_bars",
+        height: analytics_bar_chart_height(steps.size),
+        data: {
+          labels: labels,
+          values: steps.map(&:last),
+          passages: passages,
+          valueLabel: t("analytics.table.records"),
+          passageLabel: t("analytics.sections.funnel_drop")
+        },
+        summary: "#{title}. " + steps.each_with_index.map { |(_, count), index| "#{labels[index]}: #{analytics_count(count)}" }.join("; ")
+      }
+    }
+  end
+
+  def analytics_bar_chart_height(count)
+    [ (count * 40) + 16, 136 ].max
   end
 
   def analytics_result_label(code)

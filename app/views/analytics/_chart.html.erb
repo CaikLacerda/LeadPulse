@@ -1,14 +1,35 @@
-<%# Moldura de um gráfico. O conteúdo acessível é sempre a tabela de dados; o gráfico
-    (ECharts) entra por cima dela quando disponível.
-    locals: key, title, head, rows, controls (opcional), note (opcional), section (opcional) %>
+<%# Moldura de um gráfico. A tabela de dados é sempre renderizada: é a versão acessível e a que
+    aparece sem JavaScript, pelo botão "Tabela" ou se o gráfico falhar. O ECharts desenha por cima.
+    locals: key, title, head, rows, chart (opcional), controls (opcional), note (opcional), section (opcional) %>
 <% section = local_assigns[:section] %>
-<% controls = local_assigns[:controls] %>
+<% chart = local_assigns[:chart] unless section&.failed? %>
 <% note = local_assigns[:note] %>
+<% actions = [local_assigns[:controls]] %>
+<% if chart %>
+  <% actions << capture do %>
+    <button type="button" class="analytics-chart__toggle" aria-pressed="false" aria-label="<%= t("analytics.chart.table_aria") %>"
+            data-analytics-chart-target="toggle" data-action="analytics-chart#toggleTable">
+      <i class="fa-solid fa-table-list" aria-hidden="true"></i><span><%= t("analytics.chart.table") %></span>
+    </button>
+  <% end %>
+<% end %>
 
-<%= portlet_form(title, [controls].compact, class: "analytics-chart", id: "analytics-chart-#{key}", body_class: "analytics-chart__body") do %>
+<%= portlet_form(title, actions.compact,
+      class: "analytics-chart",
+      id: "analytics-chart-#{key}",
+      body_class: "analytics-chart__body",
+      data: (chart ? { controller: "analytics-chart", analytics_chart_kind_value: chart[:kind], analytics_chart_data_value: chart[:data].to_json } : {})) do %>
   <% if section&.failed? %>
     <%= analytics_section_error %>
   <% else %>
+    <% if chart %>
+      <div class="analytics-chart__visual">
+        <div class="analytics-chart__canvas" data-analytics-chart-target="canvas" role="img"
+             aria-label="<%= chart[:summary] %>" style="--analytics-chart-height: <%= chart[:height].to_i %>px"></div>
+      </div>
+      <p class="analytics-chart__unavailable" role="status"><%= t("analytics.chart.unavailable") %></p>
+    <% end %>
+
     <div class="workspace-table-wrap analytics-chart__table">
       <table class="workspace-table">
         <caption class="sr-only"><%= title %></caption>
@@ -34,6 +55,7 @@
         </tbody>
       </table>
     </div>
+
     <% if note.present? %>
       <p class="analytics-chart__note"><%= note %></p>
     <% end %>

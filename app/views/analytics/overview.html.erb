@@ -25,18 +25,18 @@
         title: t("analytics.sections.evolution"),
         section: evolution,
         controls: render("analytics/grouping_toggle"),
-        **(evolution.failed? ? { head: [], rows: [] } : analytics_evolution_table(evolution.data)) %>
+        **(evolution.failed? ? { head: [], rows: [] } : analytics_evolution_chart(evolution.data)) %>
 
     <div class="analytics-grid">
       <%= render "analytics/chart",
           key: "results",
           title: t("analytics.sections.results"),
-          **analytics_distribution_table(t("analytics.sections.results"), data[:results]) %>
+          **analytics_distribution_chart(t("analytics.sections.results"), data[:results]) %>
 
       <%= render "analytics/chart",
           key: "funnel",
           title: t("analytics.sections.funnel"),
-          **analytics_funnel_table(t("analytics.sections.funnel"), data[:funnel], scope: :funnel) %>
+          **analytics_funnel_chart(t("analytics.sections.funnel"), data[:funnel], scope: :funnel) %>
     </div>
 
     <%= render "analytics/top_batches" %>

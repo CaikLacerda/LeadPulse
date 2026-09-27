@@ -45,6 +45,24 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "Fornecedor"
   end
 
+  test "charts get the same aggregates as their data tables and nothing else" do
+    sign_in_as(@admin_a)
+
+    get analytics_url
+
+    charts = css_select("[data-controller='analytics-chart']").to_h do |element|
+      [ element["data-analytics-chart-kind-value"], JSON.parse(element["data-analytics-chart-data-value"]) ]
+    end
+    assert_equal %w[stacked_timeline ranked_bars funnel_bars], charts.keys
+    assert_equal 8, charts["ranked_bars"]["values"].sum
+    assert_equal [ "62,5%", "37,5%" ], charts["ranked_bars"]["shares"]
+    assert_equal 8, charts["stacked_timeline"]["series"].sum { |series| series["values"].sum }
+    assert_equal [ 8, 8, 8, 5 ], charts["funnel_bars"]["values"]
+    assert_select "#analytics-chart-results table tbody tr", count: 2
+    assert_select "#analytics-chart-results [role='img'][aria-label*='Confirmado: 5 (62,5%)']"
+    charts.each_value { |data| assert_no_match(/\+55|gravacao|texto|rec-/, data.to_json) }
+  end
+
   test "B only sees B, even with a batch of A in the URL" do
     sign_in_as(@admin_b)
 

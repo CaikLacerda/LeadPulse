@@ -69,6 +69,14 @@
   --lp-chart-bar: #2563eb;
   --lp-chart-bar-hover: #1d4ed8;
   --lp-chart-column-hover: rgba(16, 24, 40, 0.035);
+  /* Resultados nos gráficos do Analytics: ≥ 3:1 sobre a superfície e separáveis com daltonismo. */
+  --lp-chart-confirmed: #067647;
+  --lp-chart-rejected: #b42318;
+  --lp-chart-inconclusive: #dc6803;
+  --lp-chart-not-answered: #667085;
+  --lp-chart-other: #2e90fa;
+  --lp-chart-previous: #98a2b3;
+  --lp-chart-muted: #d0d5dd;
   --lp-map-canvas: #eef1f5;
 
   --lp-radius-sm: 6px;
@@ -155,6 +163,13 @@
     --lp-chart-bar: #3b82f6;
     --lp-chart-bar-hover: #60a5fa;
     --lp-chart-column-hover: rgba(255, 255, 255, 0.04);
+    --lp-chart-confirmed: #75e0a7;
+    --lp-chart-rejected: #d92d20;
+    --lp-chart-inconclusive: #fdb022;
+    --lp-chart-not-answered: #98a2b3;
+    --lp-chart-other: #1570ef;
+    --lp-chart-previous: #6b7280;
+    --lp-chart-muted: #3a3f48;
     --lp-map-canvas: #1a1c21;
 
     --lp-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -226,6 +241,13 @@
   --lp-chart-bar: #3b82f6;
   --lp-chart-bar-hover: #60a5fa;
   --lp-chart-column-hover: rgba(255, 255, 255, 0.04);
+  --lp-chart-confirmed: #75e0a7;
+  --lp-chart-rejected: #d92d20;
+  --lp-chart-inconclusive: #fdb022;
+  --lp-chart-not-answered: #98a2b3;
+  --lp-chart-other: #1570ef;
+  --lp-chart-previous: #6b7280;
+  --lp-chart-muted: #3a3f48;
   --lp-map-canvas: #1a1c21;
 
   --lp-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);

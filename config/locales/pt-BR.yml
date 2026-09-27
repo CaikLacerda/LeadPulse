@@ -718,6 +718,11 @@
       total: "Total"
       count: "Quantidade"
       share: "Participação"
+      table: "Tabela"
+      table_aria: "Mostrar os dados em tabela"
+      unavailable: "Não foi possível exibir o gráfico. Os números estão na tabela."
+      summary:
+        evolution: "%{total} registros em %{window}. %{parts}."
     results:
       confirmed: "Confirmado"
       rejected: "Rejeitado"
