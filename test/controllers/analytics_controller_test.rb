@@ -24,7 +24,7 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_user_session_url
 
     get export_analytics_url(format: :xlsx)
-    assert_redirected_to new_user_session_url
+    assert_response :unauthorized, "já foi desconectado; download sem sessão recebe 401"
   end
 
   test "visitors are sent to the login" do
