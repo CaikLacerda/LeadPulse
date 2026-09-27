@@ -16,6 +16,17 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     @batch_b = create_analytics_batch!(account: @account_b, user: @admin_b, started_at: started_at, records: analytics_records(not_answered: 2))
   end
 
+  test "a member removed from the company loses Analytics and exports" do
+    membership_of(@viewer_a).disable!
+    sign_in_as(@viewer_a)
+
+    get analytics_url
+    assert_redirected_to new_user_session_url
+
+    get export_analytics_url(format: :xlsx)
+    assert_redirected_to new_user_session_url
+  end
+
   test "visitors are sent to the login" do
     get analytics_url
 
