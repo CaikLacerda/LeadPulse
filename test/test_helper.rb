@@ -1,6 +1,7 @@
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
+Dir[File.expand_path("support/**/*.rb", __dir__)].each { |file| require file }
 
 # Tenancy nos testes: todo usuário pertence a uma empresa (Account) por um vínculo com papel.
 module TenancyTestHelpers
@@ -33,6 +34,7 @@ end
 module ActiveSupport
   class TestCase
     include TenancyTestHelpers
+    include AnalyticsPayloadBuilder
 
     # Run tests in parallel with specified workers
     parallelize(workers: :number_of_processors)
