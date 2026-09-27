@@ -36,7 +36,7 @@ class AnalyticsController < ApplicationController
       include_records: current_membership.can_export_data?
     ).call
 
-    log_export(format: "xlsx", filename: export[:filename], sheets: export[:sheets])
+    log_export(export: "xlsx", filename: export[:filename], sheets: export[:sheets], records_included: current_membership.can_export_data?)
     send_data export[:content], filename: export[:filename], type: export[:content_type]
   rescue Analytics::XlsxExport::TooManyRecords
     redirect_to analytics_path(@filters.to_params), alert: t("analytics.export.too_many_records")
@@ -47,7 +47,7 @@ class AnalyticsController < ApplicationController
 
     dataset = Analytics::CsvExport::DATASETS.include?(params[:conjunto]) ? params[:conjunto] : "registros"
     export = Analytics::CsvExport.new(scope: @scope, dataset: dataset)
-    log_export(format: "csv", filename: export.filename, dataset: dataset)
+    log_export(export: "csv_#{dataset}", filename: export.filename, dataset: dataset)
 
     response.headers["Content-Type"] = Analytics::CsvExport::CONTENT_TYPE
     response.headers["Content-Disposition"] = ActionDispatch::Http::ContentDisposition.format(disposition: "attachment", filename: export.filename)
@@ -57,12 +57,13 @@ class AnalyticsController < ApplicationController
     self.response_body = export.each
   end
 
-  def log_export(format:, filename:, **details)
+  # A empresa é dona do dado; o usuário é o autor da exportação. O horário é o occurred_at.
+  def log_export(export:, filename:, **details)
     PrivacyAudit::Logger.log!(
       account: current_account,
       user: current_user,
       action: "analytics_exported",
-      metadata: { format: format, filename: filename, filters: @filters.to_params, period: @filters.window.label, **details }
+      metadata: { export: export, filename: filename, filters: @filters.to_params, period: @filters.window.label, **details }
     )
   end
 

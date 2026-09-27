@@ -164,8 +164,11 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     event = PrivacyAuditEvent.where(action: "analytics_exported").last
     assert_equal @account_a, event.account
     assert_equal @viewer_a, event.user
+    assert_equal "xlsx", event.metadata["export"]
+    assert_equal false, event.metadata["records_included"]
     assert_equal({ "fluxo" => "supplier_validation" }, event.metadata["filters"])
     assert_equal [ "Resumo", "Lotes", "Chamadas por dia" ], event.metadata["sheets"]
+    assert_in_delta Time.current, event.occurred_at, 5.seconds
   end
 
   test "CSV needs data export permission" do
@@ -189,7 +192,8 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "no-cache", response.headers["Cache-Control"]
     csv = CSV.parse(response.body.delete_prefix("\uFEFF"), headers: true)
     assert_equal [ @batch_b.display_code ] * 2, csv.map { |row| row["batch_code"] }
-    assert_equal "registros", PrivacyAuditEvent.where(action: "analytics_exported").last.metadata["dataset"]
+    event = PrivacyAuditEvent.where(action: "analytics_exported").last
+    assert_equal [ @account_b, @admin_b, "csv_registros" ], [ event.account, event.user, event.metadata["export"] ]
   end
 
   test "the export menu follows the profile" do
