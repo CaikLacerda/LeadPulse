@@ -22,7 +22,8 @@ class AnalyticsApiTokenTest < ActiveSupport::TestCase
     secret = token.generate_secret
     token.save!
 
-    assert_nil AnalyticsApiToken.authenticate(secret.chop + "x")
+    tampered = secret.chop + (secret.end_with?("x") ? "y" : "x")
+    assert_nil AnalyticsApiToken.authenticate(tampered)
     assert_nil AnalyticsApiToken.authenticate("lp_live_validacao_#{SecureRandom.hex(8)}")
     token.revoke!(by: users(:one))
     assert_nil AnalyticsApiToken.authenticate(secret)
