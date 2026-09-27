@@ -62,6 +62,16 @@ module Analytics
       end
     end
 
+    # Página de registros em ordem estável (início do lote, lote, posição no lote), a partir
+    # do cursor da página anterior. Devolve as linhas e o cursor da próxima página (ou nil).
+    def page(after: nil, limit: 100)
+      batches = @batches
+      batches = batches.where("(supplier_imports.validation_started_at, supplier_imports.id) >= (?::timestamp, ?)", after[0], after[1]) if after
+      rows = select_all(row_sql(batches, after: after, limit: limit + 1)).map { |row| cast_row(row) }
+      next_cursor = ([ rows[limit - 1][:validation_started_at].utc.iso8601(6), rows[limit - 1][:batch_id], rows[limit - 1][:position] ] if rows.size > limit)
+      [ rows.first(limit), next_cursor ]
+    end
+
     # Registros por resultado em cada dia (ou semana) de início da validação.
     def series(window, grouping)
       rows = select_all(<<~SQL)
@@ -79,12 +89,14 @@ module Analytics
 
     private
 
-    def row_sql(group)
+    def row_sql(group, after: nil, limit: nil)
+      after_sql = "WHERE (si.validation_started_at, si.id, r.position) > (#{quote(after[0])}::timestamp, #{after[1].to_i}, #{after[2].to_i})" if after
       answered_duration = "CASE WHEN t.attempt ->> 'status' = 'answered' THEN #{Sql.number("t.attempt ->> 'duration_seconds'")} END"
 
       <<~SQL
         SELECT
           si.id AS batch_id, si.workflow_kind, si.source, si.status AS batch_status, si.validation_started_at,
+          r.position,
           r.record ->> 'external_id' AS external_id,
           COALESCE(NULLIF(r.record ->> 'client_name', ''), r.record ->> 'company_name') AS company_name,
           COALESCE(NULLIF(r.record ->> 'cnpj_original', ''), r.record ->> 'cnpj_normalized') AS cnpj,
@@ -104,13 +116,16 @@ module Analytics
           (SELECT SUM(#{answered_duration}) FROM #{attempts_of('r')} AS t(attempt)) AS answered_duration_seconds
         FROM (#{relation_sql(group, :id, :workflow_kind, :source, :status, :validation_started_at, :response_payload)}) si
         CROSS JOIN LATERAL jsonb_array_elements(#{Sql.array("si.response_payload -> 'records'")}) WITH ORDINALITY AS r(record, position)
+        #{after_sql}
         ORDER BY si.validation_started_at, si.id, r.position
+        #{"LIMIT #{limit.to_i}" if limit}
       SQL
     end
 
     def cast_row(row)
       {
         batch_id: row["batch_id"].to_i,
+        position: row["position"].to_i,
         workflow_kind: row["workflow_kind"],
         source: row["source"],
         batch_status: row["batch_status"],

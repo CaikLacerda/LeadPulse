@@ -34,25 +34,41 @@ module Analytics
       return enum_for(:each_row, group_size: group_size) unless block_given?
 
       each_batch_group(@batches, group_size) do |group|
-        select_all(row_sql(group)).each do |row|
-          yield(
-            batch_id: row["batch_id"].to_i,
-            workflow_kind: row["workflow_kind"],
-            source: row["source"],
-            external_id: row["external_id"],
-            attempt_number: row["attempt_number"]&.to_i,
-            started_at: utc_time(row["started_at"]),
-            finished_at: utc_time(row["finished_at"]),
-            status: row["status"],
-            result: row["result"],
-            duration_seconds: decimal(row["duration_seconds"]),
-            privacy_refusal_detected: row["privacy_refusal_detected"] == "true"
-          )
-        end
+        select_all(row_sql(group)).each { |row| yield cast_row(row) }
       end
     end
 
+    # Página de tentativas em ordem estável (início do lote, lote, registro, tentativa), a
+    # partir do cursor da página anterior.
+    def page(after: nil, limit: 100)
+      batches = @batches
+      batches = batches.where("(supplier_imports.validation_started_at, supplier_imports.id) >= (?::timestamp, ?)", after[0], after[1]) if after
+      rows = select_all(row_sql(batches, after: after, limit: limit + 1)).map { |row| cast_row(row) }
+      last = rows[limit - 1]
+      next_cursor = ([ last[:batch_started_at].utc.iso8601(6), last[:batch_id], last[:record_position], last[:attempt_position] ] if rows.size > limit)
+      [ rows.first(limit), next_cursor ]
+    end
+
     private
+
+    def cast_row(row)
+      {
+        batch_id: row["batch_id"].to_i,
+        workflow_kind: row["workflow_kind"],
+        source: row["source"],
+        external_id: row["external_id"],
+        attempt_number: row["attempt_number"]&.to_i,
+        started_at: utc_time(row["started_at"]),
+        finished_at: utc_time(row["finished_at"]),
+        status: row["status"],
+        result: row["result"],
+        duration_seconds: decimal(row["duration_seconds"]),
+        privacy_refusal_detected: row["privacy_refusal_detected"] == "true",
+        batch_started_at: utc_time(row["batch_started_at"]),
+        record_position: row["record_position"].to_i,
+        attempt_position: row["attempt_position"].to_i
+      }
+    end
 
     # Total, por período e por hora numa única leitura do JSON (GROUPING SETS): expandir as
     # tentativas é a parte cara, então as três visões saem da mesma passada.
@@ -119,12 +135,14 @@ module Analytics
       end
     end
 
-    def row_sql(group)
+    def row_sql(group, after: nil, limit: nil)
       started_at = Sql.timestamp("t.attempt ->> 'started_at'")
+      after_sql = "AND (si.validation_started_at, si.id, r.position, t.attempt_position) > (#{quote(after[0])}::timestamp, #{after[1].to_i}, #{after[2].to_i}, #{after[3].to_i})" if after
 
       <<~SQL
         SELECT
-          si.id AS batch_id, si.workflow_kind, si.source,
+          si.id AS batch_id, si.workflow_kind, si.source, si.validation_started_at AS batch_started_at,
+          r.position AS record_position, t.attempt_position,
           r.record ->> 'external_id' AS external_id,
           #{Sql.number("t.attempt ->> 'attempt_number'")} AS attempt_number,
           #{started_at} AS started_at,
@@ -133,11 +151,13 @@ module Analytics
           t.attempt ->> 'result' AS result,
           COALESCE(#{Sql.number("t.attempt ->> 'duration_seconds'")}, #{Sql.number("t.attempt ->> 'call_duration_seconds'")}) AS duration_seconds,
           t.attempt ->> 'privacy_refusal_detected' AS privacy_refusal_detected
-        FROM (#{relation_sql(group, :id, :workflow_kind, :source, :response_payload)}) si
+        FROM (#{relation_sql(group, :id, :workflow_kind, :source, :validation_started_at, :response_payload)}) si
         CROSS JOIN LATERAL jsonb_array_elements(#{Sql.array("si.response_payload -> 'records'")}) WITH ORDINALITY AS r(record, position)
         CROSS JOIN LATERAL jsonb_array_elements(#{Sql.array("r.record -> 'call_attempts'")}) WITH ORDINALITY AS t(attempt, attempt_position)
         WHERE #{started_at} >= #{time_literal(@window.starts_at)} AND #{started_at} < #{time_literal(@window.ends_at)}
-        ORDER BY 6, si.id, r.position, t.attempt_position
+          #{after_sql}
+        ORDER BY si.validation_started_at, si.id, r.position, t.attempt_position
+        #{"LIMIT #{limit.to_i}" if limit}
       SQL
     end
 

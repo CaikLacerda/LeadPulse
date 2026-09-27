@@ -76,6 +76,18 @@ Rails.application.routes.draw do
   get "analytics/lotes", to: "analytics#batches", as: :batches_analytics
   get "analytics/exportar", to: "analytics#export", as: :export_analytics, constraints: { format: /xlsx|csv/ }
 
+  # API de Analytics (somente leitura, token de BI da empresa).
+  namespace :api, defaults: { format: :json } do
+    namespace :v1 do
+      namespace :analytics do
+        get :summary, to: "summary#show"
+        get :records, to: "records#index"
+        get :calls, to: "calls#index"
+        get :batches, to: "batches#index"
+      end
+    end
+  end
+
   get "auditoria", to: "validation_audits#index", as: :validation_audits
   post "auditoria/revisoes", to: "validation_audit_reviews#create", as: :validation_audit_reviews
 

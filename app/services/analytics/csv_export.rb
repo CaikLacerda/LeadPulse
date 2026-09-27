@@ -10,18 +10,8 @@ module Analytics
     BOM = "﻿".freeze
     DATASETS = %w[registros chamadas].freeze
 
-    RECORD_COLUMNS = %w[
-      batch_code workflow_kind source batch_status validation_started_at record_external_id
-      company_name cnpj segment_name final_status call_result call_status business_status
-      qualification_outcome phone_belongs_to_company supplies_segment commercial_interest
-      attempts_count privacy_refusal_detected last_attempt_at answered_duration_seconds
-    ].freeze
-
-    ATTEMPT_COLUMNS = %w[
-      batch_code workflow_kind source record_external_id attempt_number started_at finished_at
-      status result duration_seconds privacy_refusal_detected
-    ].freeze
-
+    RECORD_COLUMNS = RowPresenter::RECORD_FIELDS
+    ATTEMPT_COLUMNS = RowPresenter::ATTEMPT_FIELDS
     TEXT_COLUMNS = %w[record_external_id company_name cnpj segment_name].freeze
 
     attr_reader :dataset
@@ -48,7 +38,10 @@ module Analytics
       return enum_for(:each) unless block_given?
 
       yield BOM + CSV.generate_line(columns)
-      rows.each { |row| yield CSV.generate_line(columns.map { |column| format_value(column, row) }) }
+      rows.each do |row|
+        presented = dataset == "registros" ? RowPresenter.record(row) : RowPresenter.attempt(row)
+        yield CSV.generate_line(columns.map { |column| format_value(column, presented) })
+      end
     end
 
     private
@@ -61,20 +54,10 @@ module Analytics
       end
     end
 
+    # Mesmos campos da API de BI; no CSV, texto é protegido contra fórmulas de planilha.
     def format_value(column, row)
-      value = column == "batch_code" ? SupplierImport.display_code_for(row[:batch_id]) : row[column_key(column)]
-
-      case value
-      when nil then nil
-      when true, false then value.to_s
-      when Time, ActiveSupport::TimeWithZone then value.utc.iso8601
-      when Float then column.end_with?("_seconds") ? value.round : value
-      else TEXT_COLUMNS.include?(column) ? Spreadsheets::CellSanitizer.sanitize(value.to_s) : value
-      end
-    end
-
-    def column_key(column)
-      { "record_external_id" => :external_id }.fetch(column, column.to_sym)
+      value = row.fetch(column)
+      TEXT_COLUMNS.include?(column) && value.is_a?(String) ? Spreadsheets::CellSanitizer.sanitize(value) : value
     end
   end
 end

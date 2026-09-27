@@ -57,6 +57,19 @@ module Analytics
       SQL
     end
 
+    # Página de lotes em ordem de criação (created_at, id), a partir do cursor anterior.
+    def page_after(after: nil, limit: 100)
+      after_sql = "WHERE (created_at, id) > (#{quote(after[0])}::timestamp, #{after[1].to_i})" if after
+      rows = select_all(<<~SQL).map { |row| cast(row) }
+        #{per_batch_cte}
+        SELECT * FROM per_batch #{after_sql}
+        ORDER BY created_at, id
+        LIMIT #{limit.to_i + 1}
+      SQL
+      next_cursor = ([ rows[limit - 1][:created_at].utc.iso8601(6), rows[limit - 1][:id] ] if rows.size > limit)
+      [ rows.first(limit), next_cursor ]
+    end
+
     def top(limit: 5)
       select_all(<<~SQL).map { |row| cast(row) }
         #{per_batch_cte}

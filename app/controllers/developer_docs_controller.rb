@@ -215,6 +215,100 @@ class DeveloperDocsController < ApplicationController
             JSON
           }
         ]
+      },
+      {
+        id: "analytics-api",
+        title: "API de Analytics (BI)",
+        description: "Somente leitura, para Power BI, Tableau, Excel Power Query ou qualquer cliente HTTP. Use um token de BI criado em Integrações → Tokens de BI: ele identifica a empresa e não serve para a API de validação. Datas em UTC (ISO 8601), durações em segundos, códigos estáveis. Filtros: from e to (YYYY-MM-DD, até 366 dias; padrão: últimos 30), compare, workflow_kind, source, batch_id e, em batches, status. Paginação por cursor: page[size] até 500 e page[after] com o valor de meta.next_cursor (ou siga links.next). Limite de 120 requisições por minuto por token.",
+        items: [
+          {
+            method: "GET",
+            path: "/api/v1/analytics/summary",
+            title: "Indicadores do período",
+            auth: "Authorization: Bearer lpbi_...",
+            description: "Indicadores com valor, amostra (sample) e período anterior. A variação (change) só vem quando é conclusiva; comparison_status explica quando não vem.",
+            request: <<~TEXT.strip,
+              GET /api/v1/analytics/summary?from=2026-08-01&to=2026-08-31&compare=previous_period
+            TEXT
+            response: <<~JSON.strip
+              {
+                "data": {
+                  "metrics": {
+                    "confirmation_rate": {
+                      "value": 0.625, "unit": "ratio", "sample": 8, "low_sample": true,
+                      "previous": { "value": 0.5, "sample": 6 },
+                      "change": null, "change_unit": null, "comparison_status": "low_sample"
+                    }
+                  }
+                },
+                "meta": { "period": { "from": "2026-08-01", "to": "2026-08-31", "time_zone": "America/Sao_Paulo" }, "min_sample": 20 }
+              }
+            JSON
+          },
+          {
+            method: "GET",
+            path: "/api/v1/analytics/records",
+            title: "Registros",
+            auth: "Authorization: Bearer lpbi_...",
+            description: "Um registro por item, dos lotes com validação iniciada no período. Mesmas colunas do CSV de registros.",
+            request: <<~TEXT.strip,
+              GET /api/v1/analytics/records?from=2026-08-01&to=2026-08-31&page[size]=500
+            TEXT
+            response: <<~JSON.strip
+              {
+                "data": [
+                  { "batch_id": 68, "batch_code": "LD-068", "validation_started_at": "2026-08-15T16:51:59Z",
+                    "record_external_id": "1", "call_result": "confirmed", "qualification_outcome": "qualified_supplier",
+                    "attempts_count": 1, "answered_duration_seconds": 108 }
+                ],
+                "meta": { "page_size": 500, "next_cursor": "WyIyMDI2LTA4..." },
+                "links": { "next": "https://.../api/v1/analytics/records?page%5Bafter%5D=WyIyMDI2LTA4..." }
+              }
+            JSON
+          },
+          {
+            method: "GET",
+            path: "/api/v1/analytics/calls",
+            title: "Tentativas de chamada",
+            auth: "Authorization: Bearer lpbi_...",
+            description: "Uma tentativa por item, pelo horário da própria tentativa. Mesmas colunas do CSV de tentativas.",
+            request: <<~TEXT.strip,
+              GET /api/v1/analytics/calls?from=2026-08-01&to=2026-08-31
+            TEXT
+            response: <<~JSON.strip
+              {
+                "data": [
+                  { "batch_code": "LD-068", "record_external_id": "1", "attempt_number": 1,
+                    "started_at": "2026-08-15T16:51:59Z", "status": "answered", "result": "confirmed", "duration_seconds": 108 }
+                ],
+                "meta": { "page_size": 100, "next_cursor": null }
+              }
+            JSON
+          },
+          {
+            method: "GET",
+            path: "/api/v1/analytics/batches",
+            title: "Lotes",
+            auth: "Authorization: Bearer lpbi_...",
+            description: "Um lote por item, dos lotes criados no período, com registros, confirmações e tempos de operação.",
+            request: <<~TEXT.strip,
+              GET /api/v1/analytics/batches?from=2026-08-01&to=2026-08-31&status=concluido
+
+              Power Query (M):
+              Json.Document(Web.Contents("https://leadpulse.exemplo/api/v1/analytics/batches",
+                [Headers = [Authorization = "Bearer " & Token]]))
+            TEXT
+            response: <<~JSON.strip
+              {
+                "data": [
+                  { "batch_id": 68, "batch_code": "LD-068", "status": "concluido", "records": 2,
+                    "confirmed": 1, "confirmation_rate": 0.5, "processing_seconds": 134 }
+                ],
+                "meta": { "page_size": 100, "next_cursor": null }
+              }
+            JSON
+          }
+        ]
       }
     ]
   end

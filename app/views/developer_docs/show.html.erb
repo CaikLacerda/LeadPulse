@@ -63,7 +63,7 @@
   </section>
 
   <% @public_endpoint_groups.each do |group| %>
-    <section class="mb-8">
+    <section class="mb-8" <%= tag.attributes(id: group[:id]) %>>
       <h2 class="workspace-section-title"><%= group[:title] %></h2>
       <p class="workspace-section-description"><%= group[:description] %></p>
 

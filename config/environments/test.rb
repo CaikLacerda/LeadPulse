@@ -50,4 +50,7 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Limite baixo para testar o 429 da API de Analytics sem centenas de requisições.
+  config.x.analytics_api_rate_limit = 5
 end
