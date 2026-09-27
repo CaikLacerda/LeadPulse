@@ -1,6 +1,6 @@
 class PrivacyRequestsController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_lgpd_manager!
+  require_permission :can_manage_lgpd?, message: "Seu perfil não possui permissão para gerenciar LGPD."
   before_action :set_privacy_request, only: :update
 
   def index
@@ -65,12 +65,6 @@ class PrivacyRequestsController < ApplicationController
   end
 
   private
-
-  def require_lgpd_manager!
-    return if current_membership.can_manage_lgpd?
-
-    redirect_to root_path, alert: "Seu perfil não possui permissão para gerenciar LGPD."
-  end
 
   def set_privacy_request
     @privacy_request = current_account.privacy_requests.find(params[:id])

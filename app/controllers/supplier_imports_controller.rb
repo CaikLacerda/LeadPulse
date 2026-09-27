@@ -6,7 +6,8 @@ class SupplierImportsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :set_import, only: [ :show, :start_validation, :sync_status, :anonymize_evidence, :export_result, :privacy_report, :destroy ]
-  before_action :require_evidence_access!, only: :show
+  require_permission :can_view_evidence?, only: :show, fallback: :supplier_imports_path,
+    message: "Seu perfil não possui permissão para visualizar evidências."
 
   def index
     load_imports
@@ -275,11 +276,5 @@ class SupplierImportsController < ApplicationController
 
   def set_import
     @import = current_account.supplier_imports.find(params[:id])
-  end
-
-  def require_evidence_access!
-    return if current_membership.can_view_evidence?
-
-    redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para visualizar evidências."
   end
 end

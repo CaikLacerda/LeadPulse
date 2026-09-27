@@ -1,6 +1,6 @@
 class ThirdPartyOperatorsController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_lgpd_manager!
+  require_permission :can_manage_lgpd?, message: "Seu perfil não possui permissão para gerenciar LGPD."
   before_action :set_operator, only: [ :update, :destroy ]
 
   def index
@@ -58,12 +58,6 @@ class ThirdPartyOperatorsController < ApplicationController
   end
 
   private
-
-  def require_lgpd_manager!
-    return if current_membership.can_manage_lgpd?
-
-    redirect_to root_path, alert: "Seu perfil não possui permissão para gerenciar LGPD."
-  end
 
   def set_operator
     @operator = current_account.third_party_operators.find(params[:id])

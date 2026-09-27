@@ -1,6 +1,6 @@
 class PlatformSettingsController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_settings_manager!
+  require_permission :can_manage_settings?, message: "Seu perfil não possui permissão para alterar configurações."
 
   def company; end
   def twilio; end
@@ -184,12 +184,6 @@ class PlatformSettingsController < ApplicationController
   end
 
   private
-
-  def require_settings_manager!
-    return if current_membership.can_manage_settings?
-
-    redirect_to root_path, alert: "Seu perfil não possui permissão para alterar configurações."
-  end
 
   def company_params
     params.require(:account).permit(

@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   include CurrentAccount
+  include MembershipAuthorization
 
   APP_LOCALE = :"pt-BR"
 

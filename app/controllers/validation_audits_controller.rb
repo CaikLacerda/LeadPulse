@@ -4,7 +4,7 @@ class ValidationAuditsController < ApplicationController
   PER_PAGE = 5
 
   before_action :authenticate_user!
-  before_action :require_evidence_access!
+  require_permission :can_view_evidence?, message: "Seu perfil não possui permissão para visualizar auditorias."
 
   def index
     if current_membership.can_view_evidence?
@@ -27,12 +27,6 @@ class ValidationAuditsController < ApplicationController
   end
 
   private
-
-  def require_evidence_access!
-    return if current_membership.can_view_evidence?
-
-    redirect_to root_path, alert: "Seu perfil não possui permissão para visualizar auditorias."
-  end
 
   def filter_entries(entries)
     return entries if params[:q].blank?
