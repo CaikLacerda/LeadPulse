@@ -101,7 +101,7 @@
         <div>
           <%= f.label :supplier_import_id, 'Lote relacionado', class: 'settings-label' %>
           <%= f.collection_select :supplier_import_id,
-              current_user.supplier_imports.order(created_at: :desc),
+              current_account.supplier_imports.order(created_at: :desc),
               :id,
               :display_code,
               { include_blank: 'Nenhum lote específico' },

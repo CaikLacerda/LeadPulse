@@ -2,10 +2,10 @@ class ValidationAuditReviewsController < ApplicationController
   before_action :authenticate_user!
 
   def create
-    return redirect_to validation_audits_path, alert: "Seu perfil não possui permissão para revisar auditorias." unless current_user.can_view_evidence?
+    return redirect_to validation_audits_path, alert: "Seu perfil não possui permissão para revisar auditorias." unless current_membership.can_view_evidence?
 
-    supplier_import = current_user.supplier_imports.find(review_params[:supplier_import_id])
-    review = current_user.audit_reviews.find_or_initialize_by(
+    supplier_import = current_account.supplier_imports.find(review_params[:supplier_import_id])
+    review = current_account.audit_reviews.find_or_initialize_by(
       supplier_import: supplier_import,
       record_external_id: review_params[:record_external_id].presence,
       provider_call_id: review_params[:provider_call_id].presence,
@@ -13,6 +13,7 @@ class ValidationAuditReviewsController < ApplicationController
     )
 
     review.assign_attributes(
+      user: current_user,
       original_result: review_params[:original_result],
       reviewed_result: review_params[:reviewed_result],
       review_note: review_params[:review_note],
@@ -21,6 +22,7 @@ class ValidationAuditReviewsController < ApplicationController
 
     if review.save
       PrivacyAudit::Logger.log!(
+        account: current_account,
         user: current_user,
         action: "validation_audit_reviewed",
         supplier_import: supplier_import,

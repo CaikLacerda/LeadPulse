@@ -4,7 +4,7 @@ require "tempfile"
 class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @password = "Password123!"
-    @user = User.create!(
+    @user = create_member!(
       name: "LeadPulse Validação",
       email: "dados@example.com",
       password: @password,
@@ -30,7 +30,8 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "renders import detail for signed users" do
-    supplier_import = @user.supplier_imports.create!(
+    supplier_import = account_of(@user).supplier_imports.create!(
+      user: @user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -99,7 +100,7 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
 
     upload = Rack::Test::UploadedFile.new(tempfile.path, "text/csv", original_filename: "import.csv")
 
-    assert_difference -> { @user.supplier_imports.count }, 1 do
+    assert_difference -> { account_of(@user).supplier_imports.count }, 1 do
       post create_import_supplier_imports_url, params: {
         file: upload,
         workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
@@ -108,13 +109,14 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to supplier_imports_url
-    assert_equal @user.lgpd_legal_basis, @user.supplier_imports.last.request_payload.dig("privacy_notice", "legal_basis")
+    assert_equal account_of(@user).lgpd_legal_basis, account_of(@user).supplier_imports.last.request_payload.dig("privacy_notice", "legal_basis")
   ensure
     tempfile.close!
   end
 
   test "sync status requires a started remote batch" do
-    supplier_import = @user.supplier_imports.create!(
+    supplier_import = account_of(@user).supplier_imports.create!(
+      user: @user,
       status: SupplierImport::LOCAL_STATUS_PENDING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -131,7 +133,8 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "sync status reports missing api token" do
-    supplier_import = @user.supplier_imports.create!(
+    supplier_import = account_of(@user).supplier_imports.create!(
+      user: @user,
       status: SupplierImport::LOCAL_STATUS_PROCESSING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -151,8 +154,9 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "sync status updates the local import from the validation api" do
-    @user.update!(validation_api_token: "lp_test_token")
-    supplier_import = @user.supplier_imports.create!(
+    account_of(@user).update!(validation_api_token: "lp_test_token")
+    supplier_import = account_of(@user).supplier_imports.create!(
+      user: @user,
       status: SupplierImport::LOCAL_STATUS_PROCESSING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -220,8 +224,9 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "json sync reports terminal state for automatic page reconciliation" do
-    @user.update!(validation_api_token: "lp_test_token")
-    supplier_import = @user.supplier_imports.create!(
+    account_of(@user).update!(validation_api_token: "lp_test_token")
+    supplier_import = account_of(@user).supplier_imports.create!(
+      user: @user,
       status: SupplierImport::LOCAL_STATUS_PROCESSING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -260,8 +265,9 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "viewer cannot delete a lot" do
-    @user.update!(role: "viewer")
-    supplier_import = @user.supplier_imports.create!(
+    membership_of(@user).update!(role: "viewer")
+    supplier_import = account_of(@user).supplier_imports.create!(
+      user: @user,
       status: SupplierImport::LOCAL_STATUS_PENDING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD
@@ -276,8 +282,9 @@ class SupplierImportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "viewer cannot open evidence or synchronize a lot by direct url" do
-    @user.update!(role: "viewer")
-    supplier_import = @user.supplier_imports.create!(
+    membership_of(@user).update!(role: "viewer")
+    supplier_import = account_of(@user).supplier_imports.create!(
+      user: @user,
       status: SupplierImport::LOCAL_STATUS_PROCESSING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,

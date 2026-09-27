@@ -4,7 +4,8 @@ module SupplierImports
   class CreateFromUploadService
     Result = Struct.new(:success?, :import, :error_message, keyword_init: true)
 
-    def initialize(user:, file:, separator: ",", workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL, segment_name: nil, callback_phone: nil, callback_contact_name: nil, privacy_notice: {})
+    def initialize(account:, user:, file:, separator: ",", workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL, segment_name: nil, callback_phone: nil, callback_contact_name: nil, privacy_notice: {})
+      @account = account
       @user = user
       @file = file
       @separator = separator
@@ -44,7 +45,8 @@ module SupplierImports
       end
 
       batch_id = generate_batch_id
-      supplier_import = @user.supplier_imports.new(
+      supplier_import = @account.supplier_imports.new(
+        user: @user,
         file_name: @file.original_filename,
         xlsx_data: file_bytes,
         status: SupplierImport::LOCAL_STATUS_PENDING,
@@ -109,7 +111,7 @@ module SupplierImports
     def privacy_notice_payload
       @privacy_notice_payload ||= SupplierImports::PrivacyNoticePayload.build(
         workflow_kind: @workflow_kind,
-        user: @user,
+        account: @account,
         overrides: @privacy_notice
       )
     end
@@ -132,9 +134,9 @@ module SupplierImports
     end
 
     def privacy_blocked_records(records)
-      return [] unless @user.lgpd_stop_automatic_calls_on_refusal?
+      return [] unless @account.lgpd_stop_automatic_calls_on_refusal?
 
-      blocked_numbers = SupplierImports::PrivacyRefusalRegistry.blocked_phone_numbers_for(@user)
+      blocked_numbers = SupplierImports::PrivacyRefusalRegistry.blocked_phone_numbers_for(@account)
       records.select do |record|
         SupplierImports::PrivacyRefusalRegistry.blocked?(record[:phone] || record["phone"], blocked_numbers)
       end

@@ -1,17 +1,19 @@
 module SupplierImports
   class SyncRemoteStatusService
-    def initialize(user:, supplier_import:)
-      @user = user
+    def initialize(account:, supplier_import:)
+      @account = account
       @supplier_import = supplier_import
     end
 
     def call
-      raise ValidationApi::Error, "Gere o token da API antes de consultar o status do lote." if @user.validation_api_token_value.blank?
+      raise ActiveRecord::RecordNotFound, "Lote não encontrado para esta conta." unless @supplier_import.account_id == @account.id
+
+      raise ValidationApi::Error, "Gere o token da API antes de consultar o status do lote." if @account.validation_api_token_value.blank?
       raise ValidationApi::Error, "Esse lote ainda não foi iniciado na API." if @supplier_import.remote_batch_id.blank?
 
       requested_batch_id = @supplier_import.remote_batch_id
       response = show_remote_batch_service.call(
-        api_token: @user.validation_api_token_value,
+        api_token: @account.validation_api_token_value,
         batch_id: requested_batch_id
       )
       apply_response!(response, requested_batch_id: requested_batch_id)

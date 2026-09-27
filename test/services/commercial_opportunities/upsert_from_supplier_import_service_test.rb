@@ -3,7 +3,8 @@ require "test_helper"
 class CommercialOpportunities::UpsertFromSupplierImportServiceTest < ActiveSupport::TestCase
   test "creates one pending opportunity for an accepted commercial callback" do
     user = users(:one)
-    supplier_import = user.supplier_imports.create!(
+    supplier_import = account_of(user).supplier_imports.create!(
+      user: user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -55,7 +56,8 @@ class CommercialOpportunities::UpsertFromSupplierImportServiceTest < ActiveSuppo
 
   test "uses the latest human decision before the automatic commercial interest" do
     user = users(:one)
-    supplier_import = user.supplier_imports.create!(
+    supplier_import = account_of(user).supplier_imports.create!(
+      user: user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD,

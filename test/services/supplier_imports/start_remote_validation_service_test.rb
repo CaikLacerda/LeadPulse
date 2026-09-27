@@ -3,7 +3,7 @@ require "test_helper"
 module SupplierImports
   class StartRemoteValidationServiceTest < ActiveSupport::TestCase
     test "restarts an errored import" do
-      user = User.create!(
+      user = create_member!(
         name: "LeadPulse Operacao",
         email: "restart-import@example.com",
         password: "Password123!",
@@ -12,6 +12,7 @@ module SupplierImports
       )
 
       supplier_import = SupplierImport.create!(
+        account: account_of(user),
         user: user,
         status: SupplierImport::LOCAL_STATUS_ERROR,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
@@ -54,7 +55,7 @@ module SupplierImports
         end
       end.new(fake_response)
 
-      service = StartRemoteValidationService.new(user: user, supplier_import: supplier_import)
+      service = StartRemoteValidationService.new(account: account_of(user), supplier_import: supplier_import)
       service.define_singleton_method(:create_remote_batch_service) { fake_remote_service }
 
       service.call
@@ -70,7 +71,7 @@ module SupplierImports
     end
 
     test "repairs Brazilian prefix previously added to configured international Twilio number" do
-      user = User.create!(
+      user = create_member!(
         name: "LeadPulse Operacao",
         email: "international-callback@example.com",
         password: "Password123!",
@@ -82,6 +83,7 @@ module SupplierImports
       )
 
       supplier_import = SupplierImport.create!(
+        account: account_of(user),
         user: user,
         status: SupplierImport::LOCAL_STATUS_PENDING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
@@ -116,7 +118,7 @@ module SupplierImports
         }
       end
 
-      service = StartRemoteValidationService.new(user: user, supplier_import: supplier_import)
+      service = StartRemoteValidationService.new(account: account_of(user), supplier_import: supplier_import)
       service.define_singleton_method(:create_remote_batch_service) { fake_remote_service }
 
       service.call
@@ -125,7 +127,7 @@ module SupplierImports
     end
 
     test "keeps an immediately inconclusive supplier batch completed and exportable" do
-      user = User.create!(
+      user = create_member!(
         name: "LeadPulse Operacao",
         email: "start-inconclusive@example.com",
         password: "Password123!",
@@ -133,6 +135,7 @@ module SupplierImports
         validation_api_token: "lp_test_token"
       )
       supplier_import = SupplierImport.create!(
+        account: account_of(user),
         user: user,
         status: SupplierImport::LOCAL_STATUS_PENDING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
@@ -169,7 +172,7 @@ module SupplierImports
           ]
         }
       )
-      service = StartRemoteValidationService.new(user: user, supplier_import: supplier_import)
+      service = StartRemoteValidationService.new(account: account_of(user), supplier_import: supplier_import)
       service.define_singleton_method(:create_remote_batch_service) { fake_remote_service }
 
       service.call

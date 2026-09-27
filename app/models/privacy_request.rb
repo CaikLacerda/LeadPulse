@@ -1,4 +1,6 @@
 class PrivacyRequest < ApplicationRecord
+  include MatchesSupplierImportAccount
+
   REQUEST_TYPES = {
     access: "Acesso aos dados",
     correction: "Correção de dados",
@@ -15,8 +17,8 @@ class PrivacyRequest < ApplicationRecord
     rejected: "Recusada"
   }.freeze
 
-  # Conta (tenant). Opcional só até a fase 5, quando o código passa a preenchê-la.
-  belongs_to :account, optional: true
+  belongs_to :account
+  # Quem fez a ação; o isolamento entre empresas é por account.
   belongs_to :user
   belongs_to :supplier_import, optional: true
 
@@ -28,7 +30,6 @@ class PrivacyRequest < ApplicationRecord
   validates :subject_contact, length: { maximum: 320 }
   validates :phone, length: { maximum: 32 }, allow_blank: true
   validates :description, :resolution, length: { maximum: 4_000 }, allow_blank: true
-  validate :supplier_import_belongs_to_user
 
   before_validation :set_defaults
 
@@ -45,12 +46,5 @@ class PrivacyRequest < ApplicationRecord
   def set_defaults
     self.requested_at ||= Time.current
     self.status = "open" if status.blank?
-  end
-
-  def supplier_import_belongs_to_user
-    return if supplier_import.blank? || user.blank?
-    return if supplier_import.user_id == user_id
-
-    errors.add(:supplier_import, "deve pertencer à mesma conta da solicitação")
   end
 end

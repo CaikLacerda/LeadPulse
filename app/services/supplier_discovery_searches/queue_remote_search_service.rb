@@ -4,16 +4,18 @@ module SupplierDiscoverySearches
   class QueueRemoteSearchService
     Result = Struct.new(:success?, :search, :error_message, keyword_init: true)
 
-    def initialize(user:, params:)
+    def initialize(account:, user:, params:)
+      @account = account
       @user = user
       @params = params.to_h.deep_symbolize_keys
     end
 
     def call
-      raise ValidationApi::Error, "Gere o token da API antes de iniciar uma busca." if @user.validation_api_token_value.blank?
+      raise ValidationApi::Error, "Gere o token da API antes de iniciar uma busca." if @account.validation_api_token_value.blank?
 
       payload = build_payload
-      search = @user.supplier_discovery_searches.create!(
+      search = @account.supplier_discovery_searches.create!(
+        user: @user,
         search_id: "local_#{SecureRandom.uuid}",
         status: SupplierDiscoverySearch::LOCAL_STATUS_PENDING,
         segment_name: payload.fetch(:segment_name),

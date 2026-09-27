@@ -24,14 +24,14 @@ module SupplierImports
       keyword_init: true
     )
 
-    def initialize(user:)
-      @user = user
+    def initialize(account:)
+      @account = account
     end
 
     def call
       preload_reviews
 
-      @user.supplier_imports.order(created_at: :desc).flat_map do |supplier_import|
+      @account.supplier_imports.order(created_at: :desc).flat_map do |supplier_import|
         entries_for_import(supplier_import)
       end.sort_by { |entry| entry.occurred_at || Time.zone.at(0) }.reverse
     end
@@ -110,7 +110,7 @@ module SupplierImports
     end
 
     def preload_reviews
-      @reviews_by_key = @user.audit_reviews.includes(:supplier_import).index_by do |review|
+      @reviews_by_key = @account.audit_reviews.includes(:supplier_import).index_by do |review|
         review_key(review.supplier_import_id, review.record_external_id, review.provider_call_id, review.attempt_number)
       end
     end

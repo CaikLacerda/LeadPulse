@@ -21,16 +21,16 @@ module SupplierDiscoverySearches
       remote_service: ValidationApi::SupplierDiscovery::CreateSearchService.new
     )
       @search = search
-      @user = search.user
+      @account = search.account
       @remote_service = remote_service
     end
 
     def call
-      raise ValidationApi::Error, "Gere o token da API antes de iniciar uma busca." if @user.validation_api_token_value.blank?
+      raise ValidationApi::Error, "Gere o token da API antes de iniciar uma busca." if @account.validation_api_token_value.blank?
 
       payload = @search.request_payload.deep_symbolize_keys
       raw_response = @remote_service.call(
-        api_token: @user.validation_api_token_value,
+        api_token: @account.validation_api_token_value,
         payload: payload
       )
       response = filtered_response(raw_response)

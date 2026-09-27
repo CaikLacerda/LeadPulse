@@ -1,13 +1,14 @@
 class PrivacyAuditEvent < ApplicationRecord
-  # Conta (tenant). Opcional só até a fase 5, quando o código passa a preenchê-la.
-  belongs_to :account, optional: true
+  include MatchesSupplierImportAccount
+
+  belongs_to :account
+  # Quem fez a ação; o isolamento entre empresas é por account.
   belongs_to :user
   belongs_to :supplier_import, optional: true
 
   validates :action, :occurred_at, presence: true
   validates :action, :resource_id, length: { maximum: 120 }, allow_blank: true
   validates :resource_type, length: { maximum: 255 }, allow_blank: true
-  validate :supplier_import_belongs_to_user
 
   before_validation :set_defaults
 
@@ -20,12 +21,5 @@ class PrivacyAuditEvent < ApplicationRecord
   def set_defaults
     self.occurred_at ||= Time.current
     self.metadata ||= {}
-  end
-
-  def supplier_import_belongs_to_user
-    return if supplier_import.blank? || user.blank?
-    return if supplier_import.user_id == user_id
-
-    errors.add(:supplier_import, "deve pertencer à mesma conta do evento")
   end
 end

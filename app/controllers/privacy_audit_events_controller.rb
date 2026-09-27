@@ -5,7 +5,7 @@ class PrivacyAuditEventsController < ApplicationController
   before_action :require_lgpd_manager!
 
   def index
-    scope = current_user.privacy_audit_events.includes(:supplier_import).order(occurred_at: :desc)
+    scope = current_account.privacy_audit_events.includes(:supplier_import).order(occurred_at: :desc)
     pagination = paginate_collection(scope, page_param: params[:page], per_page: 25)
     @events = pagination[:records]
     @events_page = pagination[:current_page]
@@ -16,7 +16,7 @@ class PrivacyAuditEventsController < ApplicationController
   private
 
   def require_lgpd_manager!
-    return if current_user.can_manage_lgpd?
+    return if current_membership.can_manage_lgpd?
 
     redirect_to root_path, alert: "Seu perfil não possui permissão para consultar auditoria LGPD."
   end

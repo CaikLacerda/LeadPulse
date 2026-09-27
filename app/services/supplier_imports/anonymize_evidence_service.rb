@@ -1,13 +1,13 @@
 module SupplierImports
   class AnonymizeEvidenceService
-    def initialize(user:, supplier_import:)
-      @user = user
+    def initialize(account:, supplier_import:)
+      @account = account
       @supplier_import = supplier_import
     end
 
     def call
       ensure_ownership!
-      response = anonymize_remote_evidence if @user.validation_api_token_value.present? && @supplier_import.remote_batch_id.present?
+      response = anonymize_remote_evidence if @account.validation_api_token_value.present? && @supplier_import.remote_batch_id.present?
       anonymized_payload = anonymize_payload(response.presence || @supplier_import.response_payload)
 
       @supplier_import.update!(
@@ -22,14 +22,14 @@ module SupplierImports
     private
 
     def ensure_ownership!
-      return if @supplier_import.user_id == @user.id
+      return if @supplier_import.account_id == @account.id
 
       raise ActiveRecord::RecordNotFound, "Lote não encontrado para esta conta."
     end
 
     def anonymize_remote_evidence
       ValidationApi::Validations::AnonymizeEvidenceService.new.call(
-        api_token: @user.validation_api_token_value,
+        api_token: @account.validation_api_token_value,
         batch_id: @supplier_import.remote_batch_id
       )
     end

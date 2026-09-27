@@ -4,13 +4,14 @@ module SupplierDiscoverySearches
   class CreateSupplierImportService
     Result = Struct.new(:success?, :import, :error_message, keyword_init: true)
 
-    def initialize(user:, search:)
+    def initialize(account:, user:, search:)
+      @account = account
       @user = user
       @search = search
     end
 
     def call
-      return ownership_error unless @search.user_id == @user.id
+      return ownership_error unless @search.account_id == @account.id
 
       records = filter_privacy_blocked_records(@search.valid_supplier_candidates)
       if records.empty? && privacy_blocked_records_count.positive?
@@ -22,7 +23,8 @@ module SupplierDiscoverySearches
       return Result.new(success?: false, error_message: "Essa busca não possui fornecedores com nome e telefone para validar.") if records.empty?
 
       batch_id = generate_batch_id
-      import = @user.supplier_imports.new(
+      import = @account.supplier_imports.new(
+        user: @user,
         file_name: @search.download_filename,
         xlsx_data: @search.results_xlsx_data,
         status: SupplierImport::LOCAL_STATUS_PENDING,
@@ -71,15 +73,15 @@ module SupplierDiscoverySearches
     def privacy_notice_payload
       @privacy_notice_payload ||= SupplierImports::PrivacyNoticePayload.build(
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
-        user: @user
+        account: @account
       )
     end
 
     def filter_privacy_blocked_records(records)
       @privacy_blocked_records_count = 0
-      return records unless @user.lgpd_stop_automatic_calls_on_refusal?
+      return records unless @account.lgpd_stop_automatic_calls_on_refusal?
 
-      blocked_numbers = SupplierImports::PrivacyRefusalRegistry.blocked_phone_numbers_for(@user)
+      blocked_numbers = SupplierImports::PrivacyRefusalRegistry.blocked_phone_numbers_for(@account)
       records.reject do |record|
         blocked = SupplierImports::PrivacyRefusalRegistry.blocked?(record[:phone] || record["phone"], blocked_numbers)
         @privacy_blocked_records_count += 1 if blocked

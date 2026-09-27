@@ -9,19 +9,20 @@ class PlatformSettingsController < ApplicationController
   def lgpd; end
 
   def update_lgpd
-    unless current_user.can_manage_lgpd?
+    unless current_membership.can_manage_lgpd?
       return redirect_to lgpd_platform_settings_path, alert: "Seu perfil não possui permissão para alterar LGPD."
     end
 
-    current_user.update!(lgpd_params)
+    current_account.update!(lgpd_params)
     PrivacyAudit::Logger.log!(
+      account: current_account,
       user: current_user,
       action: "lgpd_settings_updated",
       metadata: {
-        legal_basis: current_user.lgpd_legal_basis,
-        purpose: current_user.lgpd_purpose,
-        retention_days: current_user.lgpd_evidence_retention_days,
-        recording_allowed: current_user.lgpd_recording_allowed
+        legal_basis: current_account.lgpd_legal_basis,
+        purpose: current_account.lgpd_purpose,
+        retention_days: current_account.lgpd_evidence_retention_days,
+        recording_allowed: current_account.lgpd_recording_allowed
       }
     )
     redirect_to lgpd_platform_settings_path, notice: "Política LGPD atualizada."
@@ -41,13 +42,13 @@ class PlatformSettingsController < ApplicationController
       return render :company, status: :unprocessable_entity
     end
 
-    current_user.assign_attributes(company_params)
-    return render_invalid_settings(:company) unless current_user.valid?
+    current_account.assign_attributes(company_params)
+    return render_invalid_settings(:company) unless current_account.valid?
 
     response =
-      if current_user.validation_account_id.present?
+      if current_account.validation_account_id.present?
         ValidationApi::PlatformAccounts::UpdateCompanyProfileService.new.call(
-          account_id: current_user.validation_account_id,
+          account_id: current_account.validation_account_id,
           company_name: company_params[:validation_company_name],
           spoken_company_name: company_params[:validation_spoken_company_name],
           owner_name: company_params[:validation_owner_name],
@@ -56,7 +57,7 @@ class PlatformSettingsController < ApplicationController
         )
       else
         ValidationApi::PlatformAccounts::CreateService.new.call(
-          external_account_id: current_user.validation_external_account_reference,
+          external_account_id: current_account.validation_external_account_reference,
           company_name: company_params[:validation_company_name],
           spoken_company_name: company_params[:validation_spoken_company_name],
           owner_name: company_params[:validation_owner_name],
@@ -66,7 +67,7 @@ class PlatformSettingsController < ApplicationController
       end
 
     persist_account_snapshot!(response)
-    current_user.update!(company_params)
+    current_account.update!(company_params)
     redirect_to company_platform_settings_path, notice: "Dados da empresa sincronizados com a API."
   rescue ValidationApi::Error, ActiveRecord::RecordInvalid => e
     flash.now[:alert] = e.message
@@ -90,17 +91,17 @@ class PlatformSettingsController < ApplicationController
       return render :twilio, status: :unprocessable_entity
     end
 
-    current_user.assign_attributes(
+    current_account.assign_attributes(
       validation_twilio_account_sid: twilio_params[:validation_twilio_account_sid],
       validation_twilio_webhook_base_url: twilio_params[:validation_twilio_webhook_base_url],
       validation_twilio_phone_numbers: phone_numbers
     )
-    return render_invalid_settings(:twilio) unless current_user.valid?
+    return render_invalid_settings(:twilio) unless current_account.valid?
 
     ensure_remote_account!
 
     response = ValidationApi::PlatformAccounts::UpdateTwilioProviderService.new.call(
-      account_id: current_user.validation_account_id,
+      account_id: current_account.validation_account_id,
       account_sid: twilio_params[:validation_twilio_account_sid],
       auth_token: twilio_params[:validation_twilio_auth_token],
       webhook_base_url: twilio_params[:validation_twilio_webhook_base_url],
@@ -108,7 +109,7 @@ class PlatformSettingsController < ApplicationController
     )
 
     persist_account_snapshot!(response)
-    current_user.update!(
+    current_account.update!(
       validation_twilio_account_sid: twilio_params[:validation_twilio_account_sid],
       validation_twilio_webhook_base_url: twilio_params[:validation_twilio_webhook_base_url],
       validation_twilio_phone_numbers: phone_numbers
@@ -132,13 +133,13 @@ class PlatformSettingsController < ApplicationController
     end
 
     local_openai_params = openai_params.except(:validation_openai_api_key)
-    current_user.assign_attributes(local_openai_params)
-    return render_invalid_settings(:openai) unless current_user.valid?
+    current_account.assign_attributes(local_openai_params)
+    return render_invalid_settings(:openai) unless current_account.valid?
 
     ensure_remote_account!
 
     response = ValidationApi::PlatformAccounts::UpdateOpenaiProviderService.new.call(
-      account_id: current_user.validation_account_id,
+      account_id: current_account.validation_account_id,
       api_key: openai_params[:validation_openai_api_key],
       realtime_model: openai_params[:validation_openai_realtime_model],
       realtime_voice: openai_params[:validation_openai_realtime_voice],
@@ -147,7 +148,7 @@ class PlatformSettingsController < ApplicationController
     )
 
     persist_account_snapshot!(response)
-    current_user.update!(local_openai_params)
+    current_account.update!(local_openai_params)
     redirect_to openai_platform_settings_path, notice: "Configuração da OpenAI atualizada."
   rescue ValidationApi::Error, ActiveRecord::RecordInvalid => e
     flash.now[:alert] = e.message
@@ -158,12 +159,12 @@ class PlatformSettingsController < ApplicationController
     ensure_remote_account!
 
     response = ValidationApi::PlatformAccounts::CreateApiTokenService.new.call(
-      account_id: current_user.validation_account_id,
+      account_id: current_account.validation_account_id,
       name: params.fetch(:token_name, "leadpulse_web")
     )
 
-    had_previous_token = current_user.validation_api_token_configured?
-    current_user.persist_validation_api_token!(
+    had_previous_token = current_account.validation_api_token_configured?
+    current_account.persist_validation_api_token!(
       raw_token: response["raw_token"],
       token_prefix: response["token_prefix"],
       created_at: response["created_at"]
@@ -185,13 +186,13 @@ class PlatformSettingsController < ApplicationController
   private
 
   def require_settings_manager!
-    return if current_user.can_manage_settings?
+    return if current_membership.can_manage_settings?
 
     redirect_to root_path, alert: "Seu perfil não possui permissão para alterar configurações."
   end
 
   def company_params
-    params.require(:user).permit(
+    params.require(:account).permit(
       :validation_company_name,
       :validation_spoken_company_name,
       :validation_owner_name,
@@ -201,7 +202,7 @@ class PlatformSettingsController < ApplicationController
   end
 
   def twilio_params
-    params.require(:user).permit(
+    params.require(:account).permit(
       :validation_twilio_account_sid,
       :validation_twilio_auth_token,
       :validation_twilio_webhook_base_url,
@@ -210,7 +211,7 @@ class PlatformSettingsController < ApplicationController
   end
 
   def openai_params
-    params.require(:user).permit(
+    params.require(:account).permit(
       :validation_openai_api_key,
       :validation_openai_realtime_model,
       :validation_openai_realtime_voice,
@@ -220,7 +221,7 @@ class PlatformSettingsController < ApplicationController
   end
 
   def lgpd_params
-    params.require(:user).permit(
+    params.require(:account).permit(
       :lgpd_legal_basis,
       :lgpd_purpose,
       :lgpd_notice_script,
@@ -245,11 +246,11 @@ class PlatformSettingsController < ApplicationController
   end
 
   def ensure_remote_account!
-    ValidationApi::PlatformAccountProvisioner.new(current_user).ensure_account!
+    ValidationApi::PlatformAccountProvisioner.new(current_account).ensure_account!
   end
 
   def persist_account_snapshot!(response)
-    ValidationApi::PlatformAccountProvisioner.new(current_user).persist_account_snapshot!(response)
+    ValidationApi::PlatformAccountProvisioner.new(current_account).persist_account_snapshot!(response)
   end
 
   def missing_required_fields(params_hash, label_map)
@@ -259,7 +260,7 @@ class PlatformSettingsController < ApplicationController
   end
 
   def render_invalid_settings(template)
-    flash.now[:alert] = current_user.errors.full_messages.to_sentence
+    flash.now[:alert] = current_account.errors.full_messages.to_sentence
     render template, status: :unprocessable_entity
   end
 end

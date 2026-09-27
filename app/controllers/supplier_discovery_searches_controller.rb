@@ -13,13 +13,14 @@ class SupplierDiscoverySearchesController < ApplicationController
   end
 
   def create
-    return redirect_to supplier_discovery_searches_path, alert: "Seu perfil não possui permissão para buscar fornecedores." unless current_user.can_import_data?
+    return redirect_to supplier_discovery_searches_path, alert: "Seu perfil não possui permissão para buscar fornecedores." unless current_membership.can_import_data?
 
     load_searches
     @search_form_values = default_search_form_values.merge(search_params.to_h.symbolize_keys)
     @open_new_search_modal = true
 
     result = SupplierDiscoverySearches::QueueRemoteSearchService.new(
+      account: current_account,
       user: current_user,
       params: search_params
     ).call
@@ -27,14 +28,14 @@ class SupplierDiscoverySearchesController < ApplicationController
     if result.success?
       redirect_to supplier_discovery_searches_path, notice: I18n.t("supplier_discovery_searches.messages.queued_success")
     else
-      Rails.logger.warn("Supplier discovery failed | user_id=#{current_user.id} error=#{result.error_message}")
+      Rails.logger.warn("Supplier discovery failed | account_id=#{current_account.id} user_id=#{current_user.id} error=#{result.error_message}")
       flash.now[:alert] = result.error_message
       render :index, status: :unprocessable_entity
     end
   end
 
   def progress
-    active_searches = current_user.supplier_discovery_searches.active.order(:id)
+    active_searches = current_account.supplier_discovery_searches.active.order(:id)
     render json: {
       active: active_searches.exists?,
       fingerprint: progress_fingerprint(active_searches)
@@ -42,7 +43,7 @@ class SupplierDiscoverySearchesController < ApplicationController
   end
 
   def retry_search
-    return redirect_to supplier_discovery_searches_path, alert: "Seu perfil não possui permissão para buscar fornecedores." unless current_user.can_import_data?
+    return redirect_to supplier_discovery_searches_path, alert: "Seu perfil não possui permissão para buscar fornecedores." unless current_membership.can_import_data?
     return redirect_to supplier_discovery_searches_path, alert: I18n.t("supplier_discovery_searches.messages.retry_unavailable") unless @search.errored?
 
     @search.update!(
@@ -57,13 +58,14 @@ class SupplierDiscoverySearchesController < ApplicationController
   end
 
   def download_results
-    return redirect_to supplier_discovery_searches_path, alert: "Seu perfil não possui permissão para baixar resultados." unless current_user.can_export_data?
+    return redirect_to supplier_discovery_searches_path, alert: "Seu perfil não possui permissão para baixar resultados." unless current_membership.can_export_data?
 
     unless @search.download_ready?
       return redirect_to supplier_discovery_searches_path, alert: I18n.t("supplier_discovery_searches.messages.download_unavailable")
     end
 
     PrivacyAudit::Logger.log!(
+      account: current_account,
       user: current_user,
       action: "supplier_discovery_downloaded",
       resource: @search,
@@ -79,15 +81,17 @@ class SupplierDiscoverySearchesController < ApplicationController
   end
 
   def create_segment_import
-    return redirect_to supplier_discovery_searches_path, alert: "Seu perfil não possui permissão para importar fornecedores." unless current_user.can_import_data?
+    return redirect_to supplier_discovery_searches_path, alert: "Seu perfil não possui permissão para importar fornecedores." unless current_membership.can_import_data?
 
     result = SupplierDiscoverySearches::CreateSupplierImportService.new(
+      account: current_account,
       user: current_user,
       search: @search
     ).call
 
     if result.success?
       PrivacyAudit::Logger.log!(
+        account: current_account,
         user: current_user,
         action: "supplier_discovery_import_created",
         supplier_import: result.import,
@@ -103,11 +107,11 @@ class SupplierDiscoverySearchesController < ApplicationController
   private
 
   def set_search
-    @search = current_user.supplier_discovery_searches.find(params[:id])
+    @search = current_account.supplier_discovery_searches.find(params[:id])
   end
 
   def load_searches
-    searches = current_user.supplier_discovery_searches.recent_first
+    searches = current_account.supplier_discovery_searches.recent_first
 
     if params[:q].present?
       search = "%#{params[:q]}%"
@@ -125,7 +129,7 @@ class SupplierDiscoverySearchesController < ApplicationController
     @searches_page = pagination[:current_page]
     @searches = pagination[:records]
     @active_search_fingerprint = progress_fingerprint(
-      current_user.supplier_discovery_searches.active.order(:id)
+      current_account.supplier_discovery_searches.active.order(:id)
     )
   end
 

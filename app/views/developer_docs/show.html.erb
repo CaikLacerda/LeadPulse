@@ -10,7 +10,7 @@
     title: 'API para desenvolvedores',
     description: 'Integre ERP, CRM ou backoffice à API de validação usando o Bearer token gerado nas configurações da conta.'
   ) do %>
-    <% if current_user.can_manage_settings? %>
+    <% if current_membership.can_manage_settings? %>
       <%= workspace_link_button api_token_platform_settings_path, variant: :secondary do %>
         <%= workspace_icon(:key) %><span>Gerenciar token</span>
       <% end %>
@@ -24,10 +24,10 @@
           <span class="workspace-mono"><%= @api_base_url %></span>
         <% end %>
         <%= workspace_definition_row(label: 'Conta') do %>
-          <span class="workspace-mono"><%= current_user.validation_account_id.presence || 'não provisionada' %></span>
+          <span class="workspace-mono"><%= current_account.validation_account_id.presence || 'não provisionada' %></span>
         <% end %>
         <%= workspace_definition_row(label: 'Token') do %>
-          <%= current_user.validation_api_token_configured? ? status_badge('Ativo', tone: :success) : status_badge('Pendente', tone: :warning) %>
+          <%= current_account.validation_api_token_configured? ? status_badge('Ativo', tone: :success) : status_badge('Pendente', tone: :warning) %>
         <% end %>
         <% @auth_modes.each do |mode| %>
           <%= workspace_definition_row(label: 'Autenticação') do %>

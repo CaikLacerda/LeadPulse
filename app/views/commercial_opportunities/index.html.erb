@@ -1,4 +1,4 @@
-<% remote_status_urls = if current_user.can_start_validation?
+<% remote_status_urls = if current_membership.can_start_validation?
      @opportunities.select { |item| item.processing? && item.syncable? }
        .map { |item| sync_status_commercial_opportunity_path(item, format: :json) }
    else
@@ -82,7 +82,7 @@
                 <td class="workspace-table__primary"><%= opportunity.supplier_name %></td>
                 <td class="is-nowrap tabular-nums"><%= opportunity.callback_phone %></td>
                 <td class="max-w-xs"><%= opportunity.callback_schedule_label %></td>
-                <td><%= workspace_code_tag(opportunity.source_import_code, current_user.can_view_evidence? ? supplier_import_path(opportunity.supplier_import) : nil) %></td>
+                <td><%= workspace_code_tag(opportunity.source_import_code, current_membership.can_view_evidence? ? supplier_import_path(opportunity.supplier_import) : nil) %></td>
                 <td><%= workspace_status_tag(opportunity.status) %></td>
                 <td class="is-actions">
                   <details data-controller="action-menu" data-action-menu-floating-value="true" class="relative inline-block text-left">
@@ -93,17 +93,17 @@
                       <%= link_to commercial_opportunity_path(opportunity), class: 'workspace-menu-item' do %>
                         <i class="fa-solid fa-arrow-right" aria-hidden="true"></i><span>Ver detalhes</span>
                       <% end %>
-                      <% if opportunity.startable? && current_user.can_start_validation? %>
+                      <% if opportunity.startable? && current_membership.can_start_validation? %>
                         <%= button_to start_commercial_opportunity_path(opportunity), method: :post, class: 'workspace-menu-item' do %>
                           <i class="fa-solid fa-play" aria-hidden="true"></i><span>Iniciar coleta</span>
                         <% end %>
                       <% end %>
-                      <% if opportunity.syncable? && current_user.can_start_validation? %>
+                      <% if opportunity.syncable? && current_membership.can_start_validation? %>
                         <%= button_to sync_status_commercial_opportunity_path(opportunity), method: :post, class: 'workspace-menu-item' do %>
                           <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i><span>Consultar status</span>
                         <% end %>
                       <% end %>
-                      <% if opportunity.ready_to_export? && current_user.can_export_data? %>
+                      <% if opportunity.ready_to_export? && current_membership.can_export_data? %>
                         <%= link_to export_commercial_opportunity_path(opportunity), data: { turbo: false }, class: 'workspace-menu-item' do %>
                           <i class="fa-solid fa-file-excel" aria-hidden="true"></i><span>Exportar XLSX</span>
                         <% end %>

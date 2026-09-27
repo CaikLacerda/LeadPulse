@@ -18,8 +18,9 @@ class SupplierImportsController < ApplicationController
   end
 
   def show
-    if current_user.can_view_evidence?
+    if current_membership.can_view_evidence?
       PrivacyAudit::Logger.log!(
+        account: current_account,
         user: current_user,
         action: "supplier_import_evidence_viewed",
         supplier_import: @import,
@@ -30,7 +31,7 @@ class SupplierImportsController < ApplicationController
   end
 
   def create_import
-    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para importar bases." unless current_user.can_import_data?
+    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para importar bases." unless current_membership.can_import_data?
 
     if params[:file].blank?
       return redirect_to(
@@ -40,6 +41,7 @@ class SupplierImportsController < ApplicationController
     end
 
     result = SupplierImports::CreateFromUploadService.new(
+      account: current_account,
       user: current_user,
       file: params[:file],
       separator: params[:separator],
@@ -51,6 +53,7 @@ class SupplierImportsController < ApplicationController
 
     if result.success?
       PrivacyAudit::Logger.log!(
+        account: current_account,
         user: current_user,
         action: "supplier_import_created",
         supplier_import: result.import,
@@ -68,7 +71,7 @@ class SupplierImportsController < ApplicationController
   end
 
   def preview_import
-    return render json: { success: false, error_message: "Seu perfil não possui permissão para importar bases." }, status: :forbidden unless current_user.can_import_data?
+    return render json: { success: false, error_message: "Seu perfil não possui permissão para importar bases." }, status: :forbidden unless current_membership.can_import_data?
 
     if params[:file].blank?
       return render json: {
@@ -91,14 +94,15 @@ class SupplierImportsController < ApplicationController
   end
 
   def start_validation
-    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para iniciar validações." unless current_user.can_start_validation?
+    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para iniciar validações." unless current_membership.can_start_validation?
 
     SupplierImports::StartRemoteValidationService.new(
-      user: current_user,
+      account: current_account,
       supplier_import: @import
     ).call
 
     PrivacyAudit::Logger.log!(
+      account: current_account,
       user: current_user,
       action: "supplier_import_validation_started",
       supplier_import: @import,
@@ -111,7 +115,7 @@ class SupplierImportsController < ApplicationController
   end
 
   def sync_status
-    unless current_user.can_start_validation?
+    unless current_membership.can_start_validation?
       return render(json: { error: "forbidden" }, status: :forbidden) if request.format.json?
       return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para consultar o status da validação."
     end
@@ -123,7 +127,7 @@ class SupplierImportsController < ApplicationController
 
     previous_status = @import.status
     SupplierImports::SyncRemoteStatusService.new(
-      user: current_user,
+      account: current_account,
       supplier_import: @import
     ).call
 
@@ -144,14 +148,15 @@ class SupplierImportsController < ApplicationController
   end
 
   def anonymize_evidence
-    return redirect_to supplier_import_path(@import), alert: "Seu perfil não possui permissão para anonimizar evidências." unless current_user.can_anonymize_evidence?
+    return redirect_to supplier_import_path(@import), alert: "Seu perfil não possui permissão para anonimizar evidências." unless current_membership.can_anonymize_evidence?
 
     SupplierImports::AnonymizeEvidenceService.new(
-      user: current_user,
+      account: current_account,
       supplier_import: @import
     ).call
 
     PrivacyAudit::Logger.log!(
+      account: current_account,
       user: current_user,
       action: "supplier_import_evidence_anonymized",
       supplier_import: @import,
@@ -164,7 +169,7 @@ class SupplierImportsController < ApplicationController
   end
 
   def export_result
-    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para exportar resultados." unless current_user.can_export_data?
+    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para exportar resultados." unless current_membership.can_export_data?
 
     unless @import.ready_to_export?
       return redirect_to supplier_imports_path, alert: I18n.t("supplier_imports.messages.not_ready_to_export")
@@ -178,6 +183,7 @@ class SupplierImportsController < ApplicationController
       end
 
     PrivacyAudit::Logger.log!(
+      account: current_account,
       user: current_user,
       action: "supplier_import_result_exported",
       supplier_import: @import,
@@ -190,10 +196,11 @@ class SupplierImportsController < ApplicationController
   end
 
   def privacy_report
-    return redirect_to supplier_import_path(@import), alert: "Seu perfil não possui permissão para exportar relatórios LGPD." unless current_user.can_export_data?
+    return redirect_to supplier_import_path(@import), alert: "Seu perfil não possui permissão para exportar relatórios LGPD." unless current_membership.can_export_data?
 
     export = SupplierImports::PrivacyReportService.new(supplier_import: @import).call
     PrivacyAudit::Logger.log!(
+      account: current_account,
       user: current_user,
       action: "supplier_import_privacy_report_exported",
       supplier_import: @import,
@@ -204,7 +211,7 @@ class SupplierImportsController < ApplicationController
   end
 
   def destroy
-    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para excluir lotes." unless current_user.can_import_data?
+    return redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para excluir lotes." unless current_membership.can_import_data?
 
     unless @import.destroyable?
       return redirect_to supplier_imports_path, alert: I18n.t("supplier_imports.messages.destroy_not_allowed")
@@ -217,7 +224,7 @@ class SupplierImportsController < ApplicationController
   private
 
   def load_imports
-    imports = current_user.supplier_imports.order(created_at: :desc)
+    imports = current_account.supplier_imports.order(created_at: :desc)
 
     if params[:status].present? && params[:status] != "todos"
       imports = imports.where(status: params[:status])
@@ -267,11 +274,11 @@ class SupplierImportsController < ApplicationController
   end
 
   def set_import
-    @import = current_user.supplier_imports.find(params[:id])
+    @import = current_account.supplier_imports.find(params[:id])
   end
 
   def require_evidence_access!
-    return if current_user.can_view_evidence?
+    return if current_membership.can_view_evidence?
 
     redirect_to supplier_imports_path, alert: "Seu perfil não possui permissão para visualizar evidências."
   end

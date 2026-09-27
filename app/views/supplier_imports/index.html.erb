@@ -1,6 +1,6 @@
 <%# app/views/supplier_imports/index.html.erb %>
 
-<% remote_status_urls = if current_user.can_start_validation?
+<% remote_status_urls = if current_membership.can_start_validation?
      @imports.select { |item| item.processing? && item.syncable? }
        .map { |item| sync_status_supplier_import_path(item, format: :json) }
    else
@@ -32,7 +32,7 @@
       description: t('.description'),
       actions_data: { tutorial_id: 'imports-create' }
     ) do %>
-      <% if current_user.can_import_data? %>
+      <% if current_membership.can_import_data? %>
         <%= workspace_button_tag type: :button, variant: :primary, data: { action: 'import-modal#open' } do %>
           <%= workspace_icon(:plus) %><span><%= t('.new_batch') %></span>
         <% end %>
@@ -43,6 +43,6 @@
     <%= render 'table' %>
   <% end %>
 
-  <%= render 'import_modal' if current_user.can_import_data? %>
+  <%= render 'import_modal' if current_membership.can_import_data? %>
   <%= render 'shared/workspace_tutorial', steps: workspace_tutorial_steps(:supplier_imports) %>
 </div>

@@ -22,7 +22,7 @@ class CommercialOpportunities::SyncRemoteStatusServiceTest < ActiveSupport::Test
       "records" => []
     )
     service = CommercialOpportunities::SyncRemoteStatusService.new(
-      user: user,
+      account: account_of(user),
       commercial_opportunity: opportunity
     )
     service.define_singleton_method(:show_remote_batch_service) { fake_service }
@@ -51,7 +51,7 @@ class CommercialOpportunities::SyncRemoteStatusServiceTest < ActiveSupport::Test
     fake_service = Object.new
     fake_service.define_singleton_method(:call) { |**| responses.shift }
     service = CommercialOpportunities::SyncRemoteStatusService.new(
-      user: user,
+      account: account_of(user),
       commercial_opportunity: opportunity
     )
     service.define_singleton_method(:show_remote_batch_service) { fake_service }
@@ -77,7 +77,7 @@ class CommercialOpportunities::SyncRemoteStatusServiceTest < ActiveSupport::Test
       "records" => []
     )
     service = CommercialOpportunities::SyncRemoteStatusService.new(
-      user: user,
+      account: account_of(user),
       commercial_opportunity: opportunity
     )
     service.define_singleton_method(:show_remote_batch_service) { fake_service }
@@ -107,7 +107,7 @@ class CommercialOpportunities::SyncRemoteStatusServiceTest < ActiveSupport::Test
       { "batch_status" => "completed", "result_ready" => true, "records" => [] }
     end
     service = CommercialOpportunities::SyncRemoteStatusService.new(
-      user: user,
+      account: account_of(user),
       commercial_opportunity: opportunity
     )
     service.define_singleton_method(:show_remote_batch_service) { fake_service }
@@ -125,13 +125,15 @@ class CommercialOpportunities::SyncRemoteStatusServiceTest < ActiveSupport::Test
 
   def build_opportunity(**attributes)
     user = users(:one)
-    user.update!(validation_api_token: "lp_test_token")
-    supplier_import = user.supplier_imports.create!(
+    account_of(user).update!(validation_api_token: "lp_test_token")
+    supplier_import = account_of(user).supplier_imports.create!(
+      user: user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD
     )
-    opportunity = user.commercial_opportunities.create!({
+    opportunity = account_of(user).commercial_opportunities.create!({
+      user: user,
       supplier_import: supplier_import,
       source_external_id: "supplier-#{SecureRandom.hex(4)}",
       supplier_name: "Fornecedor Exemplo",

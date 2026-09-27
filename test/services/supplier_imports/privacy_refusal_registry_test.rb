@@ -3,13 +3,14 @@ require "test_helper"
 module SupplierImports
   class PrivacyRefusalRegistryTest < ActiveSupport::TestCase
     test "blocks the normalized phone returned by the validation API" do
-      user = User.create!(
+      user = create_member!(
         name: "Operação LGPD",
         email: "privacy-registry@example.com",
         password: "Password123!",
         password_confirmation: "Password123!"
       )
       SupplierImport.create!(
+        account: account_of(user),
         user: user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
@@ -31,7 +32,7 @@ module SupplierImports
         }
       )
 
-      blocked_numbers = PrivacyRefusalRegistry.blocked_phone_numbers_for(user)
+      blocked_numbers = PrivacyRefusalRegistry.blocked_phone_numbers_for(account_of(user))
 
       assert PrivacyRefusalRegistry.blocked?("19 99999-0000", blocked_numbers)
       assert_includes blocked_numbers, "+5519999990000"

@@ -24,7 +24,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
 
   test "viewer dashboard does not offer administrative actions" do
     password = "Password123!"
-    user = User.create!(
+    user = create_member!(
       name: "Leitor",
       email: "viewer-home@example.com",
       password: password,
@@ -79,7 +79,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
 
   def sign_in_as_new_user(email)
     password = "Password123!"
-    user = User.create!(name: "Tema", email: email, password: password, password_confirmation: password)
+    user = create_member!(name: "Tema", email: email, password: password, password_confirmation: password)
     post user_session_url, params: { user: { email: user.email, password: password } }
   end
 end

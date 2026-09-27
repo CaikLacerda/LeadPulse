@@ -3,7 +3,7 @@ require "test_helper"
 module SupplierImports
   class SyncRemoteStatusServiceTest < ActiveSupport::TestCase
     test "marks supplier batch with negative business outcome as completed" do
-      user = User.create!(
+      user = create_member!(
         name: "LeadPulse Operacao",
         email: "sync-supplier-negative@example.com",
         password: "Password123!",
@@ -12,6 +12,7 @@ module SupplierImports
       )
 
       supplier_import = SupplierImport.create!(
+        account: account_of(user),
         user: user,
         status: SupplierImport::LOCAL_STATUS_PROCESSING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
@@ -55,7 +56,7 @@ module SupplierImports
         end
       end.new(fake_response)
 
-      service = SyncRemoteStatusService.new(user: user, supplier_import: supplier_import)
+      service = SyncRemoteStatusService.new(account: account_of(user), supplier_import: supplier_import)
       service.define_singleton_method(:show_remote_batch_service) { fake_remote_service }
 
       service.call
@@ -68,7 +69,7 @@ module SupplierImports
     end
 
     test "marks inconclusive supplier batch as completed and exportable" do
-      user = User.create!(
+      user = create_member!(
         name: "LeadPulse Operacao",
         email: "sync-supplier-inconclusive@example.com",
         password: "Password123!",
@@ -77,6 +78,7 @@ module SupplierImports
       )
 
       supplier_import = SupplierImport.create!(
+        account: account_of(user),
         user: user,
         status: SupplierImport::LOCAL_STATUS_PROCESSING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
@@ -121,7 +123,7 @@ module SupplierImports
         end
       end.new(fake_response)
 
-      service = SyncRemoteStatusService.new(user: user, supplier_import: supplier_import)
+      service = SyncRemoteStatusService.new(account: account_of(user), supplier_import: supplier_import)
       service.define_singleton_method(:show_remote_batch_service) { fake_remote_service }
 
       service.call
@@ -134,7 +136,7 @@ module SupplierImports
     end
 
     test "does not regress a completed batch with an older processing snapshot" do
-      user = User.create!(
+      user = create_member!(
         name: "LeadPulse Operacao",
         email: "sync-supplier-monotonic@example.com",
         password: "Password123!",
@@ -148,6 +150,7 @@ module SupplierImports
         "records" => [ { "external_id" => "1", "final_status" => "qualified_supplier" } ]
       }
       supplier_import = SupplierImport.create!(
+        account: account_of(user),
         user: user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
@@ -170,7 +173,7 @@ module SupplierImports
         "result_ready" => false,
         "records" => []
       })
-      service = SyncRemoteStatusService.new(user: user, supplier_import: supplier_import)
+      service = SyncRemoteStatusService.new(account: account_of(user), supplier_import: supplier_import)
       service.define_singleton_method(:show_remote_batch_service) { fake_remote_service }
 
       service.call
@@ -184,7 +187,7 @@ module SupplierImports
     end
 
     test "keeps a cancelled batch terminal when an older queued snapshot arrives" do
-      user = User.create!(
+      user = create_member!(
         name: "LeadPulse Operacao",
         email: "sync-supplier-cancelled@example.com",
         password: "Password123!",
@@ -192,6 +195,7 @@ module SupplierImports
         validation_api_token: "lp_test_token"
       )
       supplier_import = SupplierImport.create!(
+        account: account_of(user),
         user: user,
         status: SupplierImport::LOCAL_STATUS_PROCESSING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
@@ -208,7 +212,7 @@ module SupplierImports
       ]
       fake_remote_service = Object.new
       fake_remote_service.define_singleton_method(:call) { |**| responses.shift }
-      service = SyncRemoteStatusService.new(user: user, supplier_import: supplier_import)
+      service = SyncRemoteStatusService.new(account: account_of(user), supplier_import: supplier_import)
       service.define_singleton_method(:show_remote_batch_service) { fake_remote_service }
 
       service.call
@@ -223,8 +227,9 @@ module SupplierImports
 
     test "recovers a local transport error when the remote batch is processing" do
       user = users(:one)
-      user.update!(validation_api_token: "lp_test_token")
-      supplier_import = user.supplier_imports.create!(
+      account_of(user).update!(validation_api_token: "lp_test_token")
+      supplier_import = account_of(user).supplier_imports.create!(
+        user: user,
         status: SupplierImport::LOCAL_STATUS_ERROR,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -241,7 +246,7 @@ module SupplierImports
         "result_ready" => false,
         "records" => []
       })
-      service = SyncRemoteStatusService.new(user: user, supplier_import: supplier_import)
+      service = SyncRemoteStatusService.new(account: account_of(user), supplier_import: supplier_import)
       service.define_singleton_method(:show_remote_batch_service) { fake_service }
 
       service.call
@@ -255,8 +260,9 @@ module SupplierImports
 
     test "ignores a response from a batch replaced while the request was in flight" do
       user = users(:one)
-      user.update!(validation_api_token: "lp_test_token")
-      supplier_import = user.supplier_imports.create!(
+      account_of(user).update!(validation_api_token: "lp_test_token")
+      supplier_import = account_of(user).supplier_imports.create!(
+        user: user,
         status: SupplierImport::LOCAL_STATUS_PROCESSING,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -273,7 +279,7 @@ module SupplierImports
         )
         { "batch_status" => "completed", "result_ready" => true, "records" => [] }
       end
-      service = SyncRemoteStatusService.new(user: user, supplier_import: supplier_import)
+      service = SyncRemoteStatusService.new(account: account_of(user), supplier_import: supplier_import)
       service.define_singleton_method(:show_remote_batch_service) { fake_service }
 
       service.call

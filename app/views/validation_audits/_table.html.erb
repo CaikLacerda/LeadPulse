@@ -37,7 +37,7 @@
               </td>
               <td><%= workspace_datetime_cell(entry.occurred_at) %></td>
               <td class="is-actions">
-                <% if current_user.can_view_evidence? %>
+                <% if current_membership.can_view_evidence? %>
                   <button type="button"
                           class="workspace-row-toggle"
                           aria-expanded="false"
@@ -54,7 +54,7 @@
               </td>
             </tr>
 
-            <% if current_user.can_view_evidence? %>
+            <% if current_membership.can_view_evidence? %>
               <tr class="workspace-table__detail-row" id="<%= detail_id %>" hidden>
                 <td colspan="5">
                   <div class="workspace-detail-grid">

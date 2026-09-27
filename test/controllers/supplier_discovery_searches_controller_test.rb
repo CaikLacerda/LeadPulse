@@ -5,7 +5,7 @@ class SupplierDiscoverySearchesControllerTest < ActionDispatch::IntegrationTest
 
   setup do
     @password = "Password123!"
-    @user = User.create!(
+    @user = create_member!(
       name: "LeadPulse Test",
       email: "busca@example.com",
       password: @password,
@@ -32,7 +32,8 @@ class SupplierDiscoverySearchesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "renders supplier locations through the OpenStreetMap controller" do
-    @user.supplier_discovery_searches.create!(
+    account_of(@user).supplier_discovery_searches.create!(
+      user: @user,
       search_id: "search-map-001",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,
       segment_name: "Ferro",
@@ -72,7 +73,7 @@ class SupplierDiscoverySearchesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "viewer sees saved searches without create or import controls" do
-    @user.update!(role: "viewer")
+    membership_of(@user).update!(role: "viewer")
     post user_session_url, params: { user: { email: @user.email, password: @password } }
 
     get supplier_discovery_searches_url
@@ -83,7 +84,7 @@ class SupplierDiscoverySearchesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "queues supplier discovery without waiting for the remote API" do
-    @user.update!(validation_api_token: "lp_test_token")
+    account_of(@user).update!(validation_api_token: "lp_test_token")
     post user_session_url, params: { user: { email: @user.email, password: @password } }
 
     assert_enqueued_with(job: SupplierDiscoverySearchJob) do
@@ -97,14 +98,15 @@ class SupplierDiscoverySearchesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to supplier_discovery_searches_path
-    search = @user.supplier_discovery_searches.order(:id).last
+    search = account_of(@user).supplier_discovery_searches.order(:id).last
     assert_equal SupplierDiscoverySearch::LOCAL_STATUS_PENDING, search.status
     assert_equal "Adubo", search.segment_name
     assert_equal 5, search.request_payload["max_suppliers"]
   end
 
   test "reports active progress and allows retrying a failed search" do
-    search = @user.supplier_discovery_searches.create!(
+    search = account_of(@user).supplier_discovery_searches.create!(
+      user: @user,
       search_id: "local-test-retry",
       status: SupplierDiscoverySearch::LOCAL_STATUS_ERROR,
       segment_name: "Ferro",

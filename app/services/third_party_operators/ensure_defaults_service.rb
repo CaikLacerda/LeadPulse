@@ -35,14 +35,15 @@ module ThirdPartyOperators
       }
     ].freeze
 
-    def initialize(user:)
+    def initialize(account:, user:)
+      @account = account
       @user = user
     end
 
     def call
       DEFAULTS.each do |attrs|
-        @user.third_party_operators.find_or_create_by!(name: attrs[:name]) do |operator|
-          operator.assign_attributes(attrs.merge(active: true))
+        @account.third_party_operators.find_or_create_by!(name: attrs[:name]) do |operator|
+          operator.assign_attributes(attrs.merge(active: true, user: @user))
         end
       end
     end

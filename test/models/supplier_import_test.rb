@@ -2,13 +2,14 @@ require "test_helper"
 
 class SupplierImportTest < ActiveSupport::TestCase
   test "destroy removes local suppliers and import versions" do
-    user = User.create!(
+    user = create_member!(
       name: "LeadPulse Operação",
       email: "destroy-import@example.com",
       password: "Password123!",
       password_confirmation: "Password123!"
     )
-    supplier_import = user.supplier_imports.create!(
+    supplier_import = account_of(user).supplier_imports.create!(
+      user: user,
       status: SupplierImport::LOCAL_STATUS_PENDING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD
@@ -26,7 +27,8 @@ class SupplierImportTest < ActiveSupport::TestCase
   end
 
   test "rejects inconsistent row counters" do
-    supplier_import = users(:one).supplier_imports.new(
+    supplier_import = accounts(:one).supplier_imports.new(
+      user: users(:one),
       status: SupplierImport::LOCAL_STATUS_PENDING,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,

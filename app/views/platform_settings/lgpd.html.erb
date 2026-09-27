@@ -5,7 +5,7 @@
       <p class="settings-section__description max-w-3xl">Ao importar uma base, o LeadPulse aplica automaticamente a base legal, a finalidade, o aviso falado, a retenção das evidências e o tratamento de recusas definidos abaixo.</p>
     </div>
 
-    <%= form_with model: current_user, url: lgpd_platform_settings_path, method: :patch, local: true, data: { tutorial_id: 'lgpd-form' } do |f| %>
+    <%= form_with model: current_account, url: lgpd_platform_settings_path, method: :patch, local: true, data: { tutorial_id: 'lgpd-form' } do |f| %>
       <%= settings_feedback_messages %>
 
       <%= settings_section(title: 'Responsabilidade', description: 'Quem responde administrativamente pela política e pelas solicitações de titulares.') do %>
@@ -39,7 +39,7 @@
 
           <div class="settings-field">
             <%= render 'field_label', form: f, field: :lgpd_notice_script, text: 'Aviso falado pela IA', help: 'Dito no início de cada chamada automatizada.', required: false %>
-            <%= f.text_area :lgpd_notice_script, value: current_user.lgpd_notice_script_value, rows: 3, class: 'settings-input' %>
+            <%= f.text_area :lgpd_notice_script, value: current_account.lgpd_notice_script_value, rows: 3, class: 'settings-input' %>
           </div>
         </div>
       <% end %>

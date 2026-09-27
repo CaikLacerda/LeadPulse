@@ -8,15 +8,15 @@
       <dl class="workspace-kv mb-5">
         <div>
           <dt>Conta na API</dt>
-          <dd class="workspace-mono"><%= current_user.validation_account_id.presence || '—' %></dd>
+          <dd class="workspace-mono"><%= current_account.validation_account_id.presence || '—' %></dd>
         </div>
         <div>
           <dt>Prefixo</dt>
-          <dd class="workspace-mono"><%= current_user.validation_api_token_prefix.presence || '—' %></dd>
+          <dd class="workspace-mono"><%= current_account.validation_api_token_prefix.presence || '—' %></dd>
         </div>
         <div>
           <dt>Criado em</dt>
-          <dd class="tabular-nums"><%= workspace_datetime(current_user.validation_api_token_created_at) %></dd>
+          <dd class="tabular-nums"><%= workspace_datetime(current_account.validation_api_token_created_at) %></dd>
         </div>
       </dl>
 
@@ -42,7 +42,7 @@
         </div>
       <% else %>
         <label for="current_api_token" class="settings-label">Token</label>
-        <input type="text" id="current_api_token" value="<%= current_user.masked_validation_api_token %>" readonly class="settings-input settings-input--mono" aria-describedby="current_api_token_hint">
+        <input type="text" id="current_api_token" value="<%= current_account.masked_validation_api_token %>" readonly class="settings-input settings-input--mono" aria-describedby="current_api_token_hint">
         <p class="settings-field-hint" id="current_api_token_hint">O valor completo não fica visível no painel. Gere um novo token se precisar copiá-lo.</p>
       <% end %>
     <% end %>

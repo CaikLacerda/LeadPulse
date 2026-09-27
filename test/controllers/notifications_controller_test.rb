@@ -3,7 +3,7 @@ require "test_helper"
 class NotificationsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @password = "Password123!"
-    @user = User.create!(
+    @user = create_member!(
       name: "Usuário de notificações",
       email: "notifications@example.com",
       password: @password,

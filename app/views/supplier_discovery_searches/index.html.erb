@@ -1,6 +1,6 @@
 <% form_values = (@search_form_values || {}).symbolize_keys %>
 <% modal_alert = flash.now[:alert].presence || flash[:alert].presence %>
-<% validation_pending_alert = current_user.validation_ready? ? nil : t('.modal.validation_pending') %>
+<% validation_pending_alert = current_account.validation_ready? ? nil : t('.modal.validation_pending') %>
 
 <div data-controller="search-modal supplier-search-progress"
      data-supplier-search-progress-active-value="<%= @active_search_fingerprint.present? %>"
@@ -12,7 +12,7 @@
       description: t('.description'),
       actions_data: { tutorial_id: 'search-create' }
     ) do %>
-      <% if current_user.can_import_data? %>
+      <% if current_membership.can_import_data? %>
         <%= workspace_button_tag type: :button, variant: :primary, data: { action: 'search-modal#open' } do %>
           <%= workspace_icon(:plus) %><span><%= t('.new_search') %></span>
         <% end %>
@@ -32,7 +32,7 @@
     </div>
   <% end %>
 
-  <% if current_user.can_import_data? %>
+  <% if current_membership.can_import_data? %>
     <div id="supplier-search-modal"
          data-search-modal-target="modal"
          class="fixed inset-0 z-[70] <%= @open_new_search_modal ? '' : 'hidden' %>">

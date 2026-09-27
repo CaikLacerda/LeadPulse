@@ -1,18 +1,20 @@
 module CommercialOpportunities
   class SyncRemoteStatusService
-    def initialize(user:, commercial_opportunity:)
-      @user = user
+    def initialize(account:, commercial_opportunity:)
+      @account = account
       @commercial_opportunity = commercial_opportunity
     end
 
     def call
-      raise ValidationApi::Error, "Gere o token da API antes de consultar o retorno comercial." if @user.validation_api_token_value.blank?
+      raise ActiveRecord::RecordNotFound, "Retorno comercial não encontrado para esta conta." unless @commercial_opportunity.account_id == @account.id
+
+      raise ValidationApi::Error, "Gere o token da API antes de consultar o retorno comercial." if @account.validation_api_token_value.blank?
       raise ValidationApi::Error, "Este retorno comercial ainda não foi iniciado." if @commercial_opportunity.remote_batch_id.blank?
 
       refresh_commercial_opportunity_schema
       requested_batch_id = @commercial_opportunity.remote_batch_id
       response = show_remote_batch_service.call(
-        api_token: @user.validation_api_token_value,
+        api_token: @account.validation_api_token_value,
         batch_id: requested_batch_id
       )
       apply_response!(response, requested_batch_id: requested_batch_id)

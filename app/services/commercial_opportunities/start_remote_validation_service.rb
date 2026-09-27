@@ -2,19 +2,21 @@ require "securerandom"
 
 module CommercialOpportunities
   class StartRemoteValidationService
-    def initialize(user:, commercial_opportunity:)
-      @user = user
+    def initialize(account:, commercial_opportunity:)
+      @account = account
       @commercial_opportunity = commercial_opportunity
     end
 
     def call
-      raise ValidationApi::Error, "Gere o token da API antes de iniciar a coleta comercial." if @user.validation_api_token_value.blank?
+      raise ActiveRecord::RecordNotFound, "Retorno comercial não encontrado para esta conta." unless @commercial_opportunity.account_id == @account.id
+
+      raise ValidationApi::Error, "Gere o token da API antes de iniciar a coleta comercial." if @account.validation_api_token_value.blank?
 
       payload = prepare_payload!
       return current_remote_snapshot if payload.nil?
 
       response = create_remote_batch_service.call(
-        api_token: @user.validation_api_token_value,
+        api_token: @account.validation_api_token_value,
         payload: payload
       )
       ensure_matching_batch_id!(payload, response)
@@ -138,7 +140,7 @@ module CommercialOpportunities
         "source" => SupplierImport::SOURCE_UPLOAD,
         "privacy_notice" => SupplierImports::PrivacyNoticePayload.build(
           workflow_kind: "commercial_validation",
-          user: @user,
+          account: @account,
           overrides: {
             "purpose" => SupplierImports::PrivacyNoticePayload::PURPOSES.fetch("commercial_validation")
           }

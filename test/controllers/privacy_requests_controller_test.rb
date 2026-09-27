@@ -3,14 +3,15 @@ require "test_helper"
 class PrivacyRequestsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @password = "Password123!"
-    @user = User.create!(
+    @user = create_member!(
       name: "Responsável LGPD",
       email: "privacy-admin@example.com",
       password: @password,
       password_confirmation: @password,
       role: "admin"
     )
-    @supplier_import = @user.supplier_imports.create!(
+    @supplier_import = account_of(@user).supplier_imports.create!(
+      user: @user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -24,7 +25,7 @@ class PrivacyRequestsControllerTest < ActionDispatch::IntegrationTest
     get privacy_requests_url
     assert_redirected_to new_user_session_path
 
-    @user.update!(role: "viewer")
+    membership_of(@user).update!(role: "viewer")
     sign_in_user
     get privacy_requests_url
 
@@ -48,13 +49,14 @@ class PrivacyRequestsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "does not allow linking another account batch" do
-    other_user = User.create!(
+    other_user = create_member!(
       name: "Outra empresa",
       email: "privacy-other@example.com",
       password: @password,
       password_confirmation: @password
     )
-    other_import = other_user.supplier_imports.create!(
+    other_import = account_of(other_user).supplier_imports.create!(
+      user: other_user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
       source: SupplierImport::SOURCE_UPLOAD
@@ -71,7 +73,8 @@ class PrivacyRequestsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "resolving anonymization removes local evidence and records completion" do
-    privacy_request = @user.privacy_requests.create!(
+    privacy_request = account_of(@user).privacy_requests.create!(
+      user: @user,
       supplier_import: @supplier_import,
       request_type: "anonymization",
       subject_name: "Titular",

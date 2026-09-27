@@ -1,5 +1,5 @@
 <% trail = workspace_breadcrumb_trail %>
-<% account_display_name = current_user.validation_owner_name_value.presence || current_user.email.to_s.split('@').first.presence || t('shared.header.session.account') %>
+<% account_display_name = current_user.name.presence || current_user.email.to_s.split('@').first.presence || t('shared.header.session.account') %>
 <% account_initials = account_display_name.to_s.split(/\s+/).first(2).filter_map { |part| part[0] }.join.upcase.first(2).presence || 'LP' %>
 <% notifications = workspace_notifications %>
 <% unread_notifications = notifications.reject { |notification| notification[:read] } %>
@@ -81,7 +81,7 @@
           <% end %>
         </div>
 
-        <% if current_user.can_view_evidence? %>
+        <% if current_membership.can_view_evidence? %>
           <%= link_to validation_audits_path, class: 'app-notification-menu__footer' do %>
             <span>Ver auditoria de chamadas</span><i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
           <% end %>
@@ -96,22 +96,22 @@
         <span class="app-account-avatar" aria-hidden="true"><%= account_initials %></span>
         <span class="app-account-summary__identity">
           <span class="app-account-summary__name"><%= account_display_name %></span>
-          <span class="app-account-summary__company"><%= current_user.validation_company_name_value %></span>
+          <span class="app-account-summary__company"><%= current_account.validation_company_name_value %></span>
         </span>
         <i class="app-account-summary__chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
       </summary>
 
       <div class="workspace-menu absolute right-0 top-[calc(100%+0.375rem)] z-50 w-64">
         <div class="app-account-menu__header">
-          <p class="app-account-menu__title"><%= current_user.validation_company_name_value %></p>
+          <p class="app-account-menu__title"><%= current_account.validation_company_name_value %></p>
           <p class="app-account-menu__subtitle"><%= current_user.email %></p>
-          <p class="app-account-menu__role"><span class="workspace-tag"><%= current_user.role_label %></span></p>
+          <p class="app-account-menu__role"><span class="workspace-tag"><%= current_membership.role_label %></span></p>
         </div>
 
         <%= link_to edit_user_registration_path, class: 'workspace-menu-item' do %>
           <i class="fa-solid fa-user" aria-hidden="true"></i><span>Minha conta</span>
         <% end %>
-        <% if current_user.can_manage_settings? %>
+        <% if current_membership.can_manage_settings? %>
           <%= link_to company_platform_settings_path, class: 'workspace-menu-item' do %>
             <i class="fa-solid fa-building" aria-hidden="true"></i><span>Dados da empresa</span>
           <% end %>

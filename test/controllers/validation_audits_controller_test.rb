@@ -3,14 +3,15 @@ require "test_helper"
 class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @password = "Password123!"
-    @user = User.create!(
+    @user = create_member!(
       name: "Caio Alves",
       email: "auditoria@example.com",
       password: @password,
       password_confirmation: @password
     )
 
-    @supplier_import = @user.supplier_imports.create!(
+    @supplier_import = account_of(@user).supplier_imports.create!(
+      user: @user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -102,7 +103,7 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "viewer cannot open audit evidence by direct url" do
-    @user.update!(role: "viewer")
+    membership_of(@user).update!(role: "viewer")
     post user_session_url, params: { user: { email: @user.email, password: @password } }
 
     get validation_audits_url

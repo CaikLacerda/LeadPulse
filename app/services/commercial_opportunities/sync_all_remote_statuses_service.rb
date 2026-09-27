@@ -1,9 +1,9 @@
 module CommercialOpportunities
   class SyncAllRemoteStatusesService
     def call
-      CommercialOpportunity.active_remote.includes(:user).find_each do |opportunity|
+      CommercialOpportunity.active_remote.includes(:account).find_each do |opportunity|
         SyncRemoteStatusService.new(
-          user: opportunity.user,
+          account: opportunity.account,
           commercial_opportunity: opportunity
         ).call
       rescue ValidationApi::Error => e

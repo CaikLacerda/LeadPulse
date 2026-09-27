@@ -1,6 +1,6 @@
 <%= platform_settings_page(title: 'Configurações', description: 'Dados da empresa, provedores de voz e IA e acesso à API.', tutorial_key: :platform_settings_openai) do %>
   <%= settings_panel do %>
-    <%= form_with model: current_user, url: openai_platform_settings_path, method: :patch, local: true do |f| %>
+    <%= form_with model: current_account, url: openai_platform_settings_path, method: :patch, local: true do |f| %>
       <%= settings_feedback_messages %>
 
       <%= settings_section(title: 'Chave de acesso', description: 'Usada pela IA conversacional, voz e classificação das respostas.', data: { tutorial_id: 'openai-api-key' }) do %>
@@ -13,7 +13,7 @@
           <div class="settings-field">
             <%= render 'field_label', form: f, field: :validation_openai_realtime_model, text: 'Modelo', required: true %>
             <%= f.select :validation_openai_realtime_model,
-                User::REALTIME_MODELS,
+                Account::REALTIME_MODELS,
                 {},
                 class: 'settings-input', required: true %>
           </div>

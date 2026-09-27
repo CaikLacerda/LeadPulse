@@ -7,11 +7,11 @@ class PagesController < ApplicationController
   def home
     return unless current_user
 
-    imports_scope = current_user.supplier_imports
-    searches_scope = current_user.supplier_discovery_searches
+    imports_scope = current_account.supplier_imports
+    searches_scope = current_account.supplier_discovery_searches
     recent_imports_scope = imports_scope.order(created_at: :desc)
     status_counts = imports_scope.group(:status).count
-    commercial_scope = current_user.commercial_opportunities
+    commercial_scope = current_account.commercial_opportunities
     commercial_status_counts = commercial_scope.group(:status).count
 
     @dashboard_insights = {
@@ -31,13 +31,13 @@ class PagesController < ApplicationController
     @recent_imports = recent_imports_scope.limit(5)
     @recent_searches = searches_scope.recent_first.limit(5)
     @recent_location_searches = searches_scope.recent_first.limit(12)
-    @welcome_account_name = current_user.validation_company_name_value
-    @welcome_contact_name = current_user.validation_owner_name_value
+    @welcome_account_name = current_account.validation_company_name_value
+    @welcome_contact_name = current_user.name
     @integration_flags = {
-      company: current_user.validation_account_id.present?,
-      twilio: current_user.validation_twilio_configured?,
-      openai: current_user.validation_openai_configured?,
-      api_token: current_user.validation_api_token_configured?
+      company: current_account.validation_account_id.present?,
+      twilio: current_account.validation_twilio_configured?,
+      openai: current_account.validation_openai_configured?,
+      api_token: current_account.validation_api_token_configured?
     }
   end
 

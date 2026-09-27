@@ -33,7 +33,8 @@ class CommercialOpportunityTest < ActiveSupport::TestCase
 
   test "requires one source record per supplier import" do
     user = users(:one)
-    supplier_import = user.supplier_imports.create!(
+    supplier_import = account_of(user).supplier_imports.create!(
+      user: user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD

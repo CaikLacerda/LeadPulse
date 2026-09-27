@@ -1,12 +1,12 @@
 <% if current_user %>
   <% integration_rows = [
-    ['Conta na API', @integration_flags[:company], current_user.validation_account_id.present? ? "ID #{current_user.validation_account_id}" : 'Não provisionada', company_platform_settings_path],
+    ['Conta na API', @integration_flags[:company], current_account.validation_account_id.present? ? "ID #{current_account.validation_account_id}" : 'Não provisionada', company_platform_settings_path],
     ['Twilio', @integration_flags[:twilio], @integration_flags[:twilio] ? 'Conta e números' : 'Conectar conta e números', twilio_platform_settings_path],
     ['OpenAI', @integration_flags[:openai], @integration_flags[:openai] ? 'Chave configurada' : 'Definir chave da conta', openai_platform_settings_path],
     ['Token da API', @integration_flags[:api_token], @integration_flags[:api_token] ? 'Token ativo' : 'Gerar token de integração', api_token_platform_settings_path]
   ] %>
   <% attention_items = [] %>
-  <% if current_user.can_manage_settings? %>
+  <% if current_membership.can_manage_settings? %>
     <% attention_items << [:warning, 'Configurar empresa', 'A conta ainda não foi provisionada na API.', company_platform_settings_path] unless @integration_flags[:company] %>
     <% attention_items << [:warning, 'Conectar Twilio', 'As chamadas ainda não podem sair desta conta.', twilio_platform_settings_path] unless @integration_flags[:twilio] %>
     <% attention_items << [:warning, 'Configurar OpenAI', 'A IA conversacional ainda não está pronta.', openai_platform_settings_path] unless @integration_flags[:openai] %>
@@ -15,16 +15,16 @@
   <% if @dashboard_insights[:error_batches].positive? %>
     <% attention_items << [:danger, 'Lotes com erro', "#{pluralize(@dashboard_insights[:error_batches], 'lote precisa', plural: 'lotes precisam')} de revisão.", supplier_imports_path(status: 'erro')] %>
   <% end %>
-  <% if @dashboard_insights[:pending_batches].positive? && current_user.can_start_validation? %>
+  <% if @dashboard_insights[:pending_batches].positive? && current_membership.can_start_validation? %>
     <% attention_items << [:neutral, 'Iniciar lotes pendentes', "#{pluralize(@dashboard_insights[:pending_batches], 'lote aguardando', plural: 'lotes aguardando')} início.", supplier_imports_path(status: 'pendente')] %>
   <% end %>
-  <% if @dashboard_insights[:processing_batches].positive? && current_user.can_start_validation? %>
+  <% if @dashboard_insights[:processing_batches].positive? && current_membership.can_start_validation? %>
     <% attention_items << [:info, 'Acompanhar processamento', "#{pluralize(@dashboard_insights[:processing_batches], 'lote', plural: 'lotes')} em andamento.", supplier_imports_path(status: 'processando')] %>
   <% end %>
-  <% if @dashboard_insights[:ready_exports].positive? && current_user.can_export_data? %>
+  <% if @dashboard_insights[:ready_exports].positive? && current_membership.can_export_data? %>
     <% attention_items << [:success, 'Exportar resultados', "#{pluralize(@dashboard_insights[:ready_exports], 'lote', plural: 'lotes')} com resultado disponível.", supplier_imports_path(status: 'concluido')] %>
   <% end %>
-  <% if @dashboard_insights[:commercial_pending].positive? && current_user.can_start_validation? %>
+  <% if @dashboard_insights[:commercial_pending].positive? && current_membership.can_start_validation? %>
     <% attention_items << [:neutral, 'Iniciar retornos comerciais', "#{pluralize(@dashboard_insights[:commercial_pending], 'fornecedor aguardando', plural: 'fornecedores aguardando')} coleta.", commercial_opportunities_path(status: 'pendente')] %>
   <% end %>
   <% attention_dot = { warning: 'bg-warning-dot', danger: 'bg-danger-dot', info: 'bg-info-dot', success: 'bg-success-dot', neutral: 'bg-neutral-dot' } %>
@@ -37,7 +37,7 @@
       description: t('home.workspace.welcome_html', name: @welcome_contact_name.to_s.split.first.presence || @welcome_contact_name),
       actions_data: { tutorial_id: 'home-actions' }
     ) do %>
-      <% if current_user.can_import_data? %>
+      <% if current_membership.can_import_data? %>
         <%= link_to supplier_discovery_searches_path, class: workspace_button_class(:secondary) do %>
           <%= workspace_icon(:search) %><span><%= t('home.workspace.new_search') %></span>
         <% end %>
@@ -99,7 +99,7 @@
               <tbody>
                 <% @recent_imports.each do |supplier_import| %>
                   <tr>
-                    <td><%= workspace_code_tag(supplier_import.display_code, current_user.can_view_evidence? ? supplier_import_path(supplier_import) : supplier_imports_path(q: supplier_import.display_code)) %></td>
+                    <td><%= workspace_code_tag(supplier_import.display_code, current_membership.can_view_evidence? ? supplier_import_path(supplier_import) : supplier_imports_path(q: supplier_import.display_code)) %></td>
                     <td><%= supplier_import.workflow_kind_label %></td>
                     <td class="is-numeric"><%= number_with_delimiter(supplier_import.total_rows) %></td>
                     <td><%= workspace_status_tag(supplier_import.status) %></td>
@@ -111,7 +111,7 @@
           </div>
         <% else %>
           <%= workspace_empty_state(message: t('home.workspace.empty_batches'), hint: 'Os lotes importados aparecem aqui com o status da validação.') do %>
-            <% if current_user.can_import_data? %>
+            <% if current_membership.can_import_data? %>
               <%= workspace_link_button supplier_imports_path(open_import_modal: '1'), variant: :primary, size: :sm do %>
                 <%= workspace_icon(:plus) %><span><%= t('home.workspace.new_batch') %></span>
               <% end %>
@@ -130,7 +130,7 @@
               </span>
               <%= status_badge(ready ? 'Configurado' : 'Pendente', tone: ready ? :success : :warning) %>
             <% end %>
-            <% if current_user.can_manage_settings? %>
+            <% if current_membership.can_manage_settings? %>
               <%= link_to row_content, path, class: 'workspace-list__item' %>
             <% else %>
               <div class="workspace-list__item"><%= row_content %></div>
@@ -141,15 +141,15 @@
         <dl class="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line px-5 py-4 workspace-kv">
           <div>
             <dt>Empresa</dt>
-            <dd><%= current_user.validation_company_name_value %></dd>
+            <dd><%= current_account.validation_company_name_value %></dd>
           </div>
           <div>
             <dt>Nome falado pela IA</dt>
-            <dd><%= current_user.validation_spoken_company_name_value %></dd>
+            <dd><%= current_account.validation_spoken_company_name_value %></dd>
           </div>
           <div class="col-span-full">
             <dt>Responsável</dt>
-            <dd><%= @welcome_contact_name %> · <%= current_user.validation_owner_email_value %></dd>
+            <dd><%= current_account.validation_owner_name_value %> · <%= current_account.validation_owner_email_value %></dd>
           </div>
         </dl>
       <% end %>

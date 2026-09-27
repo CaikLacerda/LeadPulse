@@ -3,18 +3,20 @@ require "test_helper"
 module CommercialOpportunities
   class ExportXlsxServiceTest < ActiveSupport::TestCase
     test "exports a valid workbook with the commercial collection fields" do
-      user = User.create!(
+      user = create_member!(
         name: "Operação Comercial",
         email: "commercial-xlsx@example.com",
         password: "Password123!",
         password_confirmation: "Password123!"
       )
-      supplier_import = user.supplier_imports.create!(
+      supplier_import = account_of(user).supplier_imports.create!(
+        user: user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD
       )
-      opportunity = user.commercial_opportunities.create!(
+      opportunity = account_of(user).commercial_opportunities.create!(
+        user: user,
         supplier_import: supplier_import,
         source_external_id: "supplier-xlsx-1",
         supplier_name: "Aços Campinas",

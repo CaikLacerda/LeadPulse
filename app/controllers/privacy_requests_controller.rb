@@ -4,17 +4,18 @@ class PrivacyRequestsController < ApplicationController
   before_action :set_privacy_request, only: :update
 
   def index
-    @privacy_requests = current_user.privacy_requests.includes(:supplier_import).order(created_at: :desc)
-    @privacy_request = current_user.privacy_requests.new(requested_at: Time.current)
+    @privacy_requests = current_account.privacy_requests.includes(:supplier_import).order(created_at: :desc)
+    @privacy_request = current_account.privacy_requests.new(requested_at: Time.current)
   end
 
   def create
     attributes = privacy_request_params.except(:supplier_import_id).merge(requested_at: Time.current)
-    @privacy_request = current_user.privacy_requests.new(attributes)
+    @privacy_request = current_account.privacy_requests.new(attributes.merge(user: current_user))
     @privacy_request.supplier_import = selected_supplier_import
 
     if @privacy_request.save
       PrivacyAudit::Logger.log!(
+        account: current_account,
         user: current_user,
         action: "privacy_request_created",
         supplier_import: @privacy_request.supplier_import,
@@ -26,7 +27,7 @@ class PrivacyRequestsController < ApplicationController
       )
       redirect_to privacy_requests_path, notice: "Solicitação LGPD registrada."
     else
-      @privacy_requests = current_user.privacy_requests.includes(:supplier_import).order(created_at: :desc)
+      @privacy_requests = current_account.privacy_requests.includes(:supplier_import).order(created_at: :desc)
       flash.now[:alert] = @privacy_request.errors.full_messages.to_sentence
       render :index, status: :unprocessable_entity
     end
@@ -41,6 +42,7 @@ class PrivacyRequestsController < ApplicationController
       apply_request_effect!
       @privacy_request.save!
       PrivacyAudit::Logger.log!(
+        account: current_account,
         user: current_user,
         action: "privacy_request_updated",
         supplier_import: @privacy_request.supplier_import,
@@ -52,12 +54,12 @@ class PrivacyRequestsController < ApplicationController
       )
       redirect_to privacy_requests_path, notice: "Solicitação LGPD atualizada."
     else
-      @privacy_requests = current_user.privacy_requests.includes(:supplier_import).order(created_at: :desc)
+      @privacy_requests = current_account.privacy_requests.includes(:supplier_import).order(created_at: :desc)
       flash.now[:alert] = @privacy_request.errors.full_messages.to_sentence
       render :index, status: :unprocessable_entity
     end
   rescue ValidationApi::Error, ActiveRecord::ActiveRecordError => e
-    @privacy_requests = current_user.privacy_requests.includes(:supplier_import).order(created_at: :desc)
+    @privacy_requests = current_account.privacy_requests.includes(:supplier_import).order(created_at: :desc)
     flash.now[:alert] = "Não foi possível concluir a solicitação LGPD: #{e.message}"
     render :index, status: :unprocessable_entity
   end
@@ -65,13 +67,13 @@ class PrivacyRequestsController < ApplicationController
   private
 
   def require_lgpd_manager!
-    return if current_user.can_manage_lgpd?
+    return if current_membership.can_manage_lgpd?
 
     redirect_to root_path, alert: "Seu perfil não possui permissão para gerenciar LGPD."
   end
 
   def set_privacy_request
-    @privacy_request = current_user.privacy_requests.find(params[:id])
+    @privacy_request = current_account.privacy_requests.find(params[:id])
   end
 
   def privacy_request_params
@@ -94,7 +96,7 @@ class PrivacyRequestsController < ApplicationController
     supplier_import_id = privacy_request_params[:supplier_import_id]
     return if supplier_import_id.blank?
 
-    current_user.supplier_imports.find(supplier_import_id)
+    current_account.supplier_imports.find(supplier_import_id)
   end
 
   def resolved_at_value
@@ -107,11 +109,12 @@ class PrivacyRequestsController < ApplicationController
     return if @privacy_request.supplier_import.blank?
 
     SupplierImports::AnonymizeEvidenceService.new(
-      user: current_user,
+      account: current_account,
       supplier_import: @privacy_request.supplier_import
     ).call
 
     PrivacyAudit::Logger.log!(
+      account: current_account,
       user: current_user,
       action: "privacy_request_evidence_anonymized",
       supplier_import: @privacy_request.supplier_import,

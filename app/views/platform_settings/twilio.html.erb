@@ -1,6 +1,6 @@
 <%= platform_settings_page(title: 'Configurações', description: 'Dados da empresa, provedores de voz e IA e acesso à API.', tutorial_key: :platform_settings_twilio) do %>
   <%= settings_panel do %>
-    <%= form_with model: current_user, url: twilio_platform_settings_path, method: :patch, local: true do |f| %>
+    <%= form_with model: current_account, url: twilio_platform_settings_path, method: :patch, local: true do |f| %>
       <%= settings_feedback_messages %>
 
       <%= settings_section(title: 'Credenciais', description: 'Autenticam as chamadas feitas pela conta Twilio.', data: { tutorial_id: 'twilio-credentials' }) do %>
@@ -25,7 +25,7 @@
       <%= settings_section(title: 'Números de origem', description: 'Números habilitados para originar as chamadas de validação.', data: { tutorial_id: 'twilio-numbers' }) do %>
         <%= render 'field_label', form: f, field: :validation_twilio_phone_numbers_text, text: 'Números Twilio ativos', help: 'Um número por linha.', required: true %>
         <%= f.text_area :validation_twilio_phone_numbers_text,
-            value: current_user.validation_twilio_phone_numbers_text,
+            value: current_account.validation_twilio_phone_numbers_text,
             rows: 5,
             placeholder: "13527176703\n13520000000",
             class: 'settings-input settings-input--mono', required: true %>

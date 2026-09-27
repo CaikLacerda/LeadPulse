@@ -23,16 +23,16 @@ module WorkspaceNavigationHelper
       {
         title: "Análise",
         items: [
-          (workspace_nav_item(:audit, "Auditoria de chamadas", validation_audits_path, icon: :audit) if current_user.can_view_evidence?)
+          (workspace_nav_item(:audit, "Auditoria de chamadas", validation_audits_path, icon: :audit) if current_membership.can_view_evidence?)
         ].compact
       },
       {
         title: "Administração",
         items: [
           (workspace_nav_item(:settings, "Configurações", company_platform_settings_path, icon: :settings,
-            match: ->(path) { path.start_with?("/configuracoes") && !path.start_with?(lgpd_platform_settings_path) }) if current_user.can_manage_settings?),
+            match: ->(path) { path.start_with?("/configuracoes") && !path.start_with?(lgpd_platform_settings_path) }) if current_membership.can_manage_settings?),
           (workspace_nav_item(:lgpd, "LGPD e privacidade", lgpd_platform_settings_path, icon: :shield,
-            match: ->(path) { path.start_with?(lgpd_platform_settings_path) || path.start_with?("/lgpd") }) if current_user.can_manage_settings? && current_user.can_manage_lgpd?),
+            match: ->(path) { path.start_with?(lgpd_platform_settings_path) || path.start_with?("/lgpd") }) if current_membership.can_manage_settings? && current_membership.can_manage_lgpd?),
           workspace_nav_item(:developer_docs, "API para desenvolvedores", developer_docs_path, icon: :code)
         ].compact
       }

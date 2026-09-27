@@ -17,6 +17,7 @@ class SupplierDiscoverySearchJob < ApplicationJob
     return log_failure(result) unless result.success?
 
     PrivacyAudit::Logger.log!(
+      account: search.account,
       user: search.user,
       action: "supplier_discovery_created",
       resource: search,

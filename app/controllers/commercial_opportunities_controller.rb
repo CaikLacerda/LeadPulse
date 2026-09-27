@@ -8,7 +8,7 @@ class CommercialOpportunitiesController < ApplicationController
   before_action :set_commercial_opportunity, only: [ :show, :start, :sync_status, :export ]
 
   def index
-    opportunities = current_user.commercial_opportunities.recent_first
+    opportunities = current_account.commercial_opportunities.recent_first
     opportunities = opportunities.where(status: params[:status]) if CommercialOpportunity::STATUSES.include?(params[:status])
 
     if params[:q].present?
@@ -21,7 +21,7 @@ class CommercialOpportunitiesController < ApplicationController
       )
     end
 
-    @status_counts = current_user.commercial_opportunities.group(:status).count
+    @status_counts = current_account.commercial_opportunities.group(:status).count
     pagination = paginate_collection(opportunities, page_param: params[:page], per_page: PER_PAGE)
     @opportunities = pagination[:records]
     @opportunities_total_count = pagination[:total_count]
@@ -32,10 +32,10 @@ class CommercialOpportunitiesController < ApplicationController
   def show; end
 
   def start
-    return redirect_to commercial_opportunities_path, alert: "Seu perfil não possui permissão para iniciar coletas comerciais." unless current_user.can_start_validation?
+    return redirect_to commercial_opportunities_path, alert: "Seu perfil não possui permissão para iniciar coletas comerciais." unless current_membership.can_start_validation?
 
     CommercialOpportunities::StartRemoteValidationService.new(
-      user: current_user,
+      account: current_account,
       commercial_opportunity: @commercial_opportunity
     ).call
     redirect_to commercial_opportunities_path, notice: "Coleta comercial iniciada."
@@ -47,14 +47,14 @@ class CommercialOpportunitiesController < ApplicationController
   end
 
   def sync_status
-    unless current_user.can_start_validation?
+    unless current_membership.can_start_validation?
       return render(json: { error: "forbidden" }, status: :forbidden) if request.format.json?
       return redirect_to commercial_opportunities_path, alert: "Seu perfil não possui permissão para consultar coletas comerciais."
     end
 
     previous_status = @commercial_opportunity.status
     CommercialOpportunities::SyncRemoteStatusService.new(
-      user: current_user,
+      account: current_account,
       commercial_opportunity: @commercial_opportunity
     ).call
 
@@ -75,7 +75,7 @@ class CommercialOpportunitiesController < ApplicationController
   end
 
   def export
-    return redirect_to commercial_opportunity_path(@commercial_opportunity), alert: "Seu perfil não possui permissão para exportar resultados." unless current_user.can_export_data?
+    return redirect_to commercial_opportunity_path(@commercial_opportunity), alert: "Seu perfil não possui permissão para exportar resultados." unless current_membership.can_export_data?
     return redirect_to commercial_opportunity_path(@commercial_opportunity), alert: "A coleta comercial ainda não foi concluída." unless @commercial_opportunity.ready_to_export?
 
     export = CommercialOpportunities::ExportXlsxService.new(
@@ -87,6 +87,6 @@ class CommercialOpportunitiesController < ApplicationController
   private
 
   def set_commercial_opportunity
-    @commercial_opportunity = current_user.commercial_opportunities.find(params[:id])
+    @commercial_opportunity = current_account.commercial_opportunities.find(params[:id])
   end
 end

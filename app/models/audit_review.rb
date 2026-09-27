@@ -1,4 +1,6 @@
 class AuditReview < ApplicationRecord
+  include MatchesSupplierImportAccount
+
   RESULT_OPTIONS = %w[
     confirmed_by_call
     confirmed_by_whatsapp
@@ -16,8 +18,8 @@ class AuditReview < ApplicationRecord
     invalid_phone
   ].freeze
 
-  # Conta (tenant). Opcional só até a fase 5, quando o código passa a preenchê-la.
-  belongs_to :account, optional: true
+  belongs_to :account
+  # Quem fez a ação; o isolamento entre empresas é por account.
   belongs_to :user
   belongs_to :supplier_import
 

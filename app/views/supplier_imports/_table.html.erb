@@ -22,7 +22,7 @@
         <% if @imports.any? %>
           <% @imports.each do |import| %>
             <tr>
-              <td><%= workspace_code_tag(import.display_code, current_user.can_view_evidence? ? supplier_import_path(import) : nil) %></td>
+              <td><%= workspace_code_tag(import.display_code, current_membership.can_view_evidence? ? supplier_import_path(import) : nil) %></td>
               <td><%= import.workflow_kind_label %></td>
               <td><%= import.source_label %></td>
               <td class="is-numeric"><%= number_with_delimiter(import.total_rows) %></td>
@@ -33,10 +33,10 @@
 
               <td class="is-actions">
                 <% can_act =
-                  (import.startable? || import.syncable?) && current_user.can_start_validation? ||
-                  import.ready_to_export? && current_user.can_export_data? ||
-                  import.destroyable? && current_user.can_import_data? ||
-                  current_user.can_view_evidence? %>
+                  (import.startable? || import.syncable?) && current_membership.can_start_validation? ||
+                  import.ready_to_export? && current_membership.can_export_data? ||
+                  import.destroyable? && current_membership.can_import_data? ||
+                  current_membership.can_view_evidence? %>
                 <% if can_act %>
                   <details data-controller="action-menu" data-action-menu-floating-value="true" class="relative inline-block text-left">
                     <summary class="workspace-row-menu-trigger" aria-label="<%= t('supplier_imports.index.actions.label') %> do lote <%= import.display_code %>">
@@ -44,29 +44,29 @@
                     </summary>
 
                     <div class="workspace-menu absolute right-0 top-full w-48">
-                      <% if current_user.can_view_evidence? %>
+                      <% if current_membership.can_view_evidence? %>
                         <%= link_to supplier_import_path(import), class: 'workspace-menu-item' do %>
                           <i class="fa-solid fa-arrow-right" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.details') %></span>
                         <% end %>
                       <% end %>
 
-                      <% if import.errored? && current_user.can_start_validation? %>
+                      <% if import.errored? && current_membership.can_start_validation? %>
                         <%= button_to start_validation_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
                           <i class="fa-solid fa-rotate-right" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.restart') %></span>
                         <% end %>
-                      <% elsif import.pending? && current_user.can_start_validation? %>
+                      <% elsif import.pending? && current_membership.can_start_validation? %>
                         <%= button_to start_validation_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
                           <i class="fa-solid fa-play" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.start') %></span>
                         <% end %>
                       <% end %>
 
-                      <% if !import.errored? && import.syncable? && current_user.can_start_validation? %>
+                      <% if !import.errored? && import.syncable? && current_membership.can_start_validation? %>
                         <%= button_to sync_status_supplier_import_path(import), method: :post, class: 'workspace-menu-item' do %>
                           <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.sync') %></span>
                         <% end %>
                       <% end %>
 
-                      <% if !import.errored? && import.ready_to_export? && current_user.can_export_data? %>
+                      <% if !import.errored? && import.ready_to_export? && current_membership.can_export_data? %>
                         <%= link_to export_result_supplier_import_path(import), data: { turbo: false }, class: 'workspace-menu-item' do %>
                           <i class="fa-solid fa-file-csv" aria-hidden="true"></i><span><%= t('supplier_imports.index.actions.export_csv') %></span>
                         <% end %>
@@ -76,7 +76,7 @@
                         <% end %>
                       <% end %>
 
-                      <% if import.destroyable? && current_user.can_import_data? %>
+                      <% if import.destroyable? && current_membership.can_import_data? %>
                         <div class="workspace-menu-separator" role="separator"></div>
                         <%= button_to supplier_import_path(import),
                             method: :delete,
@@ -97,7 +97,7 @@
                 hint: filtered ? t('supplier_imports.index.table.empty_filtered_hint') : t('supplier_imports.index.table.empty_hint')) do %>
             <% if filtered %>
               <%= workspace_link_button t('supplier_imports.index.filters.clear'), supplier_imports_path, size: :sm %>
-            <% elsif current_user.can_import_data? %>
+            <% elsif current_membership.can_import_data? %>
               <%= workspace_button_tag type: :button, variant: :primary, size: :sm, data: { action: 'import-modal#open' } do %>
                 <%= workspace_icon(:plus) %><span><%= t('supplier_imports.messages.import_ready') %></span>
               <% end %>

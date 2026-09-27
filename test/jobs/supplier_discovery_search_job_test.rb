@@ -3,8 +3,9 @@ require "test_helper"
 class SupplierDiscoverySearchJobTest < ActiveJob::TestCase
   setup do
     @user = users(:one)
-    @user.update!(validation_api_token: "lp_test_token")
-    @search = @user.supplier_discovery_searches.create!(
+    account_of(@user).update!(validation_api_token: "lp_test_token")
+    @search = account_of(@user).supplier_discovery_searches.create!(
+      user: @user,
       search_id: "local-job-test",
       status: SupplierDiscoverySearch::LOCAL_STATUS_PENDING,
       segment_name: "Adubo",

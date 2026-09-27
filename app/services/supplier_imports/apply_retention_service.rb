@@ -7,15 +7,16 @@ module SupplierImports
     def call
       anonymized = 0
 
-      SupplierImport.includes(:user).find_each do |supplier_import|
+      SupplierImport.includes(:account, :user).find_each do |supplier_import|
         next unless supplier_import.evidence_retention_expired?(@now)
 
         SupplierImports::AnonymizeEvidenceService.new(
-          user: supplier_import.user,
+          account: supplier_import.account,
           supplier_import: supplier_import
         ).call
 
         PrivacyAudit::Logger.log!(
+          account: supplier_import.account,
           user: supplier_import.user,
           action: "retention_evidence_anonymized",
           supplier_import: supplier_import,

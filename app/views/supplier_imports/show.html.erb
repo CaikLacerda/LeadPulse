@@ -11,7 +11,7 @@
 <% privacy_refusal_count = supplier_import_privacy_refusal_count(@import) %>
 <% evidence_expires_at = supplier_import_evidence_expires_at(@import) %>
 <% evidence_anonymized = supplier_import_evidence_anonymized?(@import) %>
-<% can_export = @import.ready_to_export? && current_user.can_export_data? %>
+<% can_export = @import.ready_to_export? && current_membership.can_export_data? %>
 <% workspace_breadcrumbs @import.display_code %>
 
 <%= workspace_page do %>
@@ -24,7 +24,7 @@
       content_tag(:span, "Importado em #{workspace_datetime(@import.created_at)}", class: 'tabular-nums')
     ])
   ) do %>
-    <% if current_user.can_export_data? %>
+    <% if current_membership.can_export_data? %>
       <%= workspace_link_button privacy_report_supplier_import_path(@import), variant: :secondary, data: { turbo: false } do %>
         <i class="fa-solid fa-file-shield" aria-hidden="true"></i><span>Relatório LGPD</span>
       <% end %>
@@ -127,7 +127,7 @@
                           <div class="workspace-attempt">
                             <span class="workspace-attempt__number"><%= t('.records.attempt', number: attempt['attempt_number'].presence || '-') %></span>
                             <span class="workspace-attempt__meta"><%= supplier_import_attempt_duration(attempt) %></span>
-                            <% if attempt['recording_url'].present? && current_user.can_view_evidence? %>
+                            <% if attempt['recording_url'].present? && current_membership.can_view_evidence? %>
                               <%= link_to attempt['recording_url'], target: '_blank', rel: 'noopener', class: 'workspace-link inline-flex items-center gap-1' do %>
                                 <%= t('.records.recording') %><i class="fa-solid fa-arrow-up-right-from-square text-[0.625rem]" aria-hidden="true"></i>
                               <% end %>
@@ -182,7 +182,7 @@
             <%= status_badge(t(".evidence.status.#{evidence_anonymized ? 'anonymized' : 'active'}"), tone: evidence_anonymized ? :neutral : :success) %>
           </div>
 
-          <% if !evidence_anonymized && current_user.can_anonymize_evidence? %>
+          <% if !evidence_anonymized && current_membership.can_anonymize_evidence? %>
             <%= button_to anonymize_evidence_supplier_import_path(@import),
                 method: :post,
                 class: workspace_button_class(:secondary, size: :sm),

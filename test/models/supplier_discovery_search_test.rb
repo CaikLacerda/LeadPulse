@@ -18,6 +18,7 @@ class SupplierDiscoverySearchTest < ActiveSupport::TestCase
 
   test "keeps OpenStreetMap metadata when a search becomes a validation candidate" do
     search = SupplierDiscoverySearch.create!(
+      account: account_of(users(:one)),
       user: users(:one),
       search_id: "search-osm-custom-fields",
       status: SupplierDiscoverySearch::LOCAL_STATUS_COMPLETED,

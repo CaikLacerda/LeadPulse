@@ -29,14 +29,14 @@
               </td>
               <td><%= workspace_datetime_cell(search.generated_at || search.created_at) %></td>
               <td class="is-actions">
-                <% if search.completed? && (current_user.can_export_data? || current_user.can_import_data?) %>
+                <% if search.completed? && (current_membership.can_export_data? || current_membership.can_import_data?) %>
                   <details data-controller="action-menu" data-action-menu-floating-value="true" class="relative inline-block text-left">
                     <summary class="workspace-row-menu-trigger" aria-label="<%= t('supplier_discovery_searches.index.actions.label') %> da busca <%= search.display_code %>">
                       <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
                     </summary>
 
                     <div class="workspace-menu absolute right-0 top-full w-48">
-                      <% if current_user.can_export_data? %>
+                      <% if current_membership.can_export_data? %>
                         <%= link_to download_results_supplier_discovery_search_path(search),
                             class: "workspace-menu-item #{'workspace-menu-item--disabled' unless search.download_ready?}",
                             aria: { disabled: !search.download_ready? } do %>
@@ -44,7 +44,7 @@
                         <% end %>
                       <% end %>
 
-                      <% if current_user.can_import_data? %>
+                      <% if current_membership.can_import_data? %>
                         <%= button_to create_segment_import_supplier_discovery_search_path(search),
                             method: :post,
                             class: 'workspace-menu-item' do %>
@@ -53,7 +53,7 @@
                       <% end %>
                     </div>
                   </details>
-                <% elsif search.errored? && current_user.can_import_data? %>
+                <% elsif search.errored? && current_membership.can_import_data? %>
                   <%= button_to retry_search_supplier_discovery_search_path(search),
                       method: :post,
                       class: workspace_button_class(:secondary, size: :sm),
@@ -72,7 +72,7 @@
                 hint: params[:q].present? ? t('supplier_discovery_searches.index.table.empty_filtered_hint') : t('supplier_discovery_searches.index.table.empty_hint')) do %>
             <% if params[:q].present? %>
               <%= workspace_link_button t('supplier_discovery_searches.index.filters.clear'), supplier_discovery_searches_path, size: :sm %>
-            <% elsif current_user.can_import_data? %>
+            <% elsif current_membership.can_import_data? %>
               <%= workspace_button_tag type: :button, variant: :primary, size: :sm, data: { action: 'search-modal#open' } do %>
                 <%= workspace_icon(:plus) %><span><%= t('supplier_discovery_searches.index.new_search') %></span>
               <% end %>

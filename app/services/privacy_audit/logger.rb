@@ -1,9 +1,11 @@
 module PrivacyAudit
   class Logger
-    def self.log!(user:, action:, supplier_import: nil, resource: nil, metadata: {})
-      return if user.blank?
+    # account: empresa dona do evento (trilha LGPD é da empresa); user: quem executou a ação.
+    def self.log!(account:, user:, action:, supplier_import: nil, resource: nil, metadata: {})
+      return if account.blank? || user.blank?
 
       PrivacyAuditEvent.create!(
+        account: account,
         user: user,
         supplier_import: supplier_import,
         action: action.to_s,

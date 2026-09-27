@@ -5,7 +5,8 @@ module SupplierImports
   class ExportResultCsvServiceTest < ActiveSupport::TestCase
     test "exports curated cadastral columns" do
       supplier_import = SupplierImport.create!(
-        user: build_user("cadastral-export@example.com"),
+        user: (member = build_user("cadastral-export@example.com")),
+        account: account_of(member),
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -64,7 +65,8 @@ module SupplierImports
 
     test "exports curated supplier columns" do
       supplier_import = SupplierImport.create!(
-        user: build_user("supplier-export@example.com"),
+        user: (member = build_user("supplier-export@example.com")),
+        account: account_of(member),
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -140,7 +142,8 @@ module SupplierImports
 
     test "neutralizes spreadsheet formulas in exported text" do
       supplier_import = SupplierImport.create!(
-        user: build_user("csv-formula-protection@example.com"),
+        user: (member = build_user("csv-formula-protection@example.com")),
+        account: account_of(member),
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -168,7 +171,8 @@ module SupplierImports
 
     test "does not classify an ambiguous observation by matching a phrase" do
       supplier_import = SupplierImport.create!(
-        user: build_user("supplier-export-negative@example.com"),
+        user: (member = build_user("supplier-export-negative@example.com")),
+        account: account_of(member),
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -226,6 +230,7 @@ module SupplierImports
         ]
       }
       supplier_import = SupplierImport.create!(
+        account: account_of(user),
         user: user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
@@ -257,7 +262,8 @@ module SupplierImports
 
     test "exports result xlsx with spreadsheet content type" do
       supplier_import = SupplierImport.create!(
-        user: build_user("xlsx-export@example.com"),
+        user: (member = build_user("xlsx-export@example.com")),
+        account: account_of(member),
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -300,7 +306,7 @@ module SupplierImports
     private
 
     def build_user(email)
-      User.create!(
+      create_member!(
         name: "LeadPulse Operacao",
         email: email,
         password: "Password123!",

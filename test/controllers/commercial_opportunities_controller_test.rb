@@ -3,18 +3,20 @@ require "test_helper"
 class CommercialOpportunitiesControllerTest < ActionDispatch::IntegrationTest
   setup do
     @password = "Password123!"
-    @user = User.create!(
+    @user = create_member!(
       name: "Operação Comercial",
       email: "comercial@example.com",
       password: @password,
       password_confirmation: @password
     )
-    supplier_import = @user.supplier_imports.create!(
+    supplier_import = account_of(@user).supplier_imports.create!(
+      user: @user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD
     )
-    @opportunity = @user.commercial_opportunities.create!(
+    @opportunity = account_of(@user).commercial_opportunities.create!(
+      user: @user,
       supplier_import: supplier_import,
       source_external_id: "supplier-1",
       supplier_name: "Fornecedor Exemplo",
@@ -65,7 +67,7 @@ class CommercialOpportunitiesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "json sync reports terminal state for automatic page reconciliation" do
-    @user.update!(validation_api_token: "lp_test_token")
+    account_of(@user).update!(validation_api_token: "lp_test_token")
     @opportunity.update!(
       status: CommercialOpportunity::STATUS_PROCESSING,
       remote_batch_id: "commercial-json-sync",

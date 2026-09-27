@@ -3,13 +3,14 @@ require "test_helper"
 module SupplierImports
   class AnonymizeEvidenceServiceTest < ActiveSupport::TestCase
     test "removes transcripts recordings and sensitive observations locally" do
-      user = User.create!(
+      user = create_member!(
         name: "LeadPulse Operação",
         email: "anonymize-import@example.com",
         password: "Password123!",
         password_confirmation: "Password123!"
       )
-      supplier_import = user.supplier_imports.create!(
+      supplier_import = account_of(user).supplier_imports.create!(
+        user: user,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
         source: SupplierImport::SOURCE_UPLOAD,
@@ -39,7 +40,7 @@ module SupplierImports
       )
 
       AnonymizeEvidenceService.new(
-        user: user,
+        account: account_of(user),
         supplier_import: supplier_import
       ).call
 
@@ -55,19 +56,20 @@ module SupplierImports
     end
 
     test "rejects a batch that belongs to another account" do
-      owner = User.create!(
+      owner = create_member!(
         name: "Conta proprietária",
         email: "anonymize-owner@example.com",
         password: "Password123!",
         password_confirmation: "Password123!"
       )
-      intruder = User.create!(
+      intruder = create_member!(
         name: "Outra conta",
         email: "anonymize-intruder@example.com",
         password: "Password123!",
         password_confirmation: "Password123!"
       )
-      supplier_import = owner.supplier_imports.create!(
+      supplier_import = account_of(owner).supplier_imports.create!(
+        user: owner,
         status: SupplierImport::LOCAL_STATUS_COMPLETED,
         workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
         source: SupplierImport::SOURCE_UPLOAD
@@ -75,7 +77,7 @@ module SupplierImports
 
       assert_raises ActiveRecord::RecordNotFound do
         AnonymizeEvidenceService.new(
-          user: intruder,
+          account: account_of(intruder),
           supplier_import: supplier_import
         ).call
       end

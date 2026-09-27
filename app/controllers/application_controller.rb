@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::Base
+  include CurrentAccount
+
   APP_LOCALE = :"pt-BR"
 
   allow_browser versions: :modern
@@ -7,6 +9,7 @@ class ApplicationController < ActionController::Base
 
   around_action :use_default_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
+  before_action :require_current_account!, if: -> { user_signed_in? && !devise_controller? }
 
   protected
 

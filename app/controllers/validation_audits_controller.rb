@@ -7,15 +7,16 @@ class ValidationAuditsController < ApplicationController
   before_action :require_evidence_access!
 
   def index
-    if current_user.can_view_evidence?
+    if current_membership.can_view_evidence?
       PrivacyAudit::Logger.log!(
+        account: current_account,
         user: current_user,
         action: "validation_audit_evidence_viewed",
         metadata: { query: params[:q].presence, page: params[:page].presence }
       )
     end
 
-    entries = SupplierImports::AuditEntriesService.call(user: current_user)
+    entries = SupplierImports::AuditEntriesService.call(account: current_account)
     entries = filter_entries(entries)
 
     pagination = paginate_array(entries, page_param: params[:page], per_page: PER_PAGE)
@@ -28,7 +29,7 @@ class ValidationAuditsController < ApplicationController
   private
 
   def require_evidence_access!
-    return if current_user.can_view_evidence?
+    return if current_membership.can_view_evidence?
 
     redirect_to root_path, alert: "Seu perfil não possui permissão para visualizar auditorias."
   end

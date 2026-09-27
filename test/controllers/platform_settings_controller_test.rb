@@ -3,7 +3,7 @@ require "test_helper"
 class PlatformSettingsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @password = "Password123!"
-    @user = User.create!(
+    @user = create_member!(
       name: "Usuário de leitura",
       email: "viewer-settings@example.com",
       password: @password,
@@ -36,7 +36,7 @@ class PlatformSettingsControllerTest < ActionDispatch::IntegrationTest
 
 
   test "administrator can render every settings section in Portuguese" do
-    @user.update!(role: "admin")
+    membership_of(@user).update!(role: "admin")
 
     [
       company_platform_settings_url,
@@ -53,12 +53,12 @@ class PlatformSettingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "administrator sees the institutional information field on company settings" do
-    @user.update!(role: "admin")
+    membership_of(@user).update!(role: "admin")
 
     get company_platform_settings_url
 
     assert_response :success
-    assert_select "textarea[name='user[validation_calling_profile]'][maxlength='1500']"
+    assert_select "textarea[name='account[validation_calling_profile]'][maxlength='1500']"
     assert_match "Informações institucionais para a ligação", @response.body
   end
 end

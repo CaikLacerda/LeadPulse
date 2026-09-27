@@ -311,8 +311,8 @@ module ApplicationHelper
 
     @workspace_notifications ||= begin
       items = []
-      imports = current_user.supplier_imports
-      commercial = current_user.commercial_opportunities
+      imports = current_account.supplier_imports
+      commercial = current_account.commercial_opportunities
 
       import_status_counts = imports.group(:status).count
       pending_imports = import_status_counts.fetch(SupplierImport::LOCAL_STATUS_PENDING, 0)
@@ -321,7 +321,7 @@ module ApplicationHelper
       import_errors = import_status_counts.fetch(SupplierImport::LOCAL_STATUS_ERROR, 0)
       pending_commercial = commercial.where(status: CommercialOpportunity::STATUS_PENDING).count
 
-      if pending_imports.positive? && current_user.can_start_validation?
+      if pending_imports.positive? && current_membership.can_start_validation?
         items << {
           key: "pending_imports:#{pending_imports}",
           icon: :clock,
@@ -343,7 +343,7 @@ module ApplicationHelper
         }
       end
 
-      if ready_exports.positive? && current_user.can_export_data?
+      if ready_exports.positive? && current_membership.can_export_data?
         items << {
           key: "ready_exports:#{ready_exports}",
           icon: :database,
@@ -354,7 +354,7 @@ module ApplicationHelper
         }
       end
 
-      if pending_commercial.positive? && current_user.can_start_validation?
+      if pending_commercial.positive? && current_membership.can_start_validation?
         items << {
           key: "pending_commercial:#{pending_commercial}",
           icon: :commercial,

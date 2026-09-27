@@ -25,15 +25,15 @@ module SupplierImports
       "other" => "Outro"
     }.freeze
 
-    def build(workflow_kind:, user: nil, overrides: {})
+    def build(workflow_kind:, account: nil, overrides: {})
       overrides = (overrides.presence || {}).to_h.deep_stringify_keys
 
       {
-        legal_basis: overrides["legal_basis"].presence || user&.lgpd_legal_basis.presence || LEGAL_BASIS,
-        purpose: overrides["purpose"].presence || user&.lgpd_purpose.presence || PURPOSES.fetch(workflow_kind, PURPOSES.fetch(SupplierImport::WORKFLOW_KIND_CADASTRAL)),
-        notice_script: overrides["notice_script"].presence || user&.lgpd_notice_script_value.presence || NOTICE_SCRIPT,
-        evidence_retention_days: retention_days(overrides["evidence_retention_days"] || user&.lgpd_evidence_retention_days),
-        recording_allowed: boolean_value(overrides.fetch("recording_allowed", user&.lgpd_recording_allowed), default: true)
+        legal_basis: overrides["legal_basis"].presence || account&.lgpd_legal_basis.presence || LEGAL_BASIS,
+        purpose: overrides["purpose"].presence || account&.lgpd_purpose.presence || PURPOSES.fetch(workflow_kind, PURPOSES.fetch(SupplierImport::WORKFLOW_KIND_CADASTRAL)),
+        notice_script: overrides["notice_script"].presence || account&.lgpd_notice_script_value.presence || NOTICE_SCRIPT,
+        evidence_retention_days: retention_days(overrides["evidence_retention_days"] || account&.lgpd_evidence_retention_days),
+        recording_allowed: boolean_value(overrides.fetch("recording_allowed", account&.lgpd_recording_allowed), default: true)
       }
     end
 

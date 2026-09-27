@@ -2,20 +2,22 @@ require "securerandom"
 
 module SupplierImports
   class StartRemoteValidationService
-    def initialize(user:, supplier_import:)
-      @user = user
+    def initialize(account:, supplier_import:)
+      @account = account
       @supplier_import = supplier_import
     end
 
     def call
-      raise ValidationApi::Error, "Gere o token da API antes de iniciar um lote." if @user.validation_api_token_value.blank?
+      raise ActiveRecord::RecordNotFound, "Lote não encontrado para esta conta." unless @supplier_import.account_id == @account.id
+
+      raise ValidationApi::Error, "Gere o token da API antes de iniciar um lote." if @account.validation_api_token_value.blank?
       raise ValidationApi::Error, "Esse lote não possui request montada para envio." if @supplier_import.request_payload.blank? || @supplier_import.request_payload["records"].blank?
       raise ValidationApi::Error, "Esse lote só pode ser iniciado quando estiver pendente ou com erro." unless @supplier_import.startable?
 
       normalized_payload = normalized_request_payload
       sent_batch_id = normalized_payload["batch_id"]
       response = create_remote_batch_service.call(
-        api_token: @user.validation_api_token_value,
+        api_token: @account.validation_api_token_value,
         payload: normalized_payload
       )
       status_mapper = RemoteStatusMapper.new(supplier_import: @supplier_import)
@@ -55,7 +57,7 @@ module SupplierImports
       payload["batch_id"] = refreshed_batch_id(payload["batch_id"])
       payload["privacy_notice"] = SupplierImports::PrivacyNoticePayload.build(
         workflow_kind: @supplier_import.workflow_kind,
-        user: @user,
+        account: @account,
         overrides: payload["privacy_notice"].presence ||
           @supplier_import.import_metadata["privacy_notice"].presence
       ).stringify_keys
@@ -83,7 +85,7 @@ module SupplierImports
     end
 
     def configured_twilio_phone_numbers
-      Array(@user.validation_twilio_phone_numbers).filter_map do |item|
+      Array(@account.validation_twilio_phone_numbers).filter_map do |item|
         value = item.is_a?(Hash) ? (item["phone_number"] || item[:phone_number]) : item
         normalized = SupplierImports::PhoneStandard.callback_e164(value)
         normalized if normalized.to_s.start_with?("+")

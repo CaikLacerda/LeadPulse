@@ -2,8 +2,38 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 
+# Tenancy nos testes: todo usuário pertence a uma empresa (Account) por um vínculo com papel.
+module TenancyTestHelpers
+  DEFAULT_PASSWORD = "Password123!".freeze
+
+  # Cria usuário, empresa e vínculo. Atributos validation_* e lgpd_* vão para a empresa e
+  # role vai para o vínculo, como na aplicação. Passe account: para colocar o usuário numa empresa existente.
+  def create_member!(role: "admin", account: nil, **attributes)
+    account_attributes = attributes.select { |key, _| key.to_s.start_with?("validation_", "lgpd_") }
+    user_attributes = attributes.except(*account_attributes.keys)
+    user_attributes[:password] ||= DEFAULT_PASSWORD
+    user_attributes[:password_confirmation] ||= user_attributes[:password]
+
+    user = User.create!(user_attributes)
+    account ||= Account.create!(name: "Empresa de #{user.name}")
+    account.update!(account_attributes) if account_attributes.any?
+    AccountMembership.create!(account:, user:, role:)
+    user
+  end
+
+  def account_of(user)
+    user.accounts.order("account_memberships.created_at").first
+  end
+
+  def membership_of(user)
+    user.account_memberships.order(:created_at).first
+  end
+end
+
 module ActiveSupport
   class TestCase
+    include TenancyTestHelpers
+
     # Run tests in parallel with specified workers
     parallelize(workers: :number_of_processors)
 

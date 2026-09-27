@@ -18,9 +18,10 @@ module CommercialOpportunities
         next if callback_phone.blank?
 
         opportunity = @supplier_import.commercial_opportunities.find_or_initialize_by(
-          user: @supplier_import.user,
           source_external_id: record["external_id"].to_s
         )
+        opportunity.account = @supplier_import.account
+        opportunity.user ||= @supplier_import.user
         attributes = {
           supplier_name: supplier_name(record),
           source_phone: record["validated_phone"].presence || record["phone_normalized"].presence || record["phone_original"],

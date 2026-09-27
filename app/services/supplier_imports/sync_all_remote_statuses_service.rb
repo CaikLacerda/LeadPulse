@@ -1,11 +1,9 @@
 module SupplierImports
   class SyncAllRemoteStatusesService
     def call
-      SupplierImport.active_remote.includes(:user).find_each do |supplier_import|
-        next if supplier_import.user.blank?
-
+      SupplierImport.active_remote.includes(:account).find_each do |supplier_import|
         SyncRemoteStatusService.new(
-          user: supplier_import.user,
+          account: supplier_import.account,
           supplier_import: supplier_import
         ).call
       rescue ValidationApi::Error => e
