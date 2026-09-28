@@ -94,12 +94,15 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-metric='median_duration'] .workspace-metric-card__value", text: "40 s"
     assert_select "[data-metric='duration_coverage'] .workspace-metric-card__value", text: "100,0%"
     assert_select "[data-analytics-chart-kind-value='heatmap']"
-    assert_select "#analytics-chart-heatmap button[data-analytics-chart-target='view'][hidden]", count: 1, message: "3D nasce oculto; o JS só mostra no desktop com WebGL"
+    assert_select "#analytics-chart-heatmap [data-analytics-chart-target='viewSwitch'][hidden]", count: 1, message: "seletor 2D/3D nasce oculto; o JS só mostra no desktop com WebGL"
+    assert_select "#analytics-chart-heatmap [data-analytics-chart-target='viewSwitch'] button[data-analytics-chart-view-param='2d'][aria-pressed='true']"
+    assert_select "#analytics-chart-heatmap .analytics-scale[aria-hidden='true'] .analytics-scale__value--volume", text: "1"
     assert_select "#analytics-chart-heatmap table tbody tr", minimum: 1, message: "a tabela continua como equivalente do mapa 2D/3D"
     assert_select "#analytics-chart-heatmap p[data-analytics-chart-target='note3d'][hidden]"
     histogram = JSON.parse(css_select("#analytics-chart-duration").first["data-analytics-chart-data-value"])
     assert_equal 1, histogram["values"].sum
     assert_nil histogram["links"], "viewer recebe a distribuição, mas não links para evidências"
+    assert_equal [ [ 1, "Mediana" ], [ 1, "p90" ] ], histogram["markers"].map { |marker| marker.values_at("index", "label") }, "40 s cai na faixa 30–60 s"
     assert_select "#analytics-chart-duration .analytics-chart__note", text: /Mediana 40 s · p90 40 s · 1 chamada atendida com duração/
     assert_select "a.settings-tab--active[aria-current='page']", text: "Chamadas"
   end
@@ -134,6 +137,24 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select ".analytics-batches-table tbody tr", count: 1
     assert_select ".analytics-batches-table tbody", text: /#{other.display_code}/
+  end
+
+  test "batches page puts the processing distribution next to its summary, with the long tail" do
+    slow = create_analytics_batch!(account: @account_a, user: @admin_a, started_at: 1.day.ago, records: analytics_records(confirmed: 1),
+      finished_at: 1.day.ago, payload: { "created_at" => "2026-09-01T13:00:00", "finished_at" => "2026-09-03T13:00:00" })
+    fast = create_analytics_batch!(account: @account_a, user: @admin_a, started_at: 1.day.ago, records: analytics_records(confirmed: 1),
+      finished_at: 1.day.ago, payload: { "created_at" => "2026-09-01T13:00:00", "finished_at" => "2026-09-01T13:00:40" })
+    sign_in_as(@admin_a)
+
+    get batches_analytics_url
+
+    assert_response :success
+    histogram = JSON.parse(css_select("#analytics-chart-processing").first["data-analytics-chart-data-value"])
+    assert_equal 5, histogram.dig("tail", "from"), "cauda começa na faixa > 1 dia"
+    assert_select ".analytics-split .analytics-processing-summary .analytics-stat", text: /Mais rápido\s*40 s\s*#{fast.display_code}/
+    assert_select ".analytics-processing-summary .analytics-stat", text: /Mais lento\s*2 d 0 h\s*#{slow.display_code}/
+    assert_select ".analytics-processing-summary .analytics-stat--tail", text: /Acima de 1 dia\s*1 lote\s*50,0% dos medidos/
+    assert_select ".analytics-processing-summary .analytics-chart__note", text: /Tempo medido em 2 de 3 lotes/
   end
 
   test "each page renders its empty state" do

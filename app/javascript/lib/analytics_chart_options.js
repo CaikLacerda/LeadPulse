@@ -205,7 +205,8 @@ function rankedBars(data, theme) {
 
 // Mapa de calor dia da semana × hora. Modo "volume" (tentativas) ou "rate" (taxa de
 // atendimento). Escala sequencial de um só tom a partir dos tokens; células com amostra
-// baixa ganham hachura no modo taxa, e o tooltip sempre traz o n.
+// baixa ganham hachura no modo taxa, e o tooltip sempre traz o n. A legenda da escala é HTML
+// do design system (analytics-scale); o visualMap do ECharts só faz o mapeamento de cor.
 // O texto da taxa vem pronto do servidor ("50,0% · n = 8 · Baixa amostra"): a taxa fica na
 // linha e a amostra vai para a nota, sem quebrar a coluna de valores.
 function heatmapTooltip(data, cell, theme, clickable) {
@@ -236,7 +237,7 @@ function heatmap(data, theme, context) {
 
   return {
     ...base(theme),
-    grid: { top: 6, left: 4, right: 8, bottom: 52, containLabel: true },
+    grid: { top: 6, left: 4, right: 8, bottom: 4, containLabel: true },
     xAxis: {
       type: "category",
       data: data.hours,
@@ -254,20 +255,11 @@ function heatmap(data, theme, context) {
     },
     visualMap: {
       type: "continuous",
+      show: false,
       seriesIndex: 1,
       min: 0,
       max,
       dimension: 2,
-      orient: "horizontal",
-      left: "center",
-      bottom: 0,
-      itemWidth: 10,
-      itemHeight: narrow ? 140 : 200,
-      calculable: false,
-      realtime: false,
-      text: [rateMode ? "100%" : integer.format(max), rateMode ? "0%" : "0"],
-      textGap: 8,
-      textStyle: { color: theme.muted, fontSize: 11 },
       inRange: { color: [theme.sequentialLow, theme.sequentialHigh] }
     },
     tooltip: {
@@ -297,33 +289,102 @@ function heatmap(data, theme, context) {
   }
 }
 
-// Distribuição em faixas ordenadas (histograma): um só tom, faixas lado a lado, contagem
-// no topo e a participação de cada faixa no tooltip.
+// Distribuição em faixas ordenadas (histograma): um só tom, faixas lado a lado com trilho
+// discreto, contagem no topo e a participação de cada faixa no tooltip. O servidor diz em que
+// faixa caem a mediana e o p90 (etiquetas acima da barra) e, quando existe, onde começa a
+// cauda longa (faixa hachurada, com fundo e rótulo próprios). Nada é recalculado aqui.
 function histogram(data, theme, context) {
   const clickable = Boolean(data.links)
+  const markers = data.markers || []
+  const tailFrom = data.tail ? data.tail.from : null
+  const inTail = (index) => tailFrom !== null && index >= tailFrom
+  // Com espaço, a etiqueta traz o valor ("Mediana 2 min 07 s"); estreito, só o nome.
+  const narrow = (context.width || 800) < 560
+  const tags = (index) => markers.filter((marker) => marker.index === index)
+    .map((marker) => (narrow ? marker.label : `${marker.label} ${marker.value}`)).join(" · ")
+  const tailColor = mix(theme.surface, theme.tone("brand"), 0.55)
+  const hatch = { symbol: "rect", color: theme.decal, dashArrayX: [1, 0], dashArrayY: [2, 5], rotation: -Math.PI / 4 }
+  const lastIndex = data.labels.length - 1
 
   return {
     ...base(theme),
-    grid: { top: 24, left: 4, right: 8, bottom: 4, containLabel: true },
-    xAxis: { ...categoryAxis(theme, data.labels, context), axisLabel: { color: theme.muted, interval: 0, hideOverlap: false, margin: 10 } },
-    yAxis: valueAxis(theme),
+    grid: { top: 48, left: 4, right: 8, bottom: 4, containLabel: true },
+    xAxis: {
+      ...categoryAxis(theme, data.labels, context),
+      axisLabel: {
+        color: theme.muted,
+        interval: 0,
+        hideOverlap: false,
+        margin: 10,
+        // Estreito: número e unidade em duas linhas ("10–60" / "min"), sem esconder faixa.
+        formatter: (label, index) => {
+          const text = narrow ? label.replace(/ (?=[^ ]*$)/, "\n") : label
+          return inTail(index) ? `{tail|${text}}` : text
+        },
+        lineHeight: 14,
+        rich: { tail: { color: theme.textSecondary, fontWeight: 600, lineHeight: 14 } }
+      }
+    },
+    // Contagens já estão no topo de cada barra: o eixo Y só daria ruído.
+    yAxis: { type: "value", show: false, max: (value) => Math.max(1, value.max) },
     tooltip: {
       ...base(theme).tooltip,
       trigger: "item",
-      formatter: (params) =>
-        tooltipTitle(data.longLabels[params.dataIndex], theme) +
-        tooltipRow(theme.tone("brand"), data.valueLabel, integer.format(params.value)) +
-        tooltipRow("transparent", data.shareLabel, data.shares[params.dataIndex]) +
-        (clickable ? note("Clique para ver as tentativas", theme) : "")
+      formatter: (params) => {
+        const index = params.dataIndex
+        let html = tooltipTitle(data.longLabels[index], theme) +
+          tooltipRow(theme.tone("brand"), data.valueLabel, integer.format(params.value)) +
+          tooltipRow("transparent", data.shareLabel, data.shares[index])
+        const notes = markers.filter((marker) => marker.index === index).map((marker) => marker.note)
+        if (inTail(index)) notes.push(data.tail.note)
+        if (notes.length) html += divider(theme) + notes.map((text) => note(text, theme)).join("")
+        if (clickable && params.value > 0) html += note("Clique para ver as tentativas", theme)
+        return html
+      }
     },
     series: [{
       type: "bar",
       cursor: clickable ? "pointer" : "default",
-      data: data.values,
-      barCategoryGap: "12%",
-      itemStyle: { color: theme.tone("brand"), borderRadius: [3, 3, 0, 0] },
-      emphasis: { itemStyle: { opacity: 0.85 } },
-      label: { show: true, position: "top", color: theme.textSecondary, fontSize: 11, formatter: (params) => (params.value > 0 ? integer.format(params.value) : "") }
+      data: data.values.map((value, index) => ({
+        value,
+        itemStyle: inTail(index) ? { color: tailColor, decal: hatch } : undefined
+      })),
+      barCategoryGap: "18%",
+      showBackground: true,
+      backgroundStyle: { color: theme.hover, borderRadius: [4, 4, 0, 0] },
+      itemStyle: { color: theme.tone("brand"), borderRadius: [4, 4, 0, 0] },
+      emphasis: { focus: "self" },
+      blur: { itemStyle: { opacity: 0.35 } },
+      label: {
+        show: true,
+        position: "top",
+        distance: 6,
+        formatter: (params) => {
+          const count = params.value > 0 ? `{count|${integer.format(params.value)}}` : ""
+          const tag = tags(params.dataIndex)
+          return tag ? `{tag|${tag}}\n${count}` : count
+        },
+        rich: {
+          count: { color: theme.textSecondary, fontSize: 11, fontWeight: 600, lineHeight: 16 },
+          tag: {
+            color: theme.text,
+            backgroundColor: theme.surface,
+            borderColor: theme.line,
+            borderWidth: 1,
+            borderRadius: 4,
+            padding: [2, 6],
+            fontSize: 10,
+            fontWeight: 600,
+            lineHeight: 14
+          }
+        }
+      },
+      markArea: tailFrom === null ? undefined : {
+        silent: true,
+        itemStyle: { color: theme.hover, opacity: 0.6 },
+        label: { show: !narrow, position: "insideTop", distance: 4, color: theme.muted, fontSize: 10, formatter: data.tail.label },
+        data: [[{ xAxis: data.labels[tailFrom] }, { xAxis: data.labels[lastIndex] }]]
+      }
     }]
   }
 }
@@ -331,7 +392,8 @@ function histogram(data, theme, context) {
 // Mesmas células do mapa de calor em barras 3D (ECharts GL): altura = tentativas ou taxa. É uma
 // visão exploratória para desktop; o mapa 2D e a tabela continuam sendo a leitura de referência.
 // Câmera com limites (sem giro automático, sem zoom pela roda para não prender a rolagem da página).
-const CAMERA = { alpha: 22, beta: 22, distance: 200 }
+// center abaixo do meio da caixa: a borda da frente (mais perto da câmera) não sai do quadro.
+const CAMERA = { alpha: 22, beta: 18, distance: 190, center: [0, -24, 0] }
 
 function heatmap3d(data, theme, context) {
   const rateMode = context.mode === "rate"
@@ -365,8 +427,9 @@ function heatmap3d(data, theme, context) {
         return heatmapTooltip(data, data.cells[params.data.linkIndex], theme, clickable)
       }
     },
-    xAxis3D: { type: "category", data: data.hours, name: "", ...axisStyle, axisLabel: { ...axisStyle.axisLabel, interval: 2 } },
+    xAxis3D: { type: "category", data: data.hours, name: data.labels.hour || "", nameGap: 18, ...axisStyle, axisLabel: { ...axisStyle.axisLabel, interval: 2, formatter: (value) => (value === data.hours[0] ? "" : value) } },
     yAxis3D: { type: "category", data: data.days, name: "", ...axisStyle },
+    // O nome da medida fica na legenda (analytics-scale), sem disputar espaço com os números.
     zAxis3D: {
       type: "value",
       name: "",
@@ -377,25 +440,26 @@ function heatmap3d(data, theme, context) {
       axisLabel: { ...axisStyle.axisLabel, formatter: (value) => (rateMode ? `${Math.round(value * 100)}%` : integer.format(value)) }
     },
     grid3D: {
-      boxWidth: 180,
-      boxDepth: 75,
-      boxHeight: 70,
-      top: 8,
+      boxWidth: 200,
+      boxDepth: 92,
+      boxHeight: 76,
+      top: 0,
+      bottom: 0,
       environment: "none",
       axisLine: { lineStyle: { color: theme.line } },
       splitLine: { lineStyle: { color: theme.lineSubtle } },
       axisPointer: { lineStyle: { color: theme.muted } },
-      light: { main: { intensity: 1.1, alpha: 40, beta: 30 }, ambient: { intensity: 0.45 } },
+      light: { main: { intensity: 1.05, alpha: 45, beta: 30 }, ambient: { intensity: 0.5 } },
       viewControl: {
         projection: "perspective",
         autoRotate: false,
         ...CAMERA,
         minAlpha: 10,
-        maxAlpha: 60,
+        maxAlpha: 45,
         minBeta: -20,
-        maxBeta: 60,
-        minDistance: 200,
-        maxDistance: 200,
+        maxBeta: 30,
+        minDistance: CAMERA.distance,
+        maxDistance: CAMERA.distance,
         rotateSensitivity: 1,
         zoomSensitivity: 0,
         panSensitivity: 0,
@@ -408,8 +472,9 @@ function heatmap3d(data, theme, context) {
       type: "bar3D",
       data: points,
       shading: "lambert",
-      bevelSize: 0.2,
-      barSize: [5.4, 6.6],
+      bevelSize: 0.3,
+      bevelSmoothness: 2,
+      barSize: [5.8, 8],
       silent: false,
       itemStyle: { opacity: 1 },
       emphasis: { label: { show: false }, itemStyle: { color: theme.tone("brand") } },

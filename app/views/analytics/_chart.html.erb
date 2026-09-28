@@ -1,6 +1,7 @@
 <%# Moldura de um gráfico. A tabela de dados é sempre renderizada: é a versão acessível e a que
     aparece sem JavaScript, pelo botão "Tabela" ou se o gráfico falhar. O ECharts desenha por cima.
-    locals: key, title, head, rows, chart (opcional), controls (opcional), note (opcional), note_3d (opcional), section (opcional) %>
+    locals: key, title, head, rows, chart (opcional), controls (opcional), note (opcional), note_3d (opcional),
+    section (opcional). chart[:scale] liga a legenda da escala sequencial (mapa de calor). %>
 <% section = local_assigns[:section] %>
 <% chart = local_assigns[:chart] unless section&.failed? %>
 <% note = local_assigns[:note] %>
@@ -26,6 +27,21 @@
       <div class="analytics-chart__visual">
         <div class="analytics-chart__canvas" data-analytics-chart-target="canvas" role="img"
              aria-label="<%= chart[:summary] %>" style="--analytics-chart-height: <%= chart[:height].to_i %>px"></div>
+        <% if (scale = chart[:scale]) %>
+          <%# Legenda no padrão do design system (não a do ECharts). Só visual: a tabela traz os números. %>
+          <div class="analytics-scale" aria-hidden="true">
+            <span class="analytics-scale__caption analytics-scale__caption--volume"><%= t("analytics.scale.volume") %></span>
+            <span class="analytics-scale__caption analytics-scale__caption--rate"><%= t("analytics.scale.rate") %></span>
+            <span class="analytics-scale__range">
+              <span class="analytics-scale__value analytics-scale__value--volume">0</span>
+              <span class="analytics-scale__value analytics-scale__value--rate">0%</span>
+              <span class="analytics-scale__ramp"></span>
+              <span class="analytics-scale__value analytics-scale__value--volume"><%= scale[:volume_max] %></span>
+              <span class="analytics-scale__value analytics-scale__value--rate">100%</span>
+            </span>
+            <span class="analytics-scale__low"><span class="analytics-scale__swatch"></span><%= t("analytics.scale.low_sample") %></span>
+          </div>
+        <% end %>
       </div>
       <p class="analytics-chart__unavailable" role="status"><%= t("analytics.chart.unavailable") %></p>
     <% end %>
@@ -60,7 +76,10 @@
       <p class="analytics-chart__note" data-analytics-chart-target="note"><%= note %></p>
     <% end %>
     <% if local_assigns[:note_3d].present? %>
-      <p class="analytics-chart__note" hidden data-analytics-chart-target="note3d"><%= local_assigns[:note_3d] %></p>
+      <p class="analytics-chart__note analytics-chart__note--3d" hidden data-analytics-chart-target="note3d">
+        <span class="analytics-chart__badge"><i class="fa-solid fa-cube" aria-hidden="true"></i><%= t("analytics.view_switch.badge") %></span>
+        <span><%= local_assigns[:note_3d] %></span>
+      </p>
     <% end %>
   <% end %>
 <% end %>

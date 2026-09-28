@@ -344,8 +344,9 @@ module AnalyticsHelper
             [ cell[:hour], cell[:weekday] - 1, cell[:attempts], cell[:answered], metrics[index].value&.round(4), metrics[index].low_sample?, analytics_rate_text(metrics[index]) ]
           end,
           links: links,
-          labels: { attempts: t("analytics.table.attempts"), answered: t("analytics.table.answered"), rate: t("analytics.table.answer_rate") }
+          labels: { attempts: t("analytics.table.attempts"), answered: t("analytics.table.answered"), rate: t("analytics.table.answer_rate"), hour: t("analytics.table.hour") }
         },
+        scale: { volume_max: analytics_count(busiest ? busiest[:attempts] : 0) },
         summary: busiest ? t("analytics.chart.summary.heatmap", day: day_names[busiest[:weekday] - 1], hour: hour_names[busiest[:hour]], count: analytics_count(busiest[:attempts]), cells: cells.size) : t("analytics.empty_calls")
       }
     }
@@ -416,8 +417,11 @@ module AnalyticsHelper
   end
 
   # Histograma do tempo de processamento dos lotes (faixas de BatchesQuery::PROCESSING_BINS).
+  # A última faixa ("> 1 dia") reúne a cauda longa: poucos lotes de dias ou meses não achatam
+  # o restante da distribuição, e a faixa aparece marcada como cauda.
   def analytics_processing_histogram(bins, median:, p90:)
     measured = bins.sum(&:last)
+    tail_index = bins.index { |key, _| key == "over_1d" }
     labels = bins.map { |key, _| t("analytics.processing_bins.#{key}") }
     shares = bins.map { |_, count| analytics_percent(measured.positive? ? count.to_f / measured : nil) }
 
@@ -430,7 +434,9 @@ module AnalyticsHelper
         height: 240,
         data: {
           labels: labels, longLabels: labels.map { |label| "#{t('analytics.table.processing')}: #{label}" }, values: bins.map(&:last), shares: shares,
-          valueLabel: t("analytics.table.batches"), shareLabel: t("analytics.chart.share_of", total: analytics_count(measured))
+          valueLabel: t("analytics.table.batches"), shareLabel: t("analytics.chart.share_of", total: analytics_count(measured)),
+          markers: analytics_histogram_markers(Analytics::BatchesQuery::PROCESSING_BINS, median: median.value, p90: p90.value),
+          tail: ({ from: tail_index, label: t("analytics.histogram.tail"), note: t("analytics.histogram.tail_note") } if tail_index && bins[tail_index].last.positive?)
         },
         summary: "#{t('analytics.sections.processing_distribution')}. " + bins.each_with_index.map { |(_, count), index| "#{labels[index]}: #{analytics_count(count)}" }.join("; ")
       }
@@ -458,11 +464,23 @@ module AnalyticsHelper
         height: 240,
         data: {
           labels: labels, longLabels: labels.map { |label| "#{t('analytics.table.duration')}: #{label}" }, values: bins.map(&:last), shares: shares,
-          valueLabel: t("analytics.table.calls"), shareLabel: t("analytics.chart.share_of", total: analytics_count(measured)), links: links
+          valueLabel: t("analytics.table.calls"), shareLabel: t("analytics.chart.share_of", total: analytics_count(measured)), links: links,
+          markers: analytics_histogram_markers(Analytics::AttemptsQuery::DURATION_BINS, median: median.value, p90: p90.value)
         },
         summary: "#{t('analytics.sections.duration_distribution')}. " + bins.each_with_index.map { |(_, count), index| "#{labels[index]}: #{analytics_count(count)}" }.join("; ")
       }
     }
+  end
+
+  # Faixa em que caem a mediana e o p90. Os percentis vêm do SQL sobre os valores exatos; aqui
+  # só se localiza a faixa que contém cada um. [índice da faixa, rótulo, valor formatado].
+  def analytics_histogram_markers(definition, median:, p90:)
+    { t("analytics.histogram.median") => median, t("analytics.histogram.p90") => p90 }.filter_map do |label, seconds|
+      next if seconds.nil?
+
+      index = definition.index { |_, from, to| (from.nil? || seconds >= from) && (to.nil? || seconds < to) }
+      { index: index, label: label, value: analytics_duration(seconds), note: t("analytics.histogram.marker_note", label: label, value: analytics_duration(seconds)) } if index
+    end
   end
 
   def analytics_drill_code(code)

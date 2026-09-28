@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { chartTheme } from "lib/analytics_chart_theme"
+import { chartTheme, prefersReducedMotion } from "lib/analytics_chart_theme"
 import { buildChartOptions, drillTarget } from "lib/analytics_chart_options"
 
 // Único lugar que inicializa o ECharts. O arquivo da biblioteca só é baixado quando um gráfico
@@ -7,17 +7,29 @@ import { buildChartOptions, drillTarget } from "lib/analytics_chart_options"
 // tela e pelo botão "Tabela") e volta a aparecer se o gráfico não puder ser carregado.
 // A visão 3D (ECharts GL) é opcional: só no desktop com WebGL, baixada no primeiro clique.
 const DESKTOP = "(min-width: 1024px)"
+// Troca 2D ↔ 3D: some e reaparece em ~200 ms no total (com a criação do gráfico), sem recarregar a página.
+const FADE_MS = 80
+
+const pause = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms))
+
+// Testa uma vez por página e devolve o contexto de teste na hora: o navegador limita quantos
+// contextos WebGL ficam ativos.
+let webGLSupport = null
 
 function supportsWebGL() {
+  if (webGLSupport !== null) return webGLSupport
   try {
-    return Boolean(window.WebGLRenderingContext && document.createElement("canvas").getContext("webgl"))
+    const gl = window.WebGLRenderingContext && document.createElement("canvas").getContext("webgl")
+    webGLSupport = Boolean(gl)
+    gl?.getExtension("WEBGL_lose_context")?.loseContext()
   } catch {
-    return false
+    webGLSupport = false
   }
+  return webGLSupport
 }
 
 export default class extends Controller {
-  static targets = ["canvas", "toggle", "mode", "view", "reset", "note", "note3d"]
+  static targets = ["canvas", "toggle", "mode", "viewSwitch", "view", "reset", "note", "note3d"]
   static values = { kind: String, data: Object, mode: String, view: { type: String, default: "2d" } }
 
   async connect() {
@@ -54,7 +66,7 @@ export default class extends Controller {
 
   // 2D em SVG (nítido, leve); 3D precisa de canvas/WebGL.
   createChart() {
-    this.chart?.dispose()
+    this.disposeChart()
     this.canvasTarget.replaceChildren()
     this.canvasTarget.removeAttribute("_echarts_instance_")
     const renderer = this.is3d ? "canvas" : "svg"
@@ -76,32 +88,48 @@ export default class extends Controller {
     this.chart.setOption(buildChartOptions(this.kind, this.dataValue, chartTheme(), context), { notMerge: true })
   }
 
-  async toggleView() {
-    const next = this.is3d ? "2d" : "3d"
-    if (next === "3d") {
-      this.viewTarget.disabled = true
-      try {
-        await import("echarts-gl")
-      } catch (error) {
-        console.error("[analytics] visão 3D indisponível", error)
-        this.viewTarget.hidden = true
-        return
-      } finally {
-        this.viewTarget.disabled = false
+  // Seletor [2D | 3D]. O ECharts GL só é baixado no primeiro pedido de 3D; se falhar, o
+  // seletor some e o 2D continua. Métrica, filtros e período não mudam na troca.
+  async setView(event) {
+    const next = event.params.view
+    if (next === this.viewValue || this.switching) return
+    this.switching = true
+    const button = event.currentTarget
+    try {
+      if (next === "3d") {
+        button.setAttribute("aria-busy", "true")
+        try {
+          await import("echarts-gl")
+        } catch (error) {
+          console.error("[analytics] visão 3D indisponível", error)
+          if (this.hasViewSwitchTarget) this.viewSwitchTarget.hidden = true
+          return
+        } finally {
+          button.removeAttribute("aria-busy")
+        }
+        if (!this.chart) return
       }
-      if (!this.chart) return
+      await this.switchView(next, { fade: true })
+    } finally {
+      this.switching = false
     }
-    this.switchView(next)
   }
 
-  switchView(view) {
+  async switchView(view, { fade = false } = {}) {
+    const animate = fade && Boolean(this.chart) && !prefersReducedMotion()
+    if (animate) {
+      this.canvasTarget.classList.add("is-fading")
+      await pause(FADE_MS)
+      if (!this.element.isConnected) return
+    }
     this.viewValue = view
     this.element.classList.toggle("is-3d", this.is3d)
-    if (this.hasViewTarget) this.viewTarget.setAttribute("aria-pressed", String(this.is3d))
+    this.viewTargets.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.analyticsChartViewParam === view)))
     if (this.hasResetTarget) this.resetTarget.hidden = !this.is3d
     if (this.hasNoteTarget) this.noteTarget.hidden = this.is3d
     if (this.hasNote3dTarget) this.note3dTarget.hidden = !this.is3d
     if (this.chart) this.createChart()
+    if (animate) window.requestAnimationFrame(() => this.canvasTarget.classList.remove("is-fading"))
   }
 
   // Redesenhar com notMerge volta a câmera à posição inicial.
@@ -109,11 +137,11 @@ export default class extends Controller {
     if (this.chart && this.is3d) this.render()
   }
 
-  // Botão 3D só aparece quando dá para usar; ao estreitar a janela, volta para o 2D.
+  // Seletor 2D/3D só aparece quando dá para usar; ao estreitar a janela, volta para o 2D.
   syncViewAvailability() {
-    if (!this.hasViewTarget) return
+    if (!this.hasViewSwitchTarget) return
     const available = this.desktop.matches && supportsWebGL()
-    this.viewTarget.hidden = !available
+    this.viewSwitchTarget.hidden = !available
     if (!available && this.is3d) this.switchView("2d")
   }
 
@@ -144,7 +172,7 @@ export default class extends Controller {
     this.colorScheme = window.matchMedia("(prefers-color-scheme: dark)")
     this.colorScheme.addEventListener("change", this.redraw)
     window.addEventListener("appearance:changed", this.redraw)
-    if (this.hasViewTarget) {
+    if (this.hasViewSwitchTarget) {
       // O ECharts GL cancela a roda do mouse mesmo sem zoom, prendendo a rolagem da página.
       // No 3D a roda não chega nele: a página rola normalmente.
       this.passWheel = (event) => this.is3d && event.stopPropagation()
@@ -156,14 +184,26 @@ export default class extends Controller {
     }
   }
 
+  // O ECharts GL não devolve o contexto WebGL no dispose, e o navegador limita quantos ficam
+  // ativos (~16). Perde o contexto explicitamente para não acumular instâncias órfãs ao
+  // alternar 2D/3D ou navegar pelo Turbo.
+  disposeChart() {
+    if (!this.chart) return
+    const contexts = [...this.canvasTarget.querySelectorAll("canvas")]
+      .map((canvas) => canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+      .filter(Boolean)
+    this.chart.dispose()
+    this.chart = null
+    contexts.forEach((gl) => gl.getExtension("WEBGL_lose_context")?.loseContext())
+  }
+
   teardown() {
     this.resizeObserver?.disconnect()
     this.colorScheme?.removeEventListener("change", this.redraw)
     window.removeEventListener("appearance:changed", this.redraw)
     this.desktop?.removeEventListener("change", this.availability)
     if (this.passWheel) this.canvasTarget.removeEventListener("wheel", this.passWheel, { capture: true })
-    this.chart?.dispose()
-    this.chart = null
+    this.disposeChart()
     this.resizeObserver = null
     this.element.classList.remove("is-ready", "is-loading")
   }

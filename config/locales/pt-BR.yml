@@ -865,12 +865,49 @@
     hour_range: "%{from}h–%{to}h"
     heatmap_note: "Horário de Brasília. No modo taxa, células hachuradas têm menos de 20 tentativas: use como referência, não como conclusão."
     heatmap_modes:
-      aria: "Medida do mapa de calor"
+      label: "Métrica"
+      aria: "Métrica do mapa de calor"
       volume: "Volume"
       rate: "Taxa de atendimento"
-      view_3d_aria: "Ver as mesmas células em barras 3D"
+      note_3d: "Arraste para girar. Mesmos números do mapa 2D e da tabela, que continuam sendo a leitura de referência. Na taxa, barras cinza têm menos de 20 tentativas."
+    view_switch:
+      label: "Visão"
+      aria: "Visualização do gráfico"
+      flat: "2D"
+      depth: "3D"
+      2d_aria: "Mapa 2D, a leitura de referência"
+      3d_aria: "Barras 3D das mesmas células, para exploração"
       reset_camera: "Redefinir câmera"
-      note_3d: "Visão 3D exploratória: arraste para girar. Os números são os mesmos do mapa 2D e da tabela; na taxa, barras cinza têm menos de 20 tentativas."
+      badge: "Exploração 3D"
+    scale:
+      volume: "Tentativas"
+      rate: "Taxa de atendimento"
+      low_sample: "Menos de 20 tentativas"
+    histogram:
+      median: "Mediana"
+      p90: "p90"
+      marker_note: "%{label} (%{value}) cai nesta faixa"
+      tail: "Cauda longa"
+      tail_note: "Poucos lotes muito acima do restante, reunidos numa faixa só para não achatar a leitura das demais."
+    processing_summary:
+      title: "Resumo do processamento"
+      median: "Mediana"
+      p90: "p90"
+      fastest: "Mais rápido"
+      slowest: "Mais lento"
+      tail: "Acima de 1 dia"
+      of_measured: "dos medidos"
+      volume: "Volume"
+      batches:
+        one: "1 lote"
+        other: "%{formatted} lotes"
+      records:
+        one: "1 registro"
+        other: "%{formatted} registros"
+      in_batches:
+        one: "em 1 lote"
+        other: "em %{formatted} lotes"
+      coverage: "Tempo medido em %{measured} de %{total} lotes, pelo relógio da API. Os demais ainda não terminaram ou têm horários inconsistentes."
     processing_bins:
       under_1m: "< 1 min"
       1m_3m: "1–3 min"
@@ -887,7 +924,7 @@
     duration_distribution_note:
       one: "Mediana %{median} · p90 %{p90} · 1 chamada atendida com duração (%{coverage} de cobertura)."
       other: "Mediana %{median} · p90 %{p90} · %{formatted} chamadas atendidas com duração (%{coverage} de cobertura)."
-    processing_distribution_note: "Mediana %{median} · p90 %{p90} · %{count} lotes medidos pelo relógio da API. Faixas em escala de tempo, porque os lotes vão de segundos a meses."
+    processing_distribution_note: "Mediana %{median} · p90 %{p90} · %{count} lotes medidos pelo relógio da API. Faixas de largura crescente (escala de tempo, não linear), porque os lotes vão de segundos a meses; a última reúne tudo acima de 1 dia."
     funnel_passage: "%{rate} da etapa anterior"
     funnel_lost:
       one: "1 ficou pelo caminho"

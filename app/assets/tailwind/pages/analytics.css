@@ -863,22 +863,67 @@
     }
   }
 
-  /* Visão 3D do mapa de calor: botão só no desktop com WebGL (o controller também decide). */
-  .analytics-chart__view {
+  /*
+    Controles de um gráfico no padrão do Analytics: "Métrica [Volume | Taxa]" e
+    "Visão [2D | 3D]". O rótulo visível só aparece com espaço; os grupos têm aria-label.
+  */
+  .analytics-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .analytics-control__label {
+    display: none;
+    color: var(--color-fg-muted);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  @media (min-width: 1280px) {
+    .analytics-control__label {
+      display: inline;
+    }
+  }
+
+  .analytics-segmented__item:has(> i) {
+    display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    padding: 0.1875rem 0.625rem;
+  }
+
+  .analytics-segmented__item > i {
+    font-size: 0.6875rem;
+  }
+
+  /* Enquanto o ECharts GL baixa: o botão 3D mostra progresso sem mudar de tamanho. */
+  .analytics-segmented__item[aria-busy="true"] {
+    cursor: progress;
+  }
+
+  .analytics-segmented__item[aria-busy="true"] > i {
+    animation: analytics-spin 0.9s linear infinite;
+  }
+
+  @keyframes analytics-spin {
+    to { transform: rotate(360deg); }
   }
 
   .analytics-chart__reset {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
+    border: 1px solid var(--color-line);
     border-radius: var(--lp-radius-sm);
+    background: var(--color-surface);
     padding: 0.1875rem 0.5rem;
-    color: var(--color-fg-muted);
+    color: var(--color-fg-secondary);
     font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.125rem;
     cursor: pointer;
+    transition: color var(--lp-duration) var(--lp-ease), background-color var(--lp-duration) var(--lp-ease);
   }
 
   .analytics-chart__reset:hover {
@@ -891,21 +936,229 @@
     box-shadow: var(--lp-focus-ring);
   }
 
-  .analytics-chart__view[hidden],
+  .analytics-control[hidden],
   .analytics-chart__reset[hidden],
   .analytics-chart__note[hidden] {
     display: none;
   }
 
+  /* 3D não é obrigatório abaixo de 1024 px (o controller também decide, com WebGL). */
   @media (max-width: 1023px) {
-    .analytics-chart__view,
+    .analytics-control--view,
     .analytics-chart__reset {
       display: none;
     }
   }
 
+  /* Troca 2D ↔ 3D: some e reaparece (~200 ms no total), sem movimento de câmera. */
+  .analytics-chart__canvas {
+    transition: opacity 80ms var(--lp-ease);
+  }
+
+  .analytics-chart__canvas.is-fading {
+    opacity: 0;
+  }
+
+  /* Palco do 3D: mais área útil e um fundo discreto que separa o volume do cartão. */
+  .analytics-chart.is-3d .analytics-chart__visual {
+    background: radial-gradient(ellipse 70% 60% at 50% 42%, var(--color-surface-subtle), transparent 75%);
+  }
+
   .analytics-chart.is-3d .analytics-chart__canvas {
-    height: 420px;
+    height: 480px;
     cursor: grab;
+  }
+
+  .analytics-chart.is-3d .analytics-chart__canvas:active {
+    cursor: grabbing;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .analytics-chart__canvas {
+      transition: none;
+    }
+
+    .analytics-segmented__item[aria-busy="true"] > i {
+      animation: none;
+    }
+  }
+
+  /* Nota do 3D: selo "Exploração 3D" + lembrete de que o 2D e a tabela são a referência. */
+  .analytics-chart__note--3d {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem 0.625rem;
+  }
+
+  .analytics-chart__note--3d[hidden] {
+    display: none;
+  }
+
+  .analytics-chart__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border: 1px solid var(--color-info-line);
+    border-radius: 999px;
+    background: var(--color-info-bg);
+    padding: 0.0625rem 0.5rem;
+    color: var(--color-info-fg);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.125rem;
+    white-space: nowrap;
+  }
+
+  .analytics-chart__badge > i {
+    font-size: 0.625rem;
+  }
+
+  /*
+    Legenda da escala sequencial do mapa de calor, com as mesmas cores dos gráficos
+    (analytics_chart_theme.js: sequentialLow = surface + 16% brand; sequentialHigh = brand-fg).
+    A métrica ativa vem de data-analytics-chart-mode-value; o 3D troca a hachura por cinza.
+  */
+  .analytics-scale {
+    --analytics-scale-low: color-mix(in srgb, var(--color-surface) 84%, var(--color-brand));
+    --analytics-scale-high: var(--color-brand-fg);
+    --analytics-scale-sparse: color-mix(in srgb, var(--color-surface) 40%, var(--color-fg-muted));
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem 1.25rem;
+    padding-top: 0.625rem;
+    color: var(--color-fg-muted);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+  }
+
+  .analytics-chart.is-3d .analytics-scale {
+    --analytics-scale-low: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 84%, var(--color-brand)) 75%, var(--color-brand-fg));
+  }
+
+  .analytics-scale__caption {
+    color: var(--color-fg-secondary);
+    font-weight: 500;
+  }
+
+  .analytics-scale__range {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .analytics-scale__ramp {
+    width: 10rem;
+    height: 0.5rem;
+    border: 1px solid var(--color-line-subtle);
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--analytics-scale-low), var(--analytics-scale-high));
+  }
+
+  .analytics-scale__low {
+    display: none;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .analytics-scale__swatch {
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: 3px;
+    background:
+      repeating-linear-gradient(-45deg, var(--color-fg-muted) 0 1px, transparent 1px 4px),
+      color-mix(in srgb, var(--color-surface) 50%, var(--color-brand-fg));
+  }
+
+  .analytics-chart.is-3d .analytics-scale__swatch {
+    background: var(--analytics-scale-sparse);
+  }
+
+  .analytics-scale__caption--rate,
+  .analytics-scale__value--rate,
+  .analytics-chart[data-analytics-chart-mode-value="rate"] .analytics-scale__caption--volume,
+  .analytics-chart[data-analytics-chart-mode-value="rate"] .analytics-scale__value--volume {
+    display: none;
+  }
+
+  .analytics-chart[data-analytics-chart-mode-value="rate"] .analytics-scale__caption--rate,
+  .analytics-chart[data-analytics-chart-mode-value="rate"] .analytics-scale__value--rate {
+    display: inline;
+  }
+
+  .analytics-chart[data-analytics-chart-mode-value="rate"] .analytics-scale__low {
+    display: inline-flex;
+  }
+
+  /* Lotes: distribuição + resumo lado a lado quando há espaço; empilhados antes disso. */
+  .analytics-split {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 1280px) {
+    .analytics-split {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      align-items: stretch;
+    }
+  }
+
+  .analytics-processing-summary {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .analytics-processing-summary > .workspace-portlet-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .analytics-stat-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 1rem 1.25rem;
+    margin: 0;
+    padding: 1rem 1.25rem;
+  }
+
+  .analytics-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .analytics-stat dt {
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .analytics-stat dd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.5rem;
+    margin: 0;
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+  }
+
+  .analytics-stat dd strong {
+    color: var(--color-fg);
+    font-size: 1rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5rem;
+  }
+
+  .analytics-stat--tail dd strong {
+    color: var(--color-warning-fg);
   }
 }

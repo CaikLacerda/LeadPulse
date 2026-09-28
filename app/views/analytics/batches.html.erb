@@ -10,10 +10,14 @@
     <% metrics = summary.data[:metrics] %>
     <%= render "analytics/kpis", metrics: metrics, page: :batches %>
     <% if metrics[:median_processing].current.sample.positive? %>
-      <%= render "analytics/chart",
-          key: "processing",
-          title: t("analytics.sections.processing_distribution"),
-          **analytics_processing_histogram(summary.data[:processing_bins], median: metrics[:median_processing].current, p90: metrics[:p90_processing].current) %>
+      <%# Distribuição + resumo lado a lado no desktop; a tabela analítica vem logo abaixo. %>
+      <div class="analytics-split">
+        <%= render "analytics/chart",
+            key: "processing",
+            title: t("analytics.sections.processing_distribution"),
+            **analytics_processing_histogram(summary.data[:processing_bins], median: metrics[:median_processing].current, p90: metrics[:p90_processing].current) %>
+        <%= render "analytics/processing_summary", metrics: metrics, processing: summary.data[:processing], bins: summary.data[:processing_bins] %>
+      </div>
     <% end %>
     <%= render "analytics/batches_table", section: table %>
   <% end %>
