@@ -7,7 +7,7 @@ module Analytics
   # próprio, com chave por conta, filtros e versão das fontes que ela lê.
   class Report
     # Mude a versão sempre que o formato dos dados de uma seção mudar: o cache guarda esse formato.
-    CACHE_VERSION = "v3".freeze
+    CACHE_VERSION = "v4".freeze
     CACHE_TTL = 10.minutes
     STATEMENT_TIMEOUT = "5s".freeze
 
@@ -270,7 +270,8 @@ module Analytics
           median_processing: compare(current, previous) { |summary| Metric.duration(summary[:median_processing], summary[:with_processing]) },
           p90_processing: compare(current, previous) { |summary| Metric.duration(summary[:p90_processing], summary[:with_processing]) }
         },
-        processing_bins: current[:processing_bins]
+        processing_bins: current[:processing_bins],
+        processing: { measured: current[:with_processing], fastest: current[:fastest], slowest: current[:slowest] }
       }
     end
   end

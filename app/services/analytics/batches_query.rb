@@ -102,6 +102,10 @@ module Analytics
           COUNT(processing_seconds) AS with_processing,
           percentile_cont(0.5) WITHIN GROUP (ORDER BY processing_seconds) AS median_processing,
           percentile_cont(0.9) WITHIN GROUP (ORDER BY processing_seconds) AS p90_processing,
+          (SELECT id FROM per_batch WHERE processing_seconds IS NOT NULL ORDER BY processing_seconds, id LIMIT 1) AS fastest_id,
+          MIN(processing_seconds) AS fastest_seconds,
+          (SELECT id FROM per_batch WHERE processing_seconds IS NOT NULL ORDER BY processing_seconds DESC, id LIMIT 1) AS slowest_id,
+          MAX(processing_seconds) AS slowest_seconds,
           #{PROCESSING_BINS.map.with_index { |(_, from, to), index| "COUNT(*) FILTER (WHERE processing_seconds >= #{from}#{" AND processing_seconds < #{to}" if to}) AS bin_#{index}" }.join(",\n  ")}
         FROM per_batch
       SQL
@@ -116,6 +120,8 @@ module Analytics
         with_processing: integer(row["with_processing"]),
         median_processing: decimal(row["median_processing"]),
         p90_processing: decimal(row["p90_processing"]),
+        fastest: extreme(row, "fastest"),
+        slowest: extreme(row, "slowest"),
         processing_bins: PROCESSING_BINS.each_with_index.map { |(key, _, _), index| [ key, integer(row["bin_#{index}"]) ] }
       }
     end
@@ -152,6 +158,11 @@ module Analytics
           ) agg
         )
       SQL
+    end
+
+    # Lote mais rápido ou mais lento entre os medidos (mesmo tempo de processamento da tabela).
+    def extreme(row, name)
+      { id: row["#{name}_id"].to_i, seconds: decimal(row["#{name}_seconds"]) } if row["#{name}_id"].present?
     end
 
     def cast(row)

@@ -76,6 +76,28 @@ module Analytics
       assert_in_delta 2256.0, summary[:p90_processing]
     end
 
+    test "summary names the fastest and the slowest measured batch" do
+      batches = [ 300, 45, 90_000 ].each_with_index.map do |seconds, index|
+        create_analytics_batch!(
+          account: @account, started_at: brasilia(2026, 9, 20, 10, index), finished_at: brasilia(2026, 9, 20, 11),
+          payload: { "created_at" => "2026-09-20T13:00:00", "finished_at" => (Time.utc(2026, 9, 20, 13) + seconds).strftime("%Y-%m-%dT%H:%M:%S") }
+        )
+      end
+      create_analytics_batch!(account: @account, started_at: brasilia(2026, 9, 20, 12), finished_at: nil, payload: {})
+
+      summary = query.summary
+
+      assert_equal({ id: batches[1].id, seconds: 45.0 }, summary[:fastest])
+      assert_equal({ id: batches[2].id, seconds: 90_000.0 }, summary[:slowest])
+    end
+
+    test "summary has no extremes without a measured batch" do
+      create_analytics_batch!(account: @account, started_at: brasilia(2026, 9, 20, 12), finished_at: nil, payload: {})
+
+      assert_nil query.summary[:fastest]
+      assert_nil query.summary[:slowest]
+    end
+
     test "groups processing times into time-scale bins that add up to the measured lots" do
       [ 30, 90, 90, 400, 7200, 200_000 ].each_with_index do |seconds, index|
         create_analytics_batch!(
