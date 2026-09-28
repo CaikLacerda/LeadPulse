@@ -7,5 +7,8 @@ pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
 pin_all_from "app/javascript/controllers", under: "controllers"
 pin_all_from "app/javascript/lib", under: "lib"
 
-# Apache ECharts 6.1.0 (build "common", Apache-2.0). Carregado só pelos gráficos do Analytics.
+# Apache ECharts 6.1.0 (build completo, Apache-2.0): o "common" não traz heatmap nem visualMap.
+# Carregado só pelos gráficos do Analytics.
 pin "echarts", preload: false
+# ECharts GL 2.1.0 (BSD-3-Clause, ver echarts-gl.LICENSE.txt). Só a visão 3D de Chamadas, sob demanda, no desktop.
+pin "echarts-gl", preload: false
