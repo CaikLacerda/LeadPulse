@@ -28,7 +28,11 @@ module Analytics
     # Dia (ou segunda-feira da semana) local de um timestamptz.
     def bucket(timestamptz, grouping)
       local_time = local(timestamptz)
-      grouping == Filters::GROUPING_WEEK ? "date_trunc('week', #{local_time})::date" : "(#{local_time})::date"
+      case grouping
+      when Filters::GROUPING_WEEK then "date_trunc('week', #{local_time})::date"
+      when Filters::GROUPING_MONTH then "date_trunc('month', #{local_time})::date"
+      else "(#{local_time})::date"
+      end
     end
 
     def number(text)

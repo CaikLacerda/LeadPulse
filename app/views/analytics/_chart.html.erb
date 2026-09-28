@@ -1,6 +1,6 @@
 <%# Moldura de um gráfico. A tabela de dados é sempre renderizada: é a versão acessível e a que
     aparece sem JavaScript, pelo botão "Tabela" ou se o gráfico falhar. O ECharts desenha por cima.
-    locals: key, title, head, rows, chart (opcional), controls (opcional), note (opcional), section (opcional) %>
+    locals: key, title, head, rows, chart (opcional), controls (opcional), note (opcional), note_3d (opcional), section (opcional) %>
 <% section = local_assigns[:section] %>
 <% chart = local_assigns[:chart] unless section&.failed? %>
 <% note = local_assigns[:note] %>
@@ -57,7 +57,10 @@
     </div>
 
     <% if note.present? %>
-      <p class="analytics-chart__note"><%= note %></p>
+      <p class="analytics-chart__note" data-analytics-chart-target="note"><%= note %></p>
+    <% end %>
+    <% if local_assigns[:note_3d].present? %>
+      <p class="analytics-chart__note" hidden data-analytics-chart-target="note3d"><%= local_assigns[:note_3d] %></p>
     <% end %>
   <% end %>
 <% end %>

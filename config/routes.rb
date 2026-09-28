@@ -74,6 +74,8 @@ Rails.application.routes.draw do
   get "analytics/chamadas", to: "analytics#calls", as: :calls_analytics
   get "analytics/qualificacao", to: "analytics#qualification", as: :qualification_analytics
   get "analytics/lotes", to: "analytics#batches", as: :batches_analytics
+  get "analytics/registros", to: "analytics#records", as: :records_analytics
+  get "analytics/tentativas", to: "analytics#attempts", as: :attempts_analytics
   get "analytics/exportar", to: "analytics#export", as: :export_analytics, constraints: { format: /xlsx|csv/ }
 
   # API de Analytics (somente leitura, token de BI da empresa).

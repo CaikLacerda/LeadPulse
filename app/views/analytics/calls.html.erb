@@ -1,6 +1,6 @@
 <% summary = @page[:summary] %>
 <% daily = @page[:daily] %>
-<% by_hour = @page[:by_hour] %>
+<% heatmap = @page[:heatmap] %>
 
 <%= render layout: "analytics/frame" do %>
   <% if summary.failed? %>
@@ -23,18 +23,29 @@
         controls: render("analytics/grouping_toggle"),
         **(daily.failed? ? { head: [], rows: [] } : analytics_attempts_timeline_chart(daily.data)) %>
 
+    <%= render "analytics/chart",
+        key: "heatmap",
+        title: t("analytics.sections.heatmap"),
+        section: heatmap,
+        controls: render("analytics/heatmap_modes"),
+        note: t("analytics.heatmap_note"),
+        note_3d: t("analytics.heatmap_modes.note_3d"),
+        **(heatmap.failed? ? { head: [], rows: [] } : analytics_heatmap_chart(heatmap.data)) %>
+
     <div class="analytics-grid">
-      <%= render "analytics/chart",
-          key: "hours",
-          title: t("analytics.sections.by_hour"),
-          section: by_hour,
-          note: t("analytics.hourly_note"),
-          **(by_hour.failed? ? { head: [], rows: [] } : analytics_hourly_chart(by_hour.data)) %>
+      <% if data[:metrics][:median_duration].current.sample.positive? %>
+        <%= render "analytics/chart",
+            key: "duration",
+            title: t("analytics.sections.duration_distribution"),
+            **analytics_duration_histogram(data[:duration_bins], median: data[:metrics][:median_duration].current,
+              p90: data[:p90_duration], coverage: data[:metrics][:duration_coverage].current) %>
+      <% end %>
 
       <%= render "analytics/chart",
           key: "attempt-results",
           title: t("analytics.sections.attempt_results"),
-          **analytics_distribution_chart(t("analytics.sections.attempt_results"), data[:results]) %>
+          **analytics_distribution_chart(t("analytics.sections.attempt_results"), data[:results],
+            value_label: t("analytics.table.attempts"), drill: [ :attempts, "resultado" ]) %>
     </div>
 
     <%= render "analytics/calls_table", section: daily %>

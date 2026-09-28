@@ -30,10 +30,10 @@
                 </span>
               </td>
               <td><%= workspace_status_tag(row[:status]) %></td>
-              <td class="is-numeric"><%= analytics_count(row[:records]) %></td>
-              <td class="is-numeric"><%= analytics_count(row[:confirmed]) %></td>
+              <td class="is-numeric"><%= row[:records].positive? ? analytics_drill_link(analytics_count(row[:records]), :records, lote: row[:id]) : analytics_count(row[:records]) %></td>
+              <td class="is-numeric"><%= row[:confirmed].positive? ? analytics_drill_link(analytics_count(row[:confirmed]), :records, lote: row[:id], resultado: "confirmed") : analytics_count(row[:confirmed]) %></td>
               <td class="is-numeric"><%= render "analytics/rate_cell", metric: Analytics::Metric.rate(row[:confirmed], row[:terminal]) %></td>
-              <td class="is-numeric"><%= analytics_count(row[:not_answered]) %></td>
+              <td class="is-numeric"><%= row[:not_answered].positive? ? analytics_drill_link(analytics_count(row[:not_answered]), :records, lote: row[:id], resultado: "not_answered") : analytics_count(row[:not_answered]) %></td>
               <td class="is-numeric <%= 'text-danger-fg' if row[:invalid_rows].positive? %>"><%= analytics_count(row[:invalid_rows]) %></td>
               <td class="is-nowrap"><time datetime="<%= row[:created_at]&.iso8601 %>" title="<%= workspace_datetime(row[:created_at]) %>"><%= workspace_date(row[:created_at]) %></time></td>
               <td class="is-numeric is-nowrap"><%= analytics_duration(row[:processing_seconds]) %></td>

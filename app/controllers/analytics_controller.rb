@@ -1,7 +1,24 @@
 # Indicadores agregados da conta atual. Todos os papéis veem os agregados; os dados vêm
 # sempre de Analytics::Scope, a partir de current_account.
 class AnalyticsController < ApplicationController
+  DRILL_PAGE_SIZE = 25
+  RECORD_DRILL = {
+    "resultado" => [ :result, Analytics::Query::CALL_RESULTS + [ "outros" ] ],
+    "ligacao" => [ :call, %w[com_ligacao atendidos] ],
+    "qualificacao" => [ :outcome, /\A[a-z_]{1,40}\z/ ]
+  }.freeze
+  ATTEMPT_DRILL = {
+    "status" => [ :status, Analytics::AttemptsQuery::STATUSES + [ "outros" ] ],
+    "resultado" => [ :result, Analytics::AttemptsQuery::RESULTS + [ "outros" ] ],
+    "dia_semana" => [ :weekday, (1..7).map(&:to_s) ],
+    "hora" => [ :hour, (0..23).map(&:to_s) ],
+    "duracao" => [ :duration, Analytics::AttemptsQuery::DURATION_BINS.map(&:first) ]
+  }.freeze
+
   before_action :authenticate_user!
+  # Drill-down mostra registros (fornecedor, resultado): mesma regra do detalhe do lote.
+  require_permission :can_view_evidence?, only: %i[records attempts], fallback: :analytics_path,
+    message: "Seu perfil não pode abrir os registros do Analytics."
   before_action :load_report
 
   def overview
@@ -20,6 +37,22 @@ class AnalyticsController < ApplicationController
     @page = @report.batches
   end
 
+  # Registros que compõem um número do Analytics (mesmo período, filtros e definições).
+  def records
+    @drill = drill_filter(RECORD_DRILL)
+    query = Analytics::RecordsQuery.new(@scope.validated_batches(@filters.window))
+    @total = query.count(filter: @drill[:filter])
+    @rows, @next_cursor = query.page(after: drill_cursor(3), limit: DRILL_PAGE_SIZE, filter: @drill[:filter])
+  end
+
+  # Tentativas de chamada que compõem um número do Analytics.
+  def attempts
+    @drill = drill_filter(ATTEMPT_DRILL)
+    query = Analytics::AttemptsQuery.new(@scope.attempt_batches(@filters.window), @filters.window)
+    @total = query.count(filter: @drill[:filter])
+    @rows, @next_cursor = query.page(after: drill_cursor(4), limit: DRILL_PAGE_SIZE, filter: @drill[:filter])
+  end
+
   # XLSX para todos os papéis (agregados; a aba Registros só com can_export_data?).
   # CSV é dado por registro: exige can_export_data?. Toda exportação entra na trilha LGPD.
   def export
@@ -27,6 +60,31 @@ class AnalyticsController < ApplicationController
   end
 
   private
+
+  # Só valores da lista permitida entram no filtro; o resto é ignorado.
+  def drill_filter(definitions)
+    params_used = {}
+    filter = {}
+    definitions.each do |name, (key, allowed)|
+      value = params[name].to_s
+      next if value.empty?
+      next unless allowed.is_a?(Regexp) ? value.match?(allowed) : allowed.include?(value)
+
+      params_used[name] = value
+      filter[key] = value
+    end
+    { filter: filter, params: params_used }
+  end
+
+  def drill_cursor(parts)
+    raw = params[:pagina].to_s
+    return if raw.empty?
+
+    values = JSON.parse(Base64.urlsafe_decode64(raw))
+    values if values.is_a?(Array) && values.size == parts && values.first.is_a?(String) && values.drop(1).all?(Integer)
+  rescue ArgumentError, JSON::ParserError
+    nil
+  end
 
   def export_xlsx
     export = Analytics::XlsxExport.new(
@@ -71,5 +129,6 @@ class AnalyticsController < ApplicationController
     @filters = Analytics::Filters.new(params, account: current_account)
     @scope = Analytics::Scope.new(account: current_account, filters: @filters)
     @report = Analytics::Report.new(scope: @scope)
+    @last_synced_at = current_account.supplier_imports.maximum(:last_synced_at)
   end
 end

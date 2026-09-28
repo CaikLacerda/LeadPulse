@@ -69,13 +69,18 @@ module Analytics
       assert_not analytics_filters(@account, comparar: "nenhum").compare?
     end
 
-    test "groups by week above 92 days and weeks start on Monday" do
-      filters = analytics_filters(@account, periodo: "12m")
-
-      assert_equal "semana", filters.grouping
-      assert filters.window.buckets("semana").all?(&:monday?)
-      assert_equal "dia", analytics_filters(@account, periodo: "90d").grouping
+    test "groups by day up to 31 days, by week up to 92 and by month above" do
+      assert_equal "dia", analytics_filters(@account, periodo: "30d").grouping
+      assert_equal "semana", analytics_filters(@account, periodo: "90d").grouping
+      assert_equal "mes", analytics_filters(@account, periodo: "12m").grouping
       assert_equal "semana", analytics_filters(@account, periodo: "30d", agrupar: "semana").grouping
+
+      window = analytics_filters(@account, periodo: "12m").window
+      assert window.buckets("semana").all?(&:monday?)
+      months = window.buckets("mes")
+      assert_equal 13, months.size
+      assert months.all? { |month| month.day == 1 }
+      assert_equal [ Date.new(2025, 9, 26), Date.new(2025, 9, 30) ], window.bucket_range(months.first, "mes")
     end
 
     test "only accepts a batch of the same account" do

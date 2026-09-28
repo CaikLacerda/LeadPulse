@@ -1,7 +1,5 @@
-<%# Valor de uma taxa ou duração numa tabela, sempre com o n e a marca de baixa amostra. %>
+<%# Taxa ou duração numa tabela: valor com ⓘ quando a amostra é baixa e o n abaixo. %>
 <span class="analytics-rate-cell">
-  <span><%= analytics_metric_value(metric) %></span>
-  <span class="analytics-rate-cell__sample">
-    <%= t("analytics.metric.sample", count: analytics_count(metric.sample)) %><% if metric.available? && metric.low_sample? %> · <%= t("analytics.metric.low_sample") %><% end %>
-  </span>
+  <span class="analytics-rate-cell__value"><%= analytics_metric_value(metric) %><% if metric.available? && metric.low_sample? %> <%= analytics_low_sample_flag(sample: metric.sample) %><% end %></span>
+  <span class="analytics-rate-cell__sample"><%= t("analytics.metric.sample", count: analytics_count(metric.sample)) %></span>
 </span>

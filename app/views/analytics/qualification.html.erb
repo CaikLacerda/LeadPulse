@@ -11,11 +11,13 @@
     <% metrics[:searches] = searches.data[:metrics][:searches] unless searches.failed? %>
     <%= render "analytics/kpis", metrics: metrics, page: :qualification %>
 
-    <%= render "analytics/chart",
-        key: "commercial-funnel",
+    <%= render "analytics/funnel",
         title: t("analytics.sections.commercial_funnel"),
         note: (t("analytics.outside_funnel", count: data[:outside_funnel]) if data[:outside_funnel].positive?),
-        **analytics_funnel_chart(t("analytics.sections.commercial_funnel"), data[:funnel], scope: :commercial_funnel) %>
+        steps: analytics_funnel_steps(data[:funnel], scope: :commercial_funnel, links: {
+          records: analytics_drill_path(:records, fluxo: SupplierImport::WORKFLOW_KIND_SUPPLIER),
+          qualified: analytics_drill_path(:records, qualificacao: "qualified_supplier")
+        }) %>
 
     <div class="analytics-grid">
       <%= render "analytics/chart",

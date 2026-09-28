@@ -1,0 +1,23 @@
+<%# Cabeçalho do drill-down. locals: kind (:records | :attempts), title %>
+<div class="analytics-drill-header">
+  <%= link_to analytics_drill_back_path(kind), class: "analytics-drill-header__back", data: { turbo_frame: "analytics_content", turbo_action: "advance" } do %>
+    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span><%= t("analytics.drill.back") %></span>
+  <% end %>
+  <div class="analytics-drill-header__title-row">
+    <h2 class="analytics-drill-header__title"><%= title %></h2>
+    <span class="analytics-drill-header__count"><%= t("analytics.drill.count.#{kind}", count: @total, formatted: analytics_count(@total)) %></span>
+  </div>
+  <% criteria = analytics_drill_criteria(kind) %>
+  <% if criteria.any? %>
+    <ul class="analytics-chips" aria-label="<%= t("analytics.drill.criteria_aria") %>">
+      <% criteria.each do |label, shown, remove_path| %>
+        <li class="analytics-chip">
+          <span><%= label %>: <strong><%= shown %></strong></span>
+          <%= link_to remove_path, class: "analytics-chip__remove", aria: { label: t("analytics.drill.remove", criterion: "#{label}: #{shown}") }, data: { turbo_frame: "analytics_content", turbo_action: "advance" } do %>
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

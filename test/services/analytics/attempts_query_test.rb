@@ -98,6 +98,36 @@ module Analytics
       assert_nil rows.find { |row| row[:date] == Date.new(2026, 9, 25) }[:median_duration]
     end
 
+    test "weekday and hour cells add up to the hourly totals" do
+      friday = brasilia(2026, 9, 18, 15, 5)
+      monday = brasilia(2026, 9, 21, 15, 30)
+      create_analytics_batch!(account: @account, started_at: friday - 1.hour, records: [
+        analytics_record("confirmed", attempts: [ analytics_attempt("answered", started_at: friday) ]),
+        analytics_record("not_answered", attempts: [ analytics_attempt("not_answered", started_at: friday) ]),
+        analytics_record("confirmed", attempts: [ analytics_attempt("answered", started_at: monday) ])
+      ])
+
+      cells = query.weekday_hours
+
+      assert_equal [ [ 1, 15, 1, 1 ], [ 5, 15, 2, 1 ] ], cells.map { |cell| cell.values_at(:weekday, :hour, :attempts, :answered) }
+      assert_equal query.by_hour[15][:attempts], cells.sum { |cell| cell[:attempts] }
+    end
+
+    test "groups answered durations into human time bins and calculates p90" do
+      durations = [ 20, 45, 90, 240, 600 ]
+      records = durations.map do |duration|
+        analytics_record("confirmed", attempts: [ analytics_attempt("answered", started_at: brasilia(2026, 9, 20, 10), duration: duration) ])
+      end
+      records << analytics_record("not_answered", attempts: [ analytics_attempt("not_answered", started_at: brasilia(2026, 9, 20, 11), duration: 10) ])
+      create_analytics_batch!(account: @account, started_at: brasilia(2026, 9, 20, 9), records: records)
+
+      summary = query.summary
+
+      assert_equal({ "under_30s" => 1, "30s_1m" => 1, "1m_2m" => 1, "2m_5m" => 1, "over_5m" => 1 }, summary[:duration_bins].to_h)
+      assert_equal summary[:with_duration], summary[:duration_bins].sum(&:last)
+      assert_in_delta 456, summary[:p90_duration]
+    end
+
     private
 
     def query

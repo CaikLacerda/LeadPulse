@@ -21,6 +21,18 @@ module Analytics
     }.freeze
     DEFAULT_SORT = "criado_em".freeze
 
+    # Faixas do tempo de processamento em escala de tempo humana, espaçadas de forma quase
+    # logarítmica: os lotes vão de segundos a meses, e faixas lineares juntariam quase todos
+    # numa barra só. [chave, início (s), fim (s, exclusivo)].
+    PROCESSING_BINS = [
+      [ "under_1m", 0, 60 ],
+      [ "1m_3m", 60, 180 ],
+      [ "3m_10m", 180, 600 ],
+      [ "10m_1h", 600, 3600 ],
+      [ "1h_1d", 3600, 86_400 ],
+      [ "over_1d", 86_400, nil ]
+    ].freeze
+
     Page = Data.define(:rows, :page, :total_pages, :total_count, :sort, :direction)
 
     def initialize(batches)
@@ -73,13 +85,13 @@ module Analytics
     def top(limit: 5)
       select_all(<<~SQL).map { |row| cast(row) }
         #{per_batch_cte}
-        SELECT * FROM per_batch ORDER BY records DESC, id DESC LIMIT #{limit.to_i}
+        SELECT * FROM per_batch ORDER BY validation_started_at DESC NULLS LAST, id DESC LIMIT #{limit.to_i}
       SQL
     end
 
     def summary
       row = select_one(<<~SQL)
-        #{per_batch_cte}
+        #{per_batch_cte(materialized: true)}
         SELECT
           COUNT(*) AS batches,
           COALESCE(SUM(records), 0) AS records,
@@ -89,7 +101,8 @@ module Analytics
           percentile_cont(0.5) WITHIN GROUP (ORDER BY wait_seconds) AS median_wait,
           COUNT(processing_seconds) AS with_processing,
           percentile_cont(0.5) WITHIN GROUP (ORDER BY processing_seconds) AS median_processing,
-          percentile_cont(0.9) WITHIN GROUP (ORDER BY processing_seconds) AS p90_processing
+          percentile_cont(0.9) WITHIN GROUP (ORDER BY processing_seconds) AS p90_processing,
+          #{PROCESSING_BINS.map.with_index { |(_, from, to), index| "COUNT(*) FILTER (WHERE processing_seconds >= #{from}#{" AND processing_seconds < #{to}" if to}) AS bin_#{index}" }.join(",\n  ")}
         FROM per_batch
       SQL
 
@@ -102,18 +115,21 @@ module Analytics
         median_wait: decimal(row["median_wait"]),
         with_processing: integer(row["with_processing"]),
         median_processing: decimal(row["median_processing"]),
-        p90_processing: decimal(row["p90_processing"])
+        p90_processing: decimal(row["p90_processing"]),
+        processing_bins: PROCESSING_BINS.each_with_index.map { |(key, _, _), index| [ key, integer(row["bin_#{index}"]) ] }
       }
     end
 
     private
 
-    def per_batch_cte
+    # Materializado no resumo: sem isso o Postgres embute a CTE e recalcula o tempo de
+    # processamento (leitura do JSONB + regex) em cada agregado que o usa.
+    def per_batch_cte(materialized: false)
       finished_at = "COALESCE(#{Sql.timestamp("si.response_payload ->> 'finished_at'")}, #{Sql.column_time('si.finished_at')})"
       remote_started_at = "COALESCE(#{Sql.timestamp("si.response_payload ->> 'created_at'")}, #{Sql.column_time('si.validation_started_at')})"
 
       <<~SQL
-        WITH per_batch AS (
+        WITH per_batch AS #{'MATERIALIZED ' if materialized}(
           SELECT
             si.id, si.workflow_kind, si.source, si.status, si.created_at, si.validation_started_at,
             COALESCE(si.total_rows, 0) AS total_rows,

@@ -76,6 +76,20 @@ module Analytics
       assert_in_delta 2256.0, summary[:p90_processing]
     end
 
+    test "groups processing times into time-scale bins that add up to the measured lots" do
+      [ 30, 90, 90, 400, 7200, 200_000 ].each_with_index do |seconds, index|
+        create_analytics_batch!(
+          account: @account, started_at: brasilia(2026, 9, 20, 10, index), finished_at: brasilia(2026, 9, 20, 11),
+          payload: { "created_at" => "2026-09-20T13:00:00", "finished_at" => (Time.utc(2026, 9, 20, 13) + seconds).strftime("%Y-%m-%dT%H:%M:%S") }
+        )
+      end
+
+      bins = query.summary[:processing_bins].to_h
+
+      assert_equal({ "under_1m" => 1, "1m_3m" => 2, "3m_10m" => 1, "10m_1h" => 0, "1h_1d" => 1, "over_1d" => 1 }, bins)
+      assert_equal query.summary[:with_processing], bins.values.sum
+    end
+
     test "sorts only by allowed columns and clamps the page" do
       small = create_analytics_batch!(account: @account, started_at: brasilia(2026, 9, 20), records: analytics_records(confirmed: 1))
       large = create_analytics_batch!(account: @account, started_at: brasilia(2026, 9, 21), records: analytics_records(confirmed: 3))

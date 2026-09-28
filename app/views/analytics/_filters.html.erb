@@ -48,24 +48,41 @@
         { selected: @filters.workflow_kind },
         class: "settings-input analytics-filters__select", aria: { label: t("analytics.filters.workflow") } %>
 
-    <%= f.select :origem,
-        [[t("analytics.filters.all_sources"), ""]] + SupplierImport::SOURCE_LABELS.map { |value, label| [label, value] },
-        { selected: @filters.source },
-        class: "settings-input analytics-filters__select", aria: { label: t("analytics.filters.source") } %>
-
-    <%= f.select :lote,
-        [[t("analytics.filters.all_batches"), ""]] + @scope.batch_options.map { |id| [analytics_batch_code(id), id] },
-        { selected: @filters.supplier_import_id },
-        class: "settings-input analytics-filters__select", aria: { label: t("analytics.filters.batch") } %>
-
-    <% if action_name == "batches" %>
-      <%= f.select :status,
-          [[t("analytics.filters.all_statuses"), ""]] + Analytics::Filters::STATUSES.map { |status| [local_status_label(status), status] },
-          { selected: @filters.status },
-          class: "settings-input analytics-filters__select", aria: { label: t("analytics.filters.status") } %>
-    <% end %>
+    <% secondary = [@filters.source, @filters.supplier_import_id, (@filters.status if action_name == "batches")].compact.size %>
+    <details class="analytics-more-filters" data-controller="action-menu">
+      <summary class="<%= workspace_button_class(:secondary) %>">
+        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+        <span><%= t("analytics.filters.more") %></span>
+        <% if secondary.positive? %><span class="analytics-filters__count"><%= secondary %></span><% end %>
+      </summary>
+      <div class="analytics-more-filters__panel">
+        <label class="analytics-more-filters__field">
+          <span><%= t("analytics.filters.source") %></span>
+          <%= f.select :origem,
+              [[t("analytics.filters.all_sources"), ""]] + SupplierImport::SOURCE_LABELS.map { |value, label| [label, value] },
+              { selected: @filters.source }, class: "settings-input" %>
+        </label>
+        <label class="analytics-more-filters__field">
+          <span><%= t("analytics.filters.batch") %></span>
+          <%= f.select :lote,
+              [[t("analytics.filters.all_batches"), ""]] + @scope.batch_options.map { |id| [analytics_batch_code(id), id] },
+              { selected: @filters.supplier_import_id }, class: "settings-input" %>
+        </label>
+        <% if action_name == "batches" %>
+          <label class="analytics-more-filters__field">
+            <span><%= t("analytics.filters.status") %></span>
+            <%= f.select :status,
+                [[t("analytics.filters.all_statuses"), ""]] + Analytics::Filters::STATUSES.map { |status| [local_status_label(status), status] },
+                { selected: @filters.status }, class: "settings-input" %>
+          </label>
+        <% end %>
+      </div>
+    </details>
 
     <%= hidden_field_tag :agrupar, params[:agrupar], id: nil if params[:agrupar].present? %>
+    <% (@drill ? @drill[:params] : {}).each do |name, value| %>
+      <%= hidden_field_tag name, value, id: nil %>
+    <% end %>
 
     <div class="analytics-filters__actions">
       <%= workspace_button_tag t("analytics.filters.submit"), type: :submit, name: nil, variant: :secondary %>
@@ -73,12 +90,37 @@
     </div>
   </div>
 
-  <p class="analytics-filters__window">
-    <span class="analytics-filters__window-current"><%= @filters.window.label %></span>
-    <% if @filters.compare? %>
-      <span><%= t("analytics.filters.compared_with", window: @filters.previous_window.label) %></span>
-    <% end %>
-  </p>
+  <% chips = analytics_active_filter_chips %>
+  <% if chips.any? %>
+    <ul class="analytics-chips analytics-filters__chips" aria-label="<%= t("analytics.filters.active_aria") %>">
+      <% chips.each do |label, shown, remove_path| %>
+        <li class="analytics-chip">
+          <span><%= label %>: <strong><%= shown %></strong></span>
+          <%= link_to remove_path, class: "analytics-chip__remove", aria: { label: t("analytics.drill.remove", criterion: "#{label}: #{shown}") }, data: { turbo_frame: "analytics_content", turbo_action: "advance" } do %>
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <div class="analytics-filters__window">
+    <p>
+      <span class="analytics-filters__window-current"><%= @filters.window.label %></span>
+      <% if @filters.compare? %>
+        <span><%= t("analytics.filters.compared_with", window: @filters.previous_window.label) %></span>
+      <% end %>
+    </p>
+    <p class="analytics-freshness">
+      <% if @last_synced_at %>
+        <span title="<%= t("analytics.freshness.hint") %>"><%= t("analytics.freshness.synced", time: workspace_datetime(@last_synced_at)) %></span>
+        <span aria-hidden="true">·</span>
+      <% end %>
+      <%= link_to request.fullpath, class: "analytics-freshness__refresh", data: { turbo_frame: "analytics_content", turbo_action: "replace" } do %>
+        <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i><span><%= t("analytics.freshness.refresh") %></span>
+      <% end %>
+    </p>
+  </div>
 
   <% @filters.adjustments.each do |adjustment| %>
     <div class="workspace-callout workspace-callout--warning analytics-filters__notice" role="status">

@@ -27,7 +27,7 @@ module Analytics
 
       calls = report.calls
       assert_equal 1, calls[:summary].data[:metrics][:attempts].current.value
-      assert_equal 1, calls[:by_hour].data.sum { |hour| hour[:attempts] }
+      assert_equal 1, calls[:heatmap].data.sum { |cell| cell[:attempts] }
 
       qualification = report.qualification
       assert_equal 0, qualification[:summary].data[:metrics][:qualified].current.value

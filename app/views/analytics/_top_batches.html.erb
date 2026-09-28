@@ -23,10 +23,10 @@
             <tr>
               <td><%= workspace_code_tag(analytics_batch_code(row[:id]), current_membership.can_view_evidence? ? supplier_import_path(row[:id]) : nil) %></td>
               <td><%= SupplierImport::WORKFLOW_KIND_LABELS.fetch(row[:workflow_kind], row[:workflow_kind]) %></td>
-              <td class="is-numeric"><%= analytics_count(row[:records]) %></td>
-              <td class="is-numeric"><%= analytics_count(row[:confirmed]) %></td>
+              <td class="is-numeric"><%= row[:records].positive? ? analytics_drill_link(analytics_count(row[:records]), :records, lote: row[:id]) : analytics_count(row[:records]) %></td>
+              <td class="is-numeric"><%= row[:confirmed].positive? ? analytics_drill_link(analytics_count(row[:confirmed]), :records, lote: row[:id], resultado: "confirmed") : analytics_count(row[:confirmed]) %></td>
               <td class="is-numeric"><%= render "analytics/rate_cell", metric: rate %></td>
-              <td class="is-numeric"><%= analytics_count(row[:not_answered]) %></td>
+              <td class="is-numeric"><%= row[:not_answered].positive? ? analytics_drill_link(analytics_count(row[:not_answered]), :records, lote: row[:id], resultado: "not_answered") : analytics_count(row[:not_answered]) %></td>
               <td><%= workspace_datetime_cell(row[:validation_started_at]) %></td>
             </tr>
           <% end %>

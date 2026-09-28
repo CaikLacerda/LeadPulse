@@ -43,7 +43,9 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-metric='records'] .workspace-metric-card__value", text: "8"
     assert_select "[data-metric='confirmation_rate'] .workspace-metric-card__value", text: "62,5%"
     assert_select "[data-metric='confirmation_rate'] .analytics-kpi__sample", text: /n = 8/
-    assert_select "[data-metric='confirmation_rate'] .analytics-low-sample", text: "Baixa amostra"
+    assert_select "[data-metric='confirmation_rate'] .analytics-low-sample[aria-label^='Baixa amostra (n = 8)']"
+    assert_select "[data-metric='confirmation_rate'] .analytics-delta", count: 0, message: "variação não conclusiva não aparece"
+    assert_select "[data-metric='records'] a", count: 0, message: "viewer não tem drill-down"
     assert_select ".app-sidebar a[href='#{analytics_path}']"
   end
 
@@ -65,11 +67,12 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     charts = css_select("[data-controller='analytics-chart']").to_h do |element|
       [ element["data-analytics-chart-kind-value"], JSON.parse(element["data-analytics-chart-data-value"]) ]
     end
-    assert_equal %w[stacked_timeline ranked_bars funnel_bars], charts.keys
+    assert_equal %w[stacked_timeline ranked_bars], charts.keys
     assert_equal 8, charts["ranked_bars"]["values"].sum
     assert_equal [ "62,5%", "37,5%" ], charts["ranked_bars"]["shares"]
     assert_equal 8, charts["stacked_timeline"]["series"].sum { |series| series["values"].sum }
-    assert_equal [ 8, 8, 8, 5 ], charts["funnel_bars"]["values"]
+    assert_equal %w[8 8 8 5], css_select(".analytics-funnel__count").map { |node| node.text.strip }
+    assert_equal "confirmed", Rack::Utils.parse_query(URI(charts["ranked_bars"]["links"].first).query)["resultado"]
     assert_select "#analytics-chart-results table tbody tr", count: 2
     assert_select "#analytics-chart-results [role='img'][aria-label*='Confirmado: 5 (62,5%)']"
     charts.each_value { |data| assert_no_match(/\+55|gravacao|texto|rec-/, data.to_json) }
@@ -90,7 +93,14 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-metric='answer_rate'] .workspace-metric-card__value", text: "50,0%"
     assert_select "[data-metric='median_duration'] .workspace-metric-card__value", text: "40 s"
     assert_select "[data-metric='duration_coverage'] .workspace-metric-card__value", text: "100,0%"
-    assert_select "[data-analytics-chart-kind-value='hourly_rate']"
+    assert_select "[data-analytics-chart-kind-value='heatmap']"
+    assert_select "#analytics-chart-heatmap button[data-analytics-chart-target='view'][hidden]", count: 1, message: "3D nasce oculto; o JS só mostra no desktop com WebGL"
+    assert_select "#analytics-chart-heatmap table tbody tr", minimum: 1, message: "a tabela continua como equivalente do mapa 2D/3D"
+    assert_select "#analytics-chart-heatmap p[data-analytics-chart-target='note3d'][hidden]"
+    histogram = JSON.parse(css_select("#analytics-chart-duration").first["data-analytics-chart-data-value"])
+    assert_equal 1, histogram["values"].sum
+    assert_nil histogram["links"], "viewer recebe a distribuição, mas não links para evidências"
+    assert_select "#analytics-chart-duration .analytics-chart__note", text: /Mediana 40 s · p90 40 s · 1 chamada atendida com duração/
     assert_select "a.settings-tab--active[aria-current='page']", text: "Chamadas"
   end
 
@@ -106,8 +116,7 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "[data-metric='qualified'] .workspace-metric-card__value", text: "5"
     assert_select "[data-metric='opportunities'] .workspace-metric-card__value", text: "1"
-    funnel = JSON.parse(css_select("#analytics-chart-commercial-funnel")[0]["data-analytics-chart-data-value"])
-    assert_equal [ 8, 5, 1, 1 ], funnel["values"]
+    assert_equal %w[8 5 1 1], css_select(".analytics-funnel__count").map { |node| node.text.strip }
   end
 
   test "batches page sorts only by allowed columns and filters by status" do

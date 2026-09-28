@@ -1,0 +1,38 @@
+<%= render layout: "analytics/frame" do %>
+  <%= render "analytics/drill_header", kind: :records, title: t("analytics.drill.records_title") %>
+
+  <section class="workspace-portlet">
+    <div class="workspace-table-wrap">
+      <table class="workspace-table">
+        <caption class="sr-only"><%= t("analytics.drill.records_title") %></caption>
+        <thead>
+          <tr>
+            <th scope="col"><%= t("analytics.table.batch") %></th>
+            <th scope="col"><%= t("analytics.drill.supplier") %></th>
+            <th scope="col"><%= t("analytics.drill.call_result") %></th>
+            <th scope="col"><%= t("analytics.drill.call_status") %></th>
+            <th scope="col"><%= t("analytics.drill.outcome") %></th>
+            <th scope="col"><%= t("analytics.table.started_at") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @rows.any? %>
+            <% @rows.each do |row| %>
+              <tr>
+                <td><%= workspace_code_tag(analytics_batch_code(row[:batch_id]), supplier_import_path(row[:batch_id])) %></td>
+                <td class="workspace-table__primary"><%= row[:company_name].presence || row[:external_id] %></td>
+                <td><%= row[:call_result] ? status_badge(analytics_result_label(row[:call_result]), tone: workspace_status_tone(row[:call_result])) : "—" %></td>
+                <td><%= row[:call_status] ? t("analytics.call_statuses.#{row[:call_status]}", default: row[:call_status]) : "—" %></td>
+                <td><%= row[:qualification_outcome] ? analytics_outcome_label(row[:qualification_outcome]) : "—" %></td>
+                <td><%= workspace_datetime_cell(row[:validation_started_at]) %></td>
+              </tr>
+            <% end %>
+          <% else %>
+            <%= workspace_empty_table_row(colspan: 6, message: t("analytics.drill.empty")) %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <%= render "analytics/drill_pagination", kind: :records %>
+  </section>
+<% end %>

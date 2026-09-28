@@ -7,7 +7,7 @@ module Analytics
   # próprio, com chave por conta, filtros e versão das fontes que ela lê.
   class Report
     # Mude a versão sempre que o formato dos dados de uma seção mudar: o cache guarda esse formato.
-    CACHE_VERSION = "v2".freeze
+    CACHE_VERSION = "v3".freeze
     CACHE_TTL = 10.minutes
     STATEMENT_TIMEOUT = "5s".freeze
 
@@ -52,7 +52,7 @@ module Analytics
         :calls,
         summary: [ BATCH_SOURCES, -> { calls_summary } ],
         daily: [ BATCH_SOURCES, -> { { grouping: filters.grouping, rows: attempts(window).daily(filters.grouping) } } ],
-        by_hour: [ BATCH_SOURCES, -> { attempts(window).by_hour } ]
+        heatmap: [ BATCH_SOURCES, -> { attempts(window).weekday_hours } ]
       )
     end
 
@@ -192,7 +192,9 @@ module Analytics
         },
         attempts_per_record: Metric.average(record_summary[:attempts_sum], record_summary[:attempts_reported]),
         statuses: current.slice(:answered, :not_answered, :failed, :other_status),
-        results: current[:results]
+        results: current[:results],
+        p90_duration: Metric.duration(current[:p90_duration], current[:with_duration]),
+        duration_bins: current[:duration_bins]
       }
     end
 
@@ -267,7 +269,8 @@ module Analytics
           median_wait: compare(current, previous) { |summary| Metric.duration(summary[:median_wait], summary[:with_wait]) },
           median_processing: compare(current, previous) { |summary| Metric.duration(summary[:median_processing], summary[:with_processing]) },
           p90_processing: compare(current, previous) { |summary| Metric.duration(summary[:p90_processing], summary[:with_processing]) }
-        }
+        },
+        processing_bins: current[:processing_bins]
       }
     end
   end

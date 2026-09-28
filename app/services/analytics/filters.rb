@@ -17,8 +17,12 @@ module Analytics
 
     GROUPING_DAY = "dia".freeze
     GROUPING_WEEK = "semana".freeze
-    GROUPINGS = [ GROUPING_DAY, GROUPING_WEEK ].freeze
-    DAILY_LIMIT_DAYS = 92
+    GROUPING_MONTH = "mes".freeze
+    GROUPINGS = [ GROUPING_DAY, GROUPING_WEEK, GROUPING_MONTH ].freeze
+    # Agrupamento padrão pelo tamanho da janela: até 31 dias por dia, até 92 por semana,
+    # acima disso por mês. Evita dezenas de rótulos no eixo; o tooltip mostra o período exato.
+    DAILY_LIMIT_DAYS = 31
+    WEEKLY_LIMIT_DAYS = 92
 
     WORKFLOW_KINDS = SupplierImport::WORKFLOW_KIND_LABELS.keys.freeze
     SOURCES = SupplierImport::SOURCE_LABELS.keys.freeze
@@ -49,9 +53,28 @@ module Analytics
       end
 
       def buckets(grouping)
-        return (first_day..last_day).to_a unless grouping == GROUPING_WEEK
+        case grouping
+        when GROUPING_WEEK then (first_day.beginning_of_week(:monday)..last_day).step(7).to_a
+        when GROUPING_MONTH
+          months = []
+          month = first_day.beginning_of_month
+          while month <= last_day
+            months << month
+            month = month.next_month
+          end
+          months
+        else (first_day..last_day).to_a
+        end
+      end
 
-        (first_day.beginning_of_week(:monday)..last_day).step(7).to_a
+      # Dias da janela cobertos por um período do gráfico (para o tooltip e o drill-down).
+      def bucket_range(bucket, grouping)
+        last = case grouping
+        when GROUPING_WEEK then bucket + 6
+        when GROUPING_MONTH then bucket.end_of_month
+        else bucket
+        end
+        [ [ bucket, first_day ].max, [ last, last_day ].min ]
       end
 
       def label
@@ -99,7 +122,11 @@ module Analytics
     end
 
     def grouping
-      @requested_grouping || (window.days > DAILY_LIMIT_DAYS ? GROUPING_WEEK : GROUPING_DAY)
+      return @requested_grouping if @requested_grouping
+      return GROUPING_DAY if window.days <= DAILY_LIMIT_DAYS
+      return GROUPING_WEEK if window.days <= WEEKLY_LIMIT_DAYS
+
+      GROUPING_MONTH
     end
 
     def custom?

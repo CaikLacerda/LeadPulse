@@ -91,12 +91,15 @@ module AnalyticsHelper
     end
   end
 
-  # Célula da faixa de KPIs: valor, n com "Baixa amostra" e a comparação. Nenhuma métrica é
-  # escondida por amostra pequena; só a variação deixa de ser apresentada como conclusiva.
-  def analytics_kpi(key, comparison, page:)
+  # Célula da faixa de KPIs. Hierarquia: valor; n com ⓘ de baixa amostra (o valor anterior
+  # fica no tooltip do ⓘ); variação só quando a comparação é conclusiva. Nenhuma métrica é
+  # escondida por amostra pequena.
+  def analytics_kpi(key, comparison, page:, link: nil)
     comparison = Analytics::Comparison.new(current: comparison, previous: nil) if comparison.is_a?(Analytics::Metric)
     metric = comparison.current
     hint = t("analytics.kpis.#{page}.#{key}.hint")
+    value = analytics_metric_value(metric)
+    value = link_to(value, link, class: "analytics-drill-link", data: { turbo_frame: "analytics_content", turbo_action: "advance" }) if link
 
     content_tag(:div, class: "workspace-metric-card analytics-kpi", data: { metric: key }) do
       safe_join([
@@ -106,40 +109,40 @@ module AnalyticsHelper
             content_tag(:i, "", class: "fa-solid fa-circle-info analytics-kpi__hint", title: hint, role: "img", aria: { label: hint })
           ])
         end,
-        content_tag(:p, analytics_metric_value(metric), class: "workspace-metric-card__value"),
-        analytics_sample(metric),
+        content_tag(:p, value, class: "workspace-metric-card__value"),
+        analytics_sample(metric, comparison),
         analytics_comparison(key, comparison)
       ].compact)
     end
   end
 
-  def analytics_sample(metric)
+  def analytics_sample(metric, comparison = nil)
     return if metric.kind == :count
 
     content_tag(:p, class: "analytics-kpi__sample") do
       safe_join([
         content_tag(:span, t("analytics.metric.sample", count: analytics_count(metric.sample))),
-        (analytics_low_sample_flag if metric.low_sample?)
-      ].compact)
+        (analytics_low_sample_flag(sample: metric.sample, previous: comparison&.previous) if metric.low_sample?)
+      ].compact, " ")
     end
   end
 
-  def analytics_low_sample_flag
-    content_tag(:span, t("analytics.metric.low_sample"), class: "analytics-low-sample", title: t("analytics.metric.low_sample_hint"))
+  # Marca discreta de baixa amostra: ícone com texto para leitor de tela e tooltip.
+  def analytics_low_sample_flag(sample:, previous: nil)
+    text = t("analytics.metric.low_sample_hint", count: analytics_count(sample))
+    if previous&.available?
+      shown = analytics_metric_value(previous)
+      shown += " (#{t('analytics.metric.sample', count: analytics_count(previous.sample))})" unless previous.kind == :count
+      text += " #{t('analytics.metric.previous', value: shown)}."
+    end
+    content_tag(:span, class: "analytics-low-sample", role: "img", title: text, aria: { label: text }) do
+      content_tag(:i, "", class: "fa-solid fa-circle-info", aria: { hidden: true })
+    end
   end
 
+  # Variação só quando conclusiva (amostra suficiente nos dois lados e base anterior).
   def analytics_comparison(key, comparison)
-    case comparison.status
-    when :ok then analytics_delta(key, comparison)
-    when :low_sample
-      content_tag(:p, class: "analytics-delta analytics-delta--muted", title: t("analytics.metric.low_sample_hint")) do
-        previous = analytics_metric_value(comparison.previous)
-        previous += " (#{t('analytics.metric.sample', count: analytics_count(comparison.previous.sample))})" unless comparison.previous.kind == :count
-        t("analytics.metric.previous", value: previous)
-      end
-    when :no_base
-      content_tag(:p, t("analytics.metric.no_base"), class: "analytics-delta analytics-delta--muted")
-    end
+    analytics_delta(key, comparison) if comparison.status == :ok
   end
 
   def analytics_delta(key, comparison)
@@ -186,27 +189,47 @@ module AnalyticsHelper
   # do ECharts, calculados juntos para que os dois mostrem exatamente os mesmos números.
   def analytics_evolution_chart(data)
     series = EVOLUTION_RESULTS.map do |code|
-      { name: analytics_result_label(code), tone: code, values: data[:rows].map { |row| row[code.to_sym] } }
+      { name: analytics_result_label(code), tone: code, code: code, values: data[:rows].map { |row| row[code.to_sym] } }
     end
     previous = data[:previous_totals] && { name: t("analytics.sections.evolution_previous"), values: data[:previous_totals] }
+    extras = data[:rows].map do |row|
+      rate = Analytics::Metric.rate(row[:confirmed], Analytics::Query::TERMINAL_RESULTS.sum { |code| row[code.to_sym] })
+      [ [ t("analytics.kpis.overview.confirmation_rate.label"), analytics_rate_text(rate) ] ]
+    end
 
-    analytics_stacked_chart(data, series: series, totals: data[:rows].map { |row| row[:records] }, previous: previous, unit: "registros")
+    analytics_stacked_chart(data, series: series, totals: data[:rows].map { |row| row[:records] }, previous: previous,
+      unit: "registros", extras: extras, drill: analytics_drill(:records, "resultado"))
   end
 
   def analytics_attempts_timeline_chart(data)
     series = ATTEMPT_STATUSES.map do |status|
-      { name: t("analytics.statuses.#{status}"), tone: STATUS_CHART_TONES.fetch(status), values: data[:rows].map { |row| row[status.to_sym] } }
+      { name: t("analytics.statuses.#{status}"), tone: STATUS_CHART_TONES.fetch(status), code: status, values: data[:rows].map { |row| row[status.to_sym] } }
+    end
+    extras = data[:rows].map do |row|
+      [ [ t("analytics.kpis.calls.answer_rate.label"), analytics_rate_text(Analytics::Metric.rate(row[:answered], row[:answer_base])) ] ]
     end
 
-    analytics_stacked_chart(data, series: series, totals: data[:rows].map { |row| row[:attempts] }, unit: "tentativas")
+    analytics_stacked_chart(data, series: series, totals: data[:rows].map { |row| row[:attempts] }, unit: "tentativas",
+      extras: extras, drill: analytics_drill(:attempts, "status"))
   end
 
-  # Colunas empilhadas por dia ou semana; a tabela traz cada série, o total e a comparação.
-  def analytics_stacked_chart(data, series:, totals:, unit:, previous: nil)
+  # Colunas empilhadas por dia, semana ou mês. O tooltip recebe tudo pronto do servidor:
+  # período por extenso, valores, taxa com n e diferença para a janela de comparação.
+  def analytics_stacked_chart(data, series:, totals:, unit:, previous: nil, extras: nil, drill: nil)
     labels = data[:rows].map { |row| analytics_bucket_label(row[:date], data[:grouping]) }
+    long_labels = data[:rows].map { |row| analytics_bucket_long_label(row[:date], data[:grouping]) }
+    ranges = data[:rows].map { |row| @filters.window.bucket_range(row[:date], data[:grouping]).map(&:iso8601) }
+    differences = previous && totals.each_with_index.map do |total, index|
+      before = previous[:values][index]
+      next if before.nil?
+
+      delta = total - before
+      "#{delta.positive? ? '+' : (delta.negative? ? MINUS : '')}#{analytics_count(delta.abs)} #{delta.abs == 1 ? unit.delete_suffix('s') : unit}"
+    end
+
     head = [ t("analytics.chart.period") ] + series.map { |item| item[:name] } + [ t("analytics.chart.total") ]
     head << previous[:name] if previous
-    rows = labels.each_with_index.map do |label, index|
+    rows = long_labels.each_with_index.map do |label, index|
       cells = [ label ] + series.map { |item| analytics_count(item[:values][index]) } + [ analytics_count(totals[index]) ]
       cells << analytics_count(previous[:values][index]) if previous
       cells
@@ -219,36 +242,111 @@ module AnalyticsHelper
       chart: {
         kind: "stacked_timeline",
         height: 280,
-        data: { labels: labels, series: series, previous: previous, totalLabel: t("analytics.chart.total") },
+        data: {
+          labels: labels, longLabels: long_labels, series: series, previous: previous, totalLabel: t("analytics.chart.total"),
+          extras: extras, differences: differences, differenceLabel: t("analytics.chart.vs_previous"),
+          drill: drill && drill.merge(ranges: ranges)
+        },
         summary: "#{analytics_count(totals.sum)} #{unit} em #{@filters.window.label}. #{parts.join('; ')}."
       }
     }
   end
 
-  # Taxa de atendimento por hora; horas abaixo do mínimo de amostra ficam em cinza.
-  def analytics_hourly_chart(rows)
-    labels = rows.map { |row| t("analytics.hour", hour: row[:hour]) }
-    metrics = rows.map { |row| Analytics::Metric.rate(row[:answered], row[:answer_base]) }
-    with_attempts = rows.each_index.select { |index| rows[index][:attempts].positive? }
+  # Drill-down só para quem pode ver os registros (mesma regra do detalhe do lote).
+  def analytics_drill?
+    current_membership&.can_view_evidence?
+  end
+
+  # Base do drill-down para o JavaScript: URL com os filtros atuais e o nome do parâmetro
+  # que recebe o código da série/barra clicada. Sem permissão, não há drill-down.
+  def analytics_drill(kind, param)
+    return unless analytics_drill?
+
+    { base: analytics_drill_path(kind, {}), param: param }
+  end
+
+  def analytics_drill_path(kind, extra = {})
+    params = @filters.to_params.except(:agrupar, :status).merge(extra)
+    kind == :attempts ? attempts_analytics_path(params) : records_analytics_path(params)
+  end
+
+  # Filtros secundários ativos como chips removíveis; a URL continua sendo a fonte.
+  def analytics_active_filter_chips
+    base = @filters.to_params.merge(@drill ? @drill[:params].symbolize_keys : {})
+    chips = []
+    chips << [ t("analytics.filters.source"), SupplierImport::SOURCE_LABELS.fetch(@filters.source), :origem ] if @filters.source
+    chips << [ t("analytics.filters.batch"), analytics_batch_code(@filters.supplier_import_id), :lote ] if @filters.supplier_import_id
+    chips << [ t("analytics.filters.status"), local_status_label(@filters.status), :status ] if @filters.status && action_name == "batches"
+    chips.map { |label, shown, key| [ label, shown, url_for(base.except(key)) ] }
+  end
+
+  # Critérios do drill-down em linguagem da tela, cada um com o link que o remove.
+  def analytics_drill_criteria(kind)
+    @drill[:params].map do |name, value|
+      label, shown = case name
+      when "resultado" then [ t("analytics.drill.criteria.result"), analytics_result_label(value == "outros" ? "other" : value) ]
+      when "ligacao" then [ t("analytics.drill.criteria.call"), t("analytics.drill.calls.#{value}") ]
+      when "qualificacao" then [ t("analytics.drill.criteria.outcome"), analytics_outcome_label(value) ]
+      when "status" then [ t("analytics.drill.criteria.status"), t("analytics.statuses.#{value == 'outros' ? 'other' : value}") ]
+      when "dia_semana" then [ t("analytics.drill.criteria.weekday"), I18n.t("date.day_names")[value.to_i % 7].capitalize ]
+      when "hora" then [ t("analytics.drill.criteria.hour"), t("analytics.hour_range", from: format("%02d", value.to_i), to: format("%02d", (value.to_i + 1) % 24)) ]
+      when "duracao" then [ t("analytics.drill.criteria.duration"), t("analytics.duration_bins.#{value}") ]
+      end
+      remaining = @drill[:params].except(name)
+      [ label, shown, analytics_drill_path(kind, remaining) ]
+    end
+  end
+
+  def analytics_drill_back_path(kind)
+    params = @filters.to_params.except(:status)
+    return calls_analytics_path(params) if kind == :attempts
+    return qualification_analytics_path(params) if @drill[:params].key?("qualificacao")
+
+    analytics_path(params)
+  end
+
+  def analytics_drill_next_path(kind, cursor)
+    return unless cursor
+
+    analytics_drill_path(kind, @drill[:params].merge(pagina: Base64.urlsafe_encode64(JSON.generate(cursor), padding: false)))
+  end
+
+  def analytics_drill_link(label, kind, extra = {})
+    return label unless analytics_drill?
+
+    link_to(label, analytics_drill_path(kind, extra), class: "analytics-drill-link", data: { turbo_frame: "analytics_content", turbo_action: "advance" })
+  end
+
+  # Mapa de calor dia da semana × hora (horário de Brasília). Cada célula leva tentativas,
+  # atendidas e a taxa com n, já formatada; o JavaScript só escolhe a medida exibida.
+  def analytics_heatmap_chart(cells)
+    days = (1..7).map { |weekday| I18n.t("date.abbr_day_names")[weekday % 7].capitalize }
+    day_names = (1..7).map { |weekday| I18n.t("date.day_names")[weekday % 7].capitalize }
+    hours = (0..23).map { |hour| t("analytics.hour", hour: hour) }
+    hour_names = (0..23).map { |hour| t("analytics.hour_range", from: format("%02d", hour), to: format("%02d", (hour + 1) % 24)) }
+    metrics = cells.map { |cell| Analytics::Metric.rate(cell[:answered], cell[:answer_base]) }
+    links = (cells.map { |cell| analytics_drill_path(:attempts, dia_semana: cell[:weekday], hora: cell[:hour]) } if analytics_drill?)
+    busiest = cells.max_by { |cell| cell[:attempts] }
 
     {
-      head: [ t("analytics.table.hour"), t("analytics.table.attempts"), t("analytics.table.answered"), t("analytics.table.answer_rate") ],
-      rows: with_attempts.map do |index|
-        [ labels[index], analytics_count(rows[index][:attempts]), analytics_count(rows[index][:answered]), analytics_rate_text(metrics[index]) ]
+      head: [ t("analytics.table.weekday"), t("analytics.table.hour"), t("analytics.table.attempts"), t("analytics.table.answered"), t("analytics.table.answer_rate") ],
+      rows: cells.each_with_index.map do |cell, index|
+        label = "#{day_names[cell[:weekday] - 1]}"
+        label = link_to(label, links[index], class: "analytics-drill-link", data: { turbo_frame: "analytics_content", turbo_action: "advance" }) if links
+        [ label, hour_names[cell[:hour]], analytics_count(cell[:attempts]), analytics_count(cell[:answered]), analytics_rate_text(metrics[index]) ]
       end,
       chart: {
-        kind: "hourly_rate",
-        height: 260,
+        kind: "heatmap",
+        height: 300,
         data: {
-          labels: labels,
-          rates: metrics.map(&:value),
-          attempts: rows.map { |row| row[:attempts] },
-          low: metrics.map(&:low_sample?),
-          rateLabel: t("analytics.table.answer_rate"),
-          attemptsLabel: t("analytics.table.attempts"),
-          lowSampleLabel: t("analytics.metric.low_sample")
+          days: days, dayNames: day_names, hours: hours, hourNames: hour_names,
+          cells: cells.each_with_index.map do |cell, index|
+            [ cell[:hour], cell[:weekday] - 1, cell[:attempts], cell[:answered], metrics[index].value&.round(4), metrics[index].low_sample?, analytics_rate_text(metrics[index]) ]
+          end,
+          links: links,
+          labels: { attempts: t("analytics.table.attempts"), answered: t("analytics.table.answered"), rate: t("analytics.table.answer_rate") }
         },
-        summary: "#{t('analytics.sections.by_hour')}. " + with_attempts.map { |index| "#{labels[index]}: #{analytics_rate_text(metrics[index])}" }.join("; ")
+        summary: busiest ? t("analytics.chart.summary.heatmap", day: day_names[busiest[:weekday] - 1], hour: hour_names[busiest[:hour]], count: analytics_count(busiest[:attempts]), cells: cells.size) : t("analytics.empty_calls")
       }
     }
   end
@@ -264,7 +362,8 @@ module AnalyticsHelper
   end
 
   def analytics_outcomes_chart(title, counts)
-    analytics_distribution_chart(title, counts, label: method(:analytics_outcome_label), tone: ->(code) { OUTCOME_CHART_TONES.fetch(code, "other") })
+    analytics_distribution_chart(title, counts, label: method(:analytics_outcome_label), tone: ->(code) { OUTCOME_CHART_TONES.fetch(code, "other") },
+      drill: [ :records, "qualificacao" ])
   end
 
   # Cabeçalho ordenável da tabela de lotes: alterna a direção e anuncia a ordem atual.
@@ -282,15 +381,22 @@ module AnalyticsHelper
     end
   end
 
-  def analytics_distribution_chart(title, counts, label: method(:analytics_result_label), tone: ->(code) { RESULT_CHART_TONES.fetch(code, "other") })
+  # Barras horizontais em ordem de volume. drill: [:records|:attempts, parâmetro]; o código
+  # "other" vira "outros" na URL.
+  def analytics_distribution_chart(title, counts, label: method(:analytics_result_label), tone: ->(code) { RESULT_CHART_TONES.fetch(code, "other") },
+                                   value_label: t("analytics.table.records"), drill: nil)
     total = counts.values.sum
     items = counts.reject { |_, count| count.zero? }.sort_by { |_, count| -count }
     labels = items.map { |code, _| label.call(code) }
     shares = items.map { |_, count| analytics_percent(total.positive? ? count.to_f / total : nil) }
+    links = (items.map { |code, _| analytics_drill_path(drill[0], drill[1] => analytics_drill_code(code)) } if drill && analytics_drill?)
 
     {
-      head: [ title, t("analytics.table.records"), t("analytics.chart.share") ],
-      rows: items.each_with_index.map { |(_, count), index| [ labels[index], analytics_count(count), shares[index] ] },
+      head: [ title, value_label, t("analytics.chart.share") ],
+      rows: items.each_with_index.map do |(code, count), index|
+        name = drill ? analytics_drill_link(labels[index], drill[0], drill[1] => analytics_drill_code(code)) : labels[index]
+        [ name, analytics_count(count), shares[index] ]
+      end,
       chart: {
         kind: "ranked_bars",
         height: analytics_bar_chart_height(items.size),
@@ -299,39 +405,87 @@ module AnalyticsHelper
           values: items.map(&:last),
           tones: items.map { |code, _| tone.call(code) },
           shares: shares,
-          valueLabel: t("analytics.table.records"),
-          shareLabel: t("analytics.chart.share")
+          total: analytics_count(total),
+          valueLabel: value_label,
+          shareLabel: t("analytics.chart.share_of", total: analytics_count(total)),
+          links: links
         },
         summary: "#{title}. " + items.each_with_index.map { |(_, count), index| "#{labels[index]}: #{analytics_count(count)} (#{shares[index]})" }.join("; ")
       }
     }
   end
 
-  def analytics_funnel_chart(title, steps, scope:)
-    labels = steps.map { |step, _| t("analytics.#{scope}.#{step}") }
-    passages = steps.each_with_index.map do |(_, count), index|
-      next "—" if index.zero?
-
-      previous = steps[index - 1][1].to_i
-      analytics_percent(previous.positive? ? count.to_f / previous : nil)
-    end
+  # Histograma do tempo de processamento dos lotes (faixas de BatchesQuery::PROCESSING_BINS).
+  def analytics_processing_histogram(bins, median:, p90:)
+    measured = bins.sum(&:last)
+    labels = bins.map { |key, _| t("analytics.processing_bins.#{key}") }
+    shares = bins.map { |_, count| analytics_percent(measured.positive? ? count.to_f / measured : nil) }
 
     {
-      head: [ title, t("analytics.table.records"), t("analytics.sections.funnel_drop") ],
-      rows: steps.each_with_index.map { |(_, count), index| [ labels[index], analytics_count(count), passages[index] ] },
+      head: [ t("analytics.table.processing"), t("analytics.table.batches"), t("analytics.chart.share") ],
+      rows: bins.each_with_index.map { |(_, count), index| [ labels[index], analytics_count(count), shares[index] ] },
+      note: t("analytics.processing_distribution_note", median: analytics_duration(median.value), p90: analytics_duration(p90.value), count: analytics_count(median.sample)),
       chart: {
-        kind: "funnel_bars",
-        height: analytics_bar_chart_height(steps.size),
+        kind: "histogram",
+        height: 240,
         data: {
-          labels: labels,
-          values: steps.map(&:last),
-          passages: passages,
-          valueLabel: t("analytics.table.records"),
-          passageLabel: t("analytics.sections.funnel_drop")
+          labels: labels, longLabels: labels.map { |label| "#{t('analytics.table.processing')}: #{label}" }, values: bins.map(&:last), shares: shares,
+          valueLabel: t("analytics.table.batches"), shareLabel: t("analytics.chart.share_of", total: analytics_count(measured))
         },
-        summary: "#{title}. " + steps.each_with_index.map { |(_, count), index| "#{labels[index]}: #{analytics_count(count)}" }.join("; ")
+        summary: "#{t('analytics.sections.processing_distribution')}. " + bins.each_with_index.map { |(_, count), index| "#{labels[index]}: #{analytics_count(count)}" }.join("; ")
       }
     }
+  end
+
+  # Distribuição das durações informadas para chamadas atendidas. O histograma só é renderizado
+  # quando existe cobertura e cada faixa leva às tentativas que a compõem.
+  def analytics_duration_histogram(bins, median:, p90:, coverage:)
+    measured = bins.sum(&:last)
+    labels = bins.map { |key, _| t("analytics.duration_bins.#{key}") }
+    shares = bins.map { |_, count| analytics_percent(measured.positive? ? count.to_f / measured : nil) }
+    links = (bins.map { |key, _| analytics_drill_path(:attempts, duracao: key) } if analytics_drill?)
+
+    {
+      head: [ t("analytics.table.duration"), t("analytics.table.calls"), t("analytics.chart.share") ],
+      rows: bins.each_with_index.map do |(key, count), index|
+        label = analytics_drill_link(labels[index], :attempts, duracao: key)
+        [ label, analytics_count(count), shares[index] ]
+      end,
+      note: t("analytics.duration_distribution_note", median: analytics_duration(median.value), p90: analytics_duration(p90.value),
+        count: measured, formatted: analytics_count(measured), coverage: analytics_percent(coverage.value)),
+      chart: {
+        kind: "histogram",
+        height: 240,
+        data: {
+          labels: labels, longLabels: labels.map { |label| "#{t('analytics.table.duration')}: #{label}" }, values: bins.map(&:last), shares: shares,
+          valueLabel: t("analytics.table.calls"), shareLabel: t("analytics.chart.share_of", total: analytics_count(measured)), links: links
+        },
+        summary: "#{t('analytics.sections.duration_distribution')}. " + bins.each_with_index.map { |(_, count), index| "#{labels[index]}: #{analytics_count(count)}" }.join("; ")
+      }
+    }
+  end
+
+  def analytics_drill_code(code)
+    code.to_s == "other" ? "outros" : code.to_s
+  end
+
+  # Funil analítico: volume, participação no total, passagem da etapa anterior (com n) e
+  # quantos ficaram pelo caminho. Números vêm prontos do relatório; aqui só se formata.
+  FunnelStep = Data.define(:label, :count, :share, :passage, :lost, :link)
+
+  def analytics_funnel_steps(steps, scope:, links: {})
+    first = steps.first&.last.to_i
+    steps.each_with_index.map do |(key, count), index|
+      previous = steps[index - 1][1].to_i if index.positive?
+      FunnelStep.new(
+        label: t("analytics.#{scope}.#{key}"),
+        count: count,
+        share: Analytics::Metric.rate(count, first),
+        passage: (Analytics::Metric.rate(count, previous) if previous),
+        lost: (previous - count if previous),
+        link: (links[key] if analytics_drill?)
+      )
+    end
   end
 
   def analytics_bar_chart_height(count)
@@ -342,10 +496,28 @@ module AnalyticsHelper
     t("analytics.results.#{code}", default: t("analytics.results.other"))
   end
 
+  # Rótulo curto do eixo.
   def analytics_bucket_label(date, grouping)
-    return t("analytics.chart.week_of", date: l(date, format: "%d/%m")) if grouping == Analytics::Filters::GROUPING_WEEK
+    case grouping
+    when Analytics::Filters::GROUPING_WEEK then l(date, format: "%d/%m")
+    when Analytics::Filters::GROUPING_MONTH then l(date, format: "%b/%y")
+    else l(date, format: "%d/%m")
+    end
+  end
 
-    l(date, format: "%d/%m")
+  # Rótulo completo do período, para tooltip e tabela: "14 de setembro de 2026".
+  def analytics_bucket_long_label(date, grouping)
+    first, last = @filters.window.bucket_range(date, grouping)
+    case grouping
+    when Analytics::Filters::GROUPING_MONTH then l(date, format: "%B de %Y")
+    when Analytics::Filters::GROUPING_WEEK
+      if first.month == last.month
+        "#{first.day} a #{l(last, format: '%-d de %B de %Y')}"
+      else
+        "#{l(first, format: '%-d de %B')} a #{l(last, format: '%-d de %B de %Y')}"
+      end
+    else l(date, format: "%-d de %B de %Y")
+    end
   end
 
   def analytics_batch_code(id)

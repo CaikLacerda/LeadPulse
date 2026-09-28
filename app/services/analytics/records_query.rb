@@ -64,12 +64,20 @@ module Analytics
 
     # Página de registros em ordem estável (início do lote, lote, posição no lote), a partir
     # do cursor da página anterior. Devolve as linhas e o cursor da próxima página (ou nil).
-    def page(after: nil, limit: 100)
+    #
+    # filter (drill-down): result (código de call_result ou "outros"), call ("com_ligacao" ou
+    # "atendidos", pelo call_status) e outcome (resultado da qualificação). Mesmas definições
+    # dos agregados, para a lista bater com o número clicado.
+    def page(after: nil, limit: 100, filter: {})
       batches = @batches
       batches = batches.where("(supplier_imports.validation_started_at, supplier_imports.id) >= (?::timestamp, ?)", after[0], after[1]) if after
-      rows = select_all(row_sql(batches, after: after, limit: limit + 1)).map { |row| cast_row(row) }
+      rows = select_all(row_sql(batches, after: after, limit: limit + 1, filter: filter)).map { |row| cast_row(row) }
       next_cursor = ([ rows[limit - 1][:validation_started_at].utc.iso8601(6), rows[limit - 1][:batch_id], rows[limit - 1][:position] ] if rows.size > limit)
       [ rows.first(limit), next_cursor ]
+    end
+
+    def count(filter: {})
+      integer(select_one("SELECT COUNT(*) AS total FROM (#{row_sql(@batches, filter: filter)}) rows")["total"])
     end
 
     # Registros por resultado em cada dia (ou semana) de início da validação.
@@ -89,8 +97,10 @@ module Analytics
 
     private
 
-    def row_sql(group, after: nil, limit: nil)
-      after_sql = "WHERE (si.validation_started_at, si.id, r.position) > (#{quote(after[0])}::timestamp, #{after[1].to_i}, #{after[2].to_i})" if after
+    def row_sql(group, after: nil, limit: nil, filter: {})
+      conditions = filter_conditions(filter)
+      conditions << "(si.validation_started_at, si.id, r.position) > (#{quote(after[0])}::timestamp, #{after[1].to_i}, #{after[2].to_i})" if after
+      after_sql = "WHERE #{conditions.join(' AND ')}" if conditions.any?
       answered_duration = "CASE WHEN t.attempt ->> 'status' = 'answered' THEN #{Sql.number("t.attempt ->> 'duration_seconds'")} END"
 
       <<~SQL
@@ -120,6 +130,20 @@ module Analytics
         ORDER BY si.validation_started_at, si.id, r.position
         #{"LIMIT #{limit.to_i}" if limit}
       SQL
+    end
+
+    def filter_conditions(filter)
+      conditions = []
+      case filter[:result]
+      when *CALL_RESULTS then conditions << "r.record ->> 'call_result' = #{quote(filter[:result])}"
+      when "outros" then conditions << "(r.record ->> 'call_result' IS NULL OR r.record ->> 'call_result' NOT IN (#{Sql.list(CALL_RESULTS)}))"
+      end
+      case filter[:call]
+      when "com_ligacao" then conditions << "r.record ->> 'call_status' IN (#{Sql.list(CALLED_STATUSES)})"
+      when "atendidos" then conditions << "r.record ->> 'call_status' = 'answered'"
+      end
+      conditions << "r.record -> 'supplier_validation' ->> 'outcome' = #{quote(filter[:outcome])}" if filter[:outcome].present?
+      conditions
     end
 
     def cast_row(row)
