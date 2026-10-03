@@ -7,6 +7,7 @@
 /* Layouts */
 @import "./layouts/app-shell.css";
 @import "./layouts/auth.css";
+@import "./layouts/public.css";
 
 /* Componentes do workspace */
 @import "./components/buttons.css";

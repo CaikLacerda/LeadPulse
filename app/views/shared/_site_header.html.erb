@@ -6,53 +6,46 @@
   [t('shared.header.marketing.about'), root_path(anchor: 'sobre')],
   [t('shared.header.marketing.contact'), root_path(anchor: 'contato')]
 ] %>
-<% auth_page = local_assigns.fetch(:auth_page, false) %>
 
-<header class="app-header-shell fixed top-0 left-0 right-0 z-50" role="banner">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" data-controller="nav">
-    <div class="app-header-inner flex min-h-[4.75rem] items-center gap-3 lg:gap-8">
-      <%= link_to root_path(anchor: 'inicio'), class: 'app-brand flex shrink-0 items-center gap-3' do %>
-        <span class="app-brand-mark" aria-hidden="true">
-          <i class="fa-solid fa-bolt"></i>
-        </span>
-        <span class="text-lg font-black"><span class="text-orange-500">Lead</span><span class="text-blue-600">Pulse</span></span>
+<header class="site-header" data-controller="nav" data-action="keydown.esc@window->nav#close">
+  <div class="site-header__inner">
+    <%= link_to root_path, class: 'site-header__brand' do %>
+      <span class="app-logo-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
+      <span class="app-logo-text">LeadPulse</span>
+    <% end %>
+
+    <nav class="site-nav" aria-label="Navegação principal">
+      <% marketing_items.each do |label, path| %>
+        <%= link_to label, path, class: 'site-nav__link' %>
       <% end %>
+    </nav>
 
-      <nav class="app-primary-nav hidden items-center gap-1 lg:flex" aria-label="Navegação principal">
-        <% marketing_items.each do |label, path| %>
-          <%= link_to label, path, class: 'app-top-link' %>
-        <% end %>
-      </nav>
-
-      <div class="ml-auto hidden items-center gap-3 lg:flex">
-        <% unless auth_page %>
-          <%= link_to t('shared.header.session.sign_in'), new_user_session_path,
-              class: 'app-utility-link app-utility-link--primary' %>
-        <% end %>
-      </div>
-
-      <button type="button"
-              class="app-mobile-toggle ml-auto inline-flex lg:hidden"
-              aria-label="<%= t('shared.header.session.open_menu') %>"
-              aria-expanded="false"
-              data-nav-target="button"
-              data-action="click->nav#toggle">
-        <i class="fa-solid fa-bars text-xl leading-none" aria-hidden="true"></i>
-      </button>
+    <div class="site-header__actions">
+      <%= link_to t('shared.header.session.sign_in'), new_user_session_path, class: 'site-nav__link' %>
+      <%= link_to 'Criar conta', new_user_registration_path, class: workspace_button_class(:primary) %>
     </div>
 
-    <div class="app-mobile-panel hidden lg:hidden" data-nav-target="panel">
-      <nav class="flex flex-col gap-2">
-        <% marketing_items.each do |label, path| %>
-          <%= link_to label, path, class: 'app-mobile-link', data: { action: 'click->nav#close' } %>
-        <% end %>
+    <button type="button"
+            class="site-header__toggle"
+            aria-label="<%= t('shared.header.session.open_menu') %>"
+            aria-expanded="false"
+            aria-controls="site-mobile-menu"
+            data-nav-target="button"
+            data-action="nav#toggle">
+      <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+  </div>
 
-        <% unless auth_page %>
-          <%= link_to t('shared.header.session.sign_in'), new_user_session_path,
-              class: 'app-mobile-link app-mobile-link--active',
-              data: { action: 'click->nav#close' } %>
-        <% end %>
-      </nav>
+  <div id="site-mobile-menu" class="site-mobile-menu hidden" data-nav-target="panel">
+    <nav aria-label="Menu">
+      <% marketing_items.each do |label, path| %>
+        <%= link_to label, path, class: 'site-mobile-menu__link', data: { action: 'nav#close' } %>
+      <% end %>
+    </nav>
+    <div class="site-mobile-menu__actions">
+      <%= link_to t('shared.header.session.sign_in'), new_user_session_path, class: workspace_button_class(:secondary, nil, size: :lg) %>
+      <%= link_to 'Criar conta', new_user_registration_path, class: workspace_button_class(:primary, nil, size: :lg) %>
     </div>
   </div>
 </header>

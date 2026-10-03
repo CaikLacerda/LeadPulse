@@ -45,11 +45,13 @@
     </body>
   <% else %>
     <body class="app-body--public min-h-screen bg-white text-gray-900" data-page-theme="light">
-      <%= render 'shared/site_header', auth_page: false %>
-      <main class="app-main pt-16 md:pt-20">
+      <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:shadow">Ir para o conteúdo</a>
+      <%= render 'shared/site_header' %>
+      <main class="app-main" id="main-content">
         <%= render 'shared/flash_messages' %>
         <%= yield %>
       </main>
+      <%= render 'shared/site_footer' %>
     </body>
   <% end %>
 </html>

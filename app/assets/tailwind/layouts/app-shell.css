@@ -319,7 +319,7 @@
 
   /* Páginas públicas (landing, termos, privacidade) */
   .app-main {
-    min-height: calc(100vh - 4.75rem);
+    min-height: calc(100vh - 4rem);
   }
 
   .app-body--public .workspace-page {
