@@ -1,0 +1,54 @@
+# Mensagens de validação em português. Sem este arquivo, os erros de cadastro, recuperação de senha
+# e de outros formulários apareciam como "Translation missing". Só o texto muda; as regras são as mesmas.
+"pt-BR":
+  activerecord:
+    attributes:
+      user:
+        name: "Nome"
+        email: "E-mail"
+        password: "Senha"
+        password_confirmation: "Confirmação da senha"
+        current_password: "Senha atual"
+        reset_password_token: "Link de redefinição"
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      accepted: "precisa ser aceito"
+      blank: "não pode ficar em branco"
+      confirmation: "não confere com %{attribute}"
+      empty: "não pode ficar vazio"
+      equal_to: "deve ser igual a %{count}"
+      even: "deve ser par"
+      exclusion: "não está disponível"
+      greater_than: "deve ser maior que %{count}"
+      greater_than_or_equal_to: "deve ser maior ou igual a %{count}"
+      inclusion: "não é uma opção válida"
+      invalid: "não é válido"
+      less_than: "deve ser menor que %{count}"
+      less_than_or_equal_to: "deve ser menor ou igual a %{count}"
+      model_invalid: "A validação falhou: %{errors}"
+      not_a_number: "não é um número"
+      not_an_integer: "deve ser um número inteiro"
+      odd: "deve ser ímpar"
+      other_than: "deve ser diferente de %{count}"
+      present: "deve ficar em branco"
+      required: "é obrigatório"
+      taken: "já está em uso"
+      too_long:
+        one: "pode ter no máximo %{count} caractere"
+        other: "pode ter no máximo %{count} caracteres"
+      too_short:
+        one: "precisa ter pelo menos %{count} caractere"
+        other: "precisa ter pelo menos %{count} caracteres"
+      wrong_length:
+        one: "precisa ter exatamente %{count} caractere"
+        other: "precisa ter exatamente %{count} caracteres"
+      # Devise
+      already_confirmed: "já foi confirmado; entre normalmente"
+      confirmation_period_expired: "precisa ser confirmado em até %{period}; solicite um novo link"
+      expired: "expirou; solicite um novo link"
+      not_found: "não encontrado"
+      not_locked: "não estava bloqueado"
+      not_saved:
+        one: "Não foi possível salvar %{resource}: 1 erro."
+        other: "Não foi possível salvar %{resource}: %{count} erros."
