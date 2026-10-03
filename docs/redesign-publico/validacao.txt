@@ -1,0 +1,19 @@
+PARALLEL_WORKERS=1 bin/rails test
+
+Finished in 22.092759s, 13.4886 runs/s, 96.7738 assertions/s.
+298 runs, 2138 assertions, 0 failures, 0 errors, 0 skips
+
+PARALLEL_WORKERS=1 bin/rails test:system
+
+Finished in 0.667553s, 5.9920 runs/s, 23.9681 assertions/s.
+4 runs, 16 assertions, 0 failures, 0 errors, 0 skips
+
+bin/rubocop
+.............................................................................................................................................................................................................................................................
+
+253 files inspected, no offenses detected
+
+RAILS_ENV=test bin/rails tailwindcss:build
+≈ tailwindcss v4.3.3
+
+Done in 220ms
