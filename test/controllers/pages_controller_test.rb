@@ -5,8 +5,8 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_response :success
-    assert_select "h1", text: /Venda para empresas que já fazem sentido/
-    assert_select "*", text: /encontra contatos dentro do seu recorte/
+    assert_select "h1", text: /Encontre empresas\. Valide por voz\./
+    assert_select "*", text: /Busque fornecedores, confirme o contato por voz com IA/
     assert_select "a", text: "Criar conta"
     assert_no_match(/\+2\.000 empresas|100 validações gratuitas/, @response.body)
   end

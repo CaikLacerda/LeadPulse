@@ -72,7 +72,7 @@
   /* Hero */
   .landing-hero {
     background: var(--color-surface);
-    padding-block: 3rem 4rem;
+    padding-block: 2.5rem 3rem;
   }
 
   .landing-hero__intro {
@@ -83,11 +83,15 @@
   .landing-hero__title {
     max-width: 44rem;
     margin-top: 1rem;
-    font-size: clamp(2.125rem, 1.25rem + 3vw, 3.5rem);
+    font-size: clamp(2rem, 1.4rem + 2vw, 3rem);
     font-weight: 600;
     letter-spacing: -0.035em;
     line-height: 1.08;
     text-wrap: balance;
+  }
+
+  .landing-hero__title span {
+    display: block;
   }
 
   .landing-hero__lead {
@@ -141,8 +145,9 @@
   .landing-hero__facts {
     display: grid;
     gap: 0.75rem;
-    border-left: 2px solid var(--color-line);
-    padding-left: 1.25rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--color-line);
+    padding-top: 1.25rem;
     color: var(--color-fg-secondary);
     font-size: 0.9375rem;
     line-height: 1.375rem;
@@ -162,8 +167,8 @@
   }
 
   .landing-hero__shot {
-    margin-top: 3rem;
-    box-shadow: var(--lp-shadow-lg);
+    min-width: 0;
+    align-self: center;
   }
 
   @media (min-width: 640px) {
@@ -178,40 +183,26 @@
 
   @media (min-width: 1024px) {
     .landing-hero {
-      padding-block: 4.5rem 5rem;
+      padding-block: 4rem 2rem;
     }
 
     .landing-hero__intro {
-      grid-template-columns: minmax(0, 1fr) 18rem;
-      align-items: end;
-      gap: 4rem;
+      grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
+      align-items: center;
+      gap: 3rem;
     }
 
-    .landing-hero__shot {
-      margin-top: 3.5rem;
+    .landing-hero__facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+      font-size: 0.875rem;
     }
   }
 
-  /* Moldura das telas reais */
+  /* Moldura compartilhada com a autenticação em layouts/public.css. */
   .landing-shot {
-    overflow: hidden;
-    border: 1px solid var(--color-line);
-    border-radius: var(--lp-radius-lg);
-    background: var(--color-canvas);
-    box-shadow: var(--lp-shadow-sm);
-  }
-
-  .landing-shot img {
-    display: block;
-    height: auto;
-    width: 100%;
-  }
-
-  .landing-shot__caption {
-    margin-top: 0.75rem;
-    color: var(--color-fg-muted);
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
+    min-width: 0;
   }
 
   /* Seções */

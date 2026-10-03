@@ -7,7 +7,7 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="LeadPulse">
-  <meta property="og:title" content="LeadPulse · Venda para empresas que já fazem sentido">
+  <meta property="og:title" content="LeadPulse · Encontre empresas. Valide por voz.">
   <meta property="og:description" content="<%= landing_description %>">
   <meta property="og:url" content="<%= root_url %>">
   <meta property="og:image" content="<%= image_url('landing/og-leadpulse.jpg') %>">
@@ -76,8 +76,8 @@
       <div class="landing-hero__intro">
         <div class="landing-hero__copy">
           <p class="landing-eyebrow"><span class="landing-pulse" aria-hidden="true"></span>Prospecção e validação B2B por voz</p>
-          <h1 id="landing-title" class="landing-hero__title">Venda para empresas que já fazem sentido.</h1>
-          <p class="landing-hero__lead">O LeadPulse encontra contatos dentro do seu recorte, confirma por voz com IA se há aderência e entrega resultados com evidências para o seu time.</p>
+          <h1 id="landing-title" class="landing-hero__title">Encontre empresas. <span>Valide por voz.</span></h1>
+          <p class="landing-hero__lead">Busque fornecedores, confirme o contato por voz com IA e entregue resultados com evidências para sua equipe.</p>
           <div class="landing-actions">
             <%= link_to 'Criar conta grátis', new_user_registration_path, class: workspace_button_class(:primary, nil, size: :lg) %>
             <%= link_to root_path(anchor: 'como-funciona'), class: 'landing-arrow-link' do %>
@@ -86,21 +86,18 @@
           </div>
         </div>
 
-        <ul class="landing-hero__facts">
-          <li><i class="fa-solid fa-check" aria-hidden="true"></i>Busca por segmento e região ou planilha própria</li>
-          <li><i class="fa-solid fa-check" aria-hidden="true"></i>Chamada que se identifica como automatizada</li>
-          <li><i class="fa-solid fa-check" aria-hidden="true"></i>Transcrição, revisão humana e exportação</li>
-        </ul>
+        <%= render 'shared/product_screenshot', image: 'produto-analytics', width: 1600, small_width: 800,
+              height: 1173, sizes: '(min-width: 1152px) 610px, (min-width: 1024px) 52vw, calc(100vw - 2rem)',
+              priority: true, css_class: 'landing-shot landing-hero__shot',
+              alt: 'Analytics real do LeadPulse: registros, taxas de validação e gráfico diário por resultado.',
+              caption: 'Tela real do LeadPulse · dados de demonstração' %>
       </div>
 
-      <figure class="landing-shot landing-hero__shot">
-        <%= image_tag 'landing/produto-analytics-1600.webp',
-              srcset: { 'landing/produto-analytics-800.webp' => '800w', 'landing/produto-analytics-1600.webp' => '1600w' },
-              sizes: '(min-width: 1152px) 1088px, calc(100vw - 2rem)',
-              width: 1600, height: 1173, fetchpriority: 'high',
-              alt: 'Tela de Analytics do LeadPulse com registros, taxas de validação, confirmação e atendimento, duração mediana e o gráfico diário por resultado.' %>
-      </figure>
-      <p class="landing-shot__caption">Telas reais do LeadPulse com dados fictícios de demonstração.</p>
+      <ul class="landing-hero__facts">
+        <li><i class="fa-solid fa-check" aria-hidden="true"></i>Busca por segmento e região</li>
+        <li><i class="fa-solid fa-check" aria-hidden="true"></i>Validação por voz com IA</li>
+        <li><i class="fa-solid fa-check" aria-hidden="true"></i>Evidências para revisão humana</li>
+      </ul>
     </div>
   </section>
 
@@ -142,12 +139,10 @@
               <% end %>
             </ul>
           </div>
-          <figure class="landing-shot landing-feature__shot">
-            <%= image_tag "landing/#{section[:image]}-1200.webp",
-                  srcset: { "landing/#{section[:image]}-640.webp" => '640w', "landing/#{section[:image]}-1200.webp" => '1200w' },
-                  sizes: '(min-width: 1024px) 600px, calc(100vw - 2rem)',
-                  width: section[:size][0], height: section[:size][1], loading: 'lazy', decoding: 'async', alt: section[:alt] %>
-          </figure>
+          <%= render 'shared/product_screenshot', image: section[:image], width: section[:size][0],
+                small_width: 640, height: section[:size][1], sizes: '(min-width: 1024px) 600px, calc(100vw - 2rem)',
+                css_class: 'landing-shot landing-feature__shot', alt: section[:alt],
+                caption: "#{section[:label]} · tela real com dados de demonstração" %>
         </article>
       <% end %>
 
