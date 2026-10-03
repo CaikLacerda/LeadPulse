@@ -11,6 +11,27 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_no_match(/\+2\.000 empresas|100 validações gratuitas/, @response.body)
   end
 
+  test "public homepage has the sections, SEO tags and real product screens" do
+    get root_url
+
+    assert_select "title", text: /LeadPulse/
+    assert_select "meta[name='description'][content]", count: 1
+    assert_select "meta[property='og:image'][content*='og-leadpulse']", count: 1
+    assert_select "h1", count: 1
+    %w[inicio como-funciona recursos planos sobre contato].each do |anchor|
+      assert_select "section##{anchor}", count: 1
+    end
+    assert_select "header.site-header nav[aria-label='Navegação principal'] a", count: 5
+    assert_select "header.site-header a[href='#{new_user_session_path}']", text: "Entrar"
+    assert_select "footer.site-footer a[href='#{terms_path}']"
+    assert_select "footer.site-footer a[href='#{privacy_path}']"
+    # Telas reais servidas pelo próprio app (CSP), com dimensões para evitar layout shift.
+    assert_select ".landing-shot img[src*='/assets/landing/produto-'][width][height][alt]", count: 4
+    assert_select "img[src^='http']", count: 0
+    assert_select "main main", count: 0
+    assert_no_match(/R\$|por mês|\/mês/, @response.body)
+  end
+
   test "renders public terms and privacy pages" do
     get terms_url
     assert_response :success
