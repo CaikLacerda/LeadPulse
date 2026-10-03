@@ -323,7 +323,7 @@
   }
 
   .app-body--public .workspace-page {
-    min-height: calc(100vh - 5rem);
+    min-height: calc(100vh - 4rem);
     background: var(--color-canvas);
     padding-top: 2.5rem;
   }
