@@ -694,6 +694,10 @@
     .auth-benefits {
       margin-top: 1.25rem;
     }
+
+    .auth-main {
+      padding-block: 2rem;
+    }
   }
 }
 
