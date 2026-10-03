@@ -1,5 +1,26 @@
 /* Header e rodapé das páginas públicas (landing, termos e privacidade). */
 @layer components {
+  /* Screenshots reais: componente das páginas públicas e do auth shell. */
+  .product-screenshot__frame {
+    overflow: hidden;
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius-lg);
+    background: var(--color-canvas);
+  }
+
+  .product-screenshot img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .product-screenshot__caption {
+    margin-top: 0.625rem;
+    color: var(--color-fg-muted);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
   .site-header__inner,
   .site-footer__inner,
   .site-footer__bottom p,

@@ -1,4 +1,4 @@
-<%# Painel institucional das telas de autenticação. variant: "login" (padrão) ou "signup" (cadastro). %>
+<% signup = variant == 'signup' %>
 <aside class="auth-brand" aria-label="Sobre o LeadPulse">
   <div class="auth-brand__inner">
     <%= link_to root_path, class: 'auth-brand__logo' do %>
@@ -7,69 +7,45 @@
     <% end %>
 
     <div class="auth-brand__body">
-      <% if variant == 'signup' %>
-        <p class="auth-brand__eyebrow">Primeiros passos</p>
-        <p class="auth-brand__headline">Configure sua operação e comece sua primeira validação.</p>
+      <p class="auth-brand__eyebrow"><%= signup ? 'Sua primeira operação' : 'Da conversa à evidência' %></p>
+      <p class="auth-brand__headline"><%= signup ? 'Sua próxima validação começa aqui.' : 'Encontre. Ligue. Valide com confiança.' %></p>
+      <p class="auth-brand__lead"><%= signup ? 'Organize sua empresa, conecte as integrações e prepare o primeiro lote.' : 'Chamadas por IA e resultados que sua equipe pode conferir.' %></p>
 
+      <%= render 'shared/product_screenshot',
+            image: (signup ? 'produto-lote' : 'produto-chamada'), width: 1200, small_width: 640,
+            height: (signup ? 529 : 582), sizes: '(min-width: 1024px) 460px, 1px',
+            css_class: 'auth-product',
+            alt: (signup ? 'Registros de um lote real do LeadPulse, com status e tentativas por empresa.' : 'Tela real da auditoria de chamadas do LeadPulse, com conversa e revisão humana.'),
+            caption: (signup ? 'Lote de validação · dados de demonstração' : 'Auditoria de chamadas · dados de demonstração') %>
+
+      <% if signup %>
         <ol class="auth-steps">
-          <li class="auth-steps__item" aria-current="step">
-            <span class="auth-steps__number" aria-hidden="true">1</span>
-            <span class="auth-steps__text">
-              <span class="auth-steps__title">Criar conta</span>
-              <span class="auth-steps__description">Você entra como administrador da sua empresa.</span>
-            </span>
-          </li>
-          <li class="auth-steps__item">
-            <span class="auth-steps__number" aria-hidden="true">2</span>
-            <span class="auth-steps__text">
-              <span class="auth-steps__title">Configurar empresa</span>
-              <span class="auth-steps__description">Conecte Twilio, OpenAI e o token da API em Integrações.</span>
-            </span>
-          </li>
-          <li class="auth-steps__item">
-            <span class="auth-steps__number" aria-hidden="true">3</span>
-            <span class="auth-steps__text">
-              <span class="auth-steps__title">Começar validação</span>
-              <span class="auth-steps__description">Busque fornecedores ou importe uma planilha e inicie o lote.</span>
-            </span>
-          </li>
+          <% [
+            ['Criar conta', 'Seu acesso à operação.'],
+            ['Configurar empresa', 'Conecte as integrações da sua empresa.'],
+            ['Começar validação', 'Busque fornecedores ou importe uma planilha.']
+          ].each_with_index do |(title, description), index| %>
+            <li class="auth-steps__item" <%= tag.attributes(aria: { current: ('step' if index.zero?) }) %>>
+              <span class="auth-steps__number" aria-hidden="true"><%= index + 1 %></span>
+              <span class="auth-steps__text">
+                <span class="auth-steps__title"><%= title %></span>
+                <span class="auth-steps__description"><%= description %></span>
+              </span>
+            </li>
+          <% end %>
         </ol>
       <% else %>
-        <p class="auth-brand__eyebrow">Validação B2B por voz</p>
-        <p class="auth-brand__headline">Automatize a validação dos seus fornecedores.</p>
-        <p class="auth-brand__lead">Chamadas por IA, evidências e auditoria em um único fluxo.</p>
-
-        <figure class="auth-call" role="img" aria-label="Ilustração de uma chamada de validação: contato, segmento e interesse comercial confirmados, com resultado Fornecedor qualificado.">
-          <div class="auth-call__header">
-            <span class="auth-call__icon"><i class="fa-solid fa-phone-volume"></i></span>
-            <span class="auth-call__title">Chamada de validação</span>
-            <span class="auth-call__status">Concluída</span>
-          </div>
-          <%= render 'shared/waveform', css_class: 'auth-call__wave' %>
-          <ul class="auth-call__checks">
-            <li><i class="fa-solid fa-check"></i>Contato pertence à empresa</li>
-            <li><i class="fa-solid fa-check"></i>Fornece o segmento</li>
-            <li><i class="fa-solid fa-check"></i>Aceita retorno comercial</li>
-          </ul>
-          <div class="auth-call__result">
-            <span>Resultado</span>
-            <span class="auth-call__badge">Fornecedor qualificado</span>
-          </div>
-        </figure>
-
         <ul class="auth-benefits">
-          <li>
-            <span class="auth-benefits__icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <span><strong>Buscar</strong> fornecedores por segmento e região.</span>
-          </li>
-          <li>
-            <span class="auth-benefits__icon" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
-            <span><strong>Validar</strong> contato, segmento e interesse com chamadas por IA.</span>
-          </li>
-          <li>
-            <span class="auth-benefits__icon" aria-hidden="true"><i class="fa-solid fa-list-check"></i></span>
-            <span><strong>Auditar</strong> com transcrição, revisão humana e exportação.</span>
-          </li>
+          <% [
+            ['fa-magnifying-glass', 'Buscar', 'Encontre empresas por segmento e região.'],
+            ['fa-phone', 'Validar', 'Confirme contato e interesse por voz com IA.'],
+            ['fa-list-check', 'Auditar', 'Confira a conversa e revise cada resultado.']
+          ].each do |icon, title, description| %>
+            <li>
+              <span class="auth-benefits__icon" aria-hidden="true"><i class="fa-solid <%= icon %>"></i></span>
+              <span><strong><%= title %></strong><span class="auth-benefits__description"><%= description %></span></span>
+            </li>
+          <% end %>
         </ul>
       <% end %>
     </div>

@@ -1,7 +1,7 @@
 /*
   Telas de autenticação (Devise e convite).
   Até 1023px: painel institucional vira um bloco compacto no topo e o formulário ocupa a largura.
-  A partir de 1024px: painel navy (44%) + formulário (56%).
+  A partir de 1024px: painel navy (43%) + formulário (57%), dentro de uma composição de largura limitada.
 */
 @layer components {
   .auth-body {
@@ -29,6 +29,7 @@
   }
 
   .auth-layout {
+    width: 100%;
     display: flex;
     min-height: 100vh;
     min-height: 100dvh;
@@ -71,7 +72,7 @@
 
   .auth-brand__eyebrow,
   .auth-brand__lead,
-  .auth-call,
+  .auth-product,
   .auth-benefits,
   .auth-steps,
   .auth-brand .auth-legal {
@@ -89,22 +90,35 @@
   }
 
   @media (min-width: 1024px) {
+    .auth-body {
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+      background: var(--color-canvas);
+    }
+
     .auth-layout {
       display: grid;
-      grid-template-columns: minmax(0, 44fr) minmax(0, 56fr);
+      grid-template-columns: minmax(0, 43fr) minmax(0, 57fr);
+      max-width: 82.5rem;
+      min-height: min(49rem, calc(100dvh - 4rem));
+      overflow: hidden;
+      border: 1px solid var(--color-line);
+      border-radius: var(--lp-radius-lg);
+      background: var(--color-surface);
     }
 
     .auth-brand__inner {
-      max-width: 36rem;
+      max-width: none;
       min-height: 100%;
       justify-content: space-between;
-      gap: 2.5rem;
-      padding: 2.5rem clamp(2.5rem, 4vw, 3.5rem);
+      gap: 2rem;
+      padding: 2rem clamp(1.5rem, 3vw, 3rem);
     }
 
     .auth-brand__eyebrow,
     .auth-brand__lead,
-    .auth-call,
+    .auth-product,
     .auth-benefits,
     .auth-steps {
       display: block;
@@ -139,102 +153,24 @@
     line-height: 1.5rem;
   }
 
-  /* Ilustração de uma chamada (rótulos reais do produto) */
-  .auth-call {
-    margin-top: 2rem;
-    border: 1px solid var(--lp-navy-line);
-    border-radius: var(--lp-radius-lg);
-    background: var(--lp-navy-raised);
-    padding: 1rem 1.125rem;
+  /* O produto real ocupa o centro do painel; sem interface fictícia. */
+  .auth-product {
+    margin-top: 1.5rem;
   }
 
-  .auth-call__header {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
+  .auth-product .product-screenshot__frame {
+    border-color: var(--lp-navy-line);
   }
 
-  .auth-call__icon {
-    display: inline-flex;
-    height: 1.75rem;
-    width: 1.75rem;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--lp-radius-sm);
-    background: var(--lp-navy-line);
-    color: var(--lp-navy-link);
-    font-size: 0.75rem;
-  }
-
-  .auth-call__title {
-    color: #fff;
-    font-size: 0.875rem;
-    font-weight: 600;
-  }
-
-  .auth-call__status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    margin-left: auto;
+  .auth-product .product-screenshot__caption {
     color: var(--lp-navy-muted);
     font-size: 0.75rem;
   }
 
-  .auth-call__status::before {
-    height: 0.375rem;
-    width: 0.375rem;
-    border-radius: 999px;
-    background: var(--lp-navy-success);
-    content: "";
-  }
-
-  .auth-call__wave {
+  .auth-benefits__description {
     display: block;
-    height: 1.75rem;
-    width: 100%;
-    margin: 0.875rem 0;
-    fill: var(--lp-navy-link);
-    opacity: 0.5;
-  }
-
-  .auth-call__checks {
-    display: grid;
-    gap: 0.5rem;
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
-  }
-
-  .auth-call__checks li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .auth-call__checks .fa-solid {
-    color: var(--lp-navy-success);
-    font-size: 0.6875rem;
-  }
-
-  .auth-call__result {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 0.875rem;
-    border-top: 1px solid var(--lp-navy-line);
-    padding-top: 0.75rem;
     color: var(--lp-navy-muted);
-    font-size: 0.75rem;
-  }
-
-  .auth-call__badge {
-    border: 1px solid var(--lp-navy-line);
-    border-radius: 999px;
-    padding: 0.125rem 0.5rem;
-    color: var(--lp-navy-success);
-    font-weight: 500;
+    font-size: 0.8125rem;
   }
 
   /* Buscar / Validar / Auditar */
@@ -382,7 +318,7 @@
 
   .auth-panel {
     width: 100%;
-    max-width: 26rem;
+    max-width: 27rem;
   }
 
   .auth-panel--wide {
@@ -645,7 +581,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .auth-form[aria-busy="true"] .auth-submit::before {
-      animation-duration: 1.6s;
+      animation: none;
     }
   }
 
@@ -681,12 +617,20 @@
 
   /* Telas baixas (ex.: 1024×768): menos respiro para o painel caber sem rolagem. */
   @media (min-width: 1024px) and (max-height: 820px) {
-    .auth-brand__inner {
-      gap: 1.5rem;
-      padding-block: 2rem;
+    .auth-body {
+      padding: 1rem;
     }
 
-    .auth-call,
+    .auth-layout {
+      min-height: calc(100dvh - 2rem);
+    }
+
+    .auth-brand__inner {
+      gap: 1.25rem;
+      padding-block: 1.5rem;
+    }
+
+    .auth-product,
     .auth-steps {
       margin-top: 1.5rem;
     }
@@ -696,7 +640,12 @@
     }
 
     .auth-main {
-      padding-block: 2rem;
+      padding-block: 1.5rem;
+    }
+
+    .auth-form {
+      gap: 1rem;
+      margin-top: 1.5rem;
     }
   }
 }
