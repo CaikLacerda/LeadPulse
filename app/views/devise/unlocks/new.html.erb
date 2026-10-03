@@ -4,12 +4,12 @@
 <%= render 'devise/shared/messages', resource: resource %>
 
 <%= form_for(resource, as: resource_name, url: unlock_path(resource_name), html: { method: :post, class: 'auth-form' }) do |f| %>
-  <div>
+  <div class="auth-field">
     <%= f.label :email, 'E-mail', class: 'settings-label' %>
-    <%= f.email_field :email, autofocus: true, autocomplete: 'email', class: 'settings-input' %>
+    <%= f.email_field :email, autofocus: true, autocomplete: 'email', class: 'settings-input auth-input' %>
   </div>
 
-  <%= f.submit 'Reenviar instruções', class: workspace_submit_class(:primary) %>
+  <%= f.button 'Reenviar instruções', type: 'submit', name: nil, class: workspace_submit_class(:primary, 'auth-submit'), data: { turbo_submits_with: 'Enviando…' } %>
 <% end %>
 
 <div class="auth-footer"><%= render 'devise/shared/links' %></div>

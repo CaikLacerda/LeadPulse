@@ -1,43 +1,50 @@
 <% content_for :title, 'Criar conta · LeadPulse' %>
+<% content_for :description, 'Crie a conta da sua empresa no LeadPulse e comece a validar fornecedores por voz com IA.' %>
+<% content_for :auth_brand, 'signup' %>
 
 <h1 class="auth-title">Criar conta</h1>
 <p class="auth-description">Configure a operação de busca e validação de fornecedores da sua empresa.</p>
 
-<%= render 'devise/shared/messages', resource: resource %>
+<%= render 'devise/shared/messages', resource: resource, inline_fields: %i[name email password password_confirmation] %>
 
 <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: 'auth-form' }) do |f| %>
-  <div>
+  <div class="auth-field">
     <%= f.label :name, 'Nome completo', class: 'settings-label' %>
-    <%= f.text_field :name, autofocus: true, autocomplete: 'name', class: 'settings-input' %>
+    <%= f.text_field :name, autofocus: true, autocomplete: 'name', class: 'settings-input auth-input', aria: auth_field_aria(resource, :name) %>
+    <%= auth_field_error(resource, :name) %>
   </div>
 
-  <div>
+  <div class="auth-field">
     <%= f.label :email, 'E-mail corporativo', class: 'settings-label' %>
-    <%= f.email_field :email, autocomplete: 'email', placeholder: 'voce@empresa.com', class: 'settings-input' %>
+    <%= f.email_field :email, autocomplete: 'email', placeholder: 'voce@empresa.com', class: 'settings-input auth-input', aria: auth_field_aria(resource, :email) %>
+    <%= auth_field_error(resource, :email) %>
   </div>
 
-  <div class="grid gap-4 sm:grid-cols-2">
-    <div>
-      <%= f.label :password, 'Senha', class: 'settings-label' %>
-      <%= f.password_field :password, autocomplete: 'new-password', class: 'settings-input', aria: { describedby: 'password_hint' } %>
-    </div>
-    <div>
-      <%= f.label :password_confirmation, 'Confirmar senha', class: 'settings-label' %>
-      <%= f.password_field :password_confirmation, autocomplete: 'new-password', class: 'settings-input' %>
-    </div>
+  <div class="auth-field">
+    <%= f.label :password, 'Senha', class: 'settings-label' %>
+    <%= render 'devise/shared/password_field', form: f, attribute: :password,
+          options: { autocomplete: 'new-password', aria: auth_field_aria(resource, :password, hint: ('password_hint' if @minimum_password_length)) } %>
     <% if @minimum_password_length %>
-      <p class="settings-field-hint !mt-0 sm:col-span-2" id="password_hint">Mínimo de <%= @minimum_password_length %> caracteres.</p>
+      <p class="auth-field-hint" id="password_hint">Use pelo menos <%= @minimum_password_length %> caracteres.</p>
     <% end %>
+    <%= auth_field_error(resource, :password) %>
   </div>
 
-  <p class="text-[0.8125rem] leading-5 text-fg-muted">
+  <div class="auth-field">
+    <%= f.label :password_confirmation, 'Confirmar senha', class: 'settings-label' %>
+    <%= render 'devise/shared/password_field', form: f, attribute: :password_confirmation,
+          options: { autocomplete: 'new-password', aria: auth_field_aria(resource, :password_confirmation) } %>
+    <%= auth_field_error(resource, :password_confirmation) %>
+  </div>
+
+  <p class="auth-terms">
     Ao criar a conta, você concorda com os
-    <%= link_to 'Termos de Serviço', terms_path, class: 'workspace-link workspace-link--muted underline', target: '_blank', rel: 'noopener' %>
+    <%= link_to terms_path, target: '_blank', rel: 'noopener' do %>Termos de Serviço<span class="sr-only"> (abre em nova aba)</span><% end %>
     e a
-    <%= link_to 'Política de Privacidade', privacy_path, class: 'workspace-link workspace-link--muted underline', target: '_blank', rel: 'noopener' %>.
+    <%= link_to privacy_path, target: '_blank', rel: 'noopener' do %>Política de Privacidade<span class="sr-only"> (abre em nova aba)</span><% end %>.
   </p>
 
-  <%= f.submit 'Criar conta', class: workspace_submit_class(:primary), data: { turbo_submits_with: 'Criando conta…' } %>
+  <%= f.button 'Criar conta', type: 'submit', name: nil, class: workspace_submit_class(:primary, 'auth-submit'), data: { turbo_submits_with: 'Criando conta…' } %>
 <% end %>
 
 <p class="auth-footer">

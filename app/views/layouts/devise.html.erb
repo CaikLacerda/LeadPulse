@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= content_for(:title) || 'LeadPulse' %></title>
+    <meta name="description" content="<%= content_for(:description).presence || 'Acesse o LeadPulse: busca de fornecedores, validação por voz com IA e auditoria das chamadas.' %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
@@ -17,38 +18,21 @@
     <%= javascript_importmap_tags %>
   </head>
   <body class="auth-body" <%= tag.attributes(data: { page_theme: html_theme_attribute }) %>>
-    <div class="auth-layout">
-      <aside class="auth-aside">
-        <%= link_to root_path, class: 'app-brand-link' do %>
-          <span class="app-logo-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
-          <span class="app-logo-text">LeadPulse</span>
-        <% end %>
+    <a href="#auth-content" class="auth-skip-link">Ir para o formulário</a>
 
-        <div>
-          <p class="auth-aside__statement">Validação de fornecedores com chamadas por IA, auditoria e LGPD no mesmo fluxo.</p>
-          <ul class="auth-aside__list">
-            <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Busca de fornecedores por segmento e região</span></li>
-            <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Chamadas automatizadas com gravação e transcrição</span></li>
-            <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>Revisão manual, trilha de auditoria e exportação</span></li>
-          </ul>
+    <div class="auth-layout">
+      <%= render 'devise/shared/brand_panel', variant: content_for(:auth_brand).presence || 'login' %>
+
+      <main class="auth-main" id="auth-content">
+        <div class="auth-panel <%= content_for(:auth_panel_class) %>">
+          <%= yield %>
         </div>
 
-        <div class="auth-aside__footer">
+        <footer class="auth-legal auth-legal--compact">
           <span>© <%= Date.current.year %> LeadPulse</span>
           <%= link_to 'Termos', terms_path %>
           <%= link_to 'Privacidade', privacy_path %>
-        </div>
-      </aside>
-
-      <main class="auth-main">
-        <div class="auth-panel <%= content_for(:auth_panel_class) %>">
-          <%= link_to root_path, class: 'app-brand-link auth-mobile-brand' do %>
-            <span class="app-logo-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
-            <span class="app-logo-text">LeadPulse</span>
-          <% end %>
-
-          <%= yield %>
-        </div>
+        </footer>
       </main>
     </div>
   </body>

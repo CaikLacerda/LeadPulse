@@ -3,15 +3,16 @@
 <h1 class="auth-title">Recuperar acesso</h1>
 <p class="auth-description">Informe o e-mail da conta para receber o link de redefinição de senha.</p>
 
-<%= render 'devise/shared/messages', resource: resource %>
+<%= render 'devise/shared/messages', resource: resource, inline_fields: %i[email] %>
 
 <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: 'auth-form' }) do |f| %>
-  <div>
+  <div class="auth-field">
     <%= f.label :email, 'E-mail corporativo', class: 'settings-label' %>
-    <%= f.email_field :email, autofocus: true, autocomplete: 'email', placeholder: 'voce@empresa.com', class: 'settings-input' %>
+    <%= f.email_field :email, autofocus: true, autocomplete: 'email', placeholder: 'voce@empresa.com', class: 'settings-input auth-input', aria: auth_field_aria(resource, :email) %>
+    <%= auth_field_error(resource, :email) %>
   </div>
 
-  <%= f.submit 'Enviar link de redefinição', class: workspace_submit_class(:primary), data: { turbo_submits_with: 'Enviando…' } %>
+  <%= f.button 'Enviar link de redefinição', type: 'submit', name: nil, class: workspace_submit_class(:primary, 'auth-submit'), data: { turbo_submits_with: 'Enviando…' } %>
 <% end %>
 
 <p class="auth-footer">

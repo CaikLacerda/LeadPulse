@@ -1,4 +1,5 @@
 <% content_for :title, 'Entrar · LeadPulse' %>
+<% content_for :description, 'Entre no LeadPulse para buscar fornecedores, validar por voz com IA e auditar as chamadas da sua empresa.' %>
 
 <h1 class="auth-title">Entrar</h1>
 <p class="auth-description">Acesse o painel de validação da sua empresa.</p>
@@ -6,27 +7,27 @@
 <%= render 'devise/shared/messages' %>
 
 <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'auth-form' }) do |f| %>
-  <div>
+  <div class="auth-field">
     <%= f.label :email, 'E-mail corporativo', class: 'settings-label' %>
-    <%= f.email_field :email, autofocus: true, autocomplete: 'email', placeholder: 'voce@empresa.com', class: 'settings-input' %>
+    <%= f.email_field :email, autofocus: true, autocomplete: 'email', placeholder: 'voce@empresa.com', class: 'settings-input auth-input' %>
   </div>
 
-  <div>
-    <div class="flex items-baseline justify-between">
+  <div class="auth-field">
+    <div class="auth-field__row">
       <%= f.label :password, 'Senha', class: 'settings-label' %>
-      <%= link_to 'Esqueceu a senha?', new_password_path(resource_name), class: 'workspace-link text-[0.8125rem]' %>
+      <%= link_to 'Esqueceu a senha?', new_password_path(resource_name), class: 'auth-quiet-link' %>
     </div>
-    <%= f.password_field :password, autocomplete: 'current-password', class: 'settings-input' %>
+    <%= render 'devise/shared/password_field', form: f, attribute: :password, options: { autocomplete: 'current-password' } %>
   </div>
 
   <% if devise_mapping.rememberable? %>
-    <label class="settings-check">
-      <%= f.check_box :remember_me %>
+    <label class="auth-check">
+      <%= f.check_box :remember_me, class: 'auth-check__input' %>
       <span>Manter conectado neste dispositivo</span>
     </label>
   <% end %>
 
-  <%= f.submit 'Entrar', class: workspace_submit_class(:primary), data: { turbo_submits_with: 'Entrando…' } %>
+  <%= f.button 'Entrar', type: 'submit', name: nil, class: workspace_submit_class(:primary, 'auth-submit'), data: { turbo_submits_with: 'Entrando…' } %>
 <% end %>
 
 <p class="auth-footer">

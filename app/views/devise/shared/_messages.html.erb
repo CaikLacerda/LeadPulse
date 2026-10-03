@@ -1,13 +1,21 @@
+<%#
+  Resumo de erros e avisos das telas de autenticação.
+  inline_fields: atributos cujos erros já aparecem junto ao campo (auth_field_error); os demais erros são listados aqui.
+%>
+<% inline_fields = Array(local_assigns[:inline_fields]) %>
 <% if local_assigns[:resource]&.errors&.any? %>
+  <% other_messages = resource.errors.reject { |error| inline_fields.include?(error.attribute) }.map(&:full_message) %>
   <div class="workspace-callout workspace-callout--danger auth-errors" role="alert">
     <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
     <div>
       <p class="font-medium">Revise os campos abaixo.</p>
-      <ul>
-        <% resource.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
+      <% if other_messages.any? %>
+        <ul>
+          <% other_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      <% end %>
     </div>
   </div>
 <% elsif alert.present? %>

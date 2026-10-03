@@ -3,25 +3,29 @@
 <h1 class="auth-title">Definir nova senha</h1>
 <p class="auth-description">Escolha uma nova senha para voltar ao painel.</p>
 
-<%= render 'devise/shared/messages', resource: resource %>
+<%= render 'devise/shared/messages', resource: resource, inline_fields: %i[password password_confirmation] %>
 
 <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, class: 'auth-form' }) do |f| %>
   <%= f.hidden_field :reset_password_token %>
 
-  <div>
+  <div class="auth-field">
     <%= f.label :password, 'Nova senha', class: 'settings-label' %>
-    <%= f.password_field :password, autofocus: true, autocomplete: 'new-password', class: 'settings-input', aria: { describedby: 'password_hint' } %>
+    <%= render 'devise/shared/password_field', form: f, attribute: :password,
+          options: { autofocus: true, autocomplete: 'new-password', aria: auth_field_aria(resource, :password, hint: ('password_hint' if @minimum_password_length)) } %>
     <% if @minimum_password_length %>
-      <p class="settings-field-hint" id="password_hint">Mínimo de <%= @minimum_password_length %> caracteres.</p>
+      <p class="auth-field-hint" id="password_hint">Use pelo menos <%= @minimum_password_length %> caracteres.</p>
     <% end %>
+    <%= auth_field_error(resource, :password) %>
   </div>
 
-  <div>
+  <div class="auth-field">
     <%= f.label :password_confirmation, 'Confirmar nova senha', class: 'settings-label' %>
-    <%= f.password_field :password_confirmation, autocomplete: 'new-password', class: 'settings-input' %>
+    <%= render 'devise/shared/password_field', form: f, attribute: :password_confirmation,
+          options: { autocomplete: 'new-password', aria: auth_field_aria(resource, :password_confirmation) } %>
+    <%= auth_field_error(resource, :password_confirmation) %>
   </div>
 
-  <%= f.submit 'Salvar nova senha', class: workspace_submit_class(:primary), data: { turbo_submits_with: 'Salvando…' } %>
+  <%= f.button 'Salvar nova senha', type: 'submit', name: nil, class: workspace_submit_class(:primary, 'auth-submit'), data: { turbo_submits_with: 'Salvando…' } %>
 <% end %>
 
 <p class="auth-footer">

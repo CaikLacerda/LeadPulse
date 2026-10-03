@@ -1,0 +1,83 @@
+<%# Painel institucional das telas de autenticação. variant: "login" (padrão) ou "signup" (cadastro). %>
+<aside class="auth-brand" aria-label="Sobre o LeadPulse">
+  <div class="auth-brand__inner">
+    <%= link_to root_path, class: 'auth-brand__logo' do %>
+      <span class="app-logo-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
+      <span class="app-logo-text">LeadPulse</span>
+    <% end %>
+
+    <div class="auth-brand__body">
+      <% if variant == 'signup' %>
+        <p class="auth-brand__eyebrow">Primeiros passos</p>
+        <p class="auth-brand__headline">Configure sua operação e comece sua primeira validação.</p>
+
+        <ol class="auth-steps">
+          <li class="auth-steps__item" aria-current="step">
+            <span class="auth-steps__number" aria-hidden="true">1</span>
+            <span class="auth-steps__text">
+              <span class="auth-steps__title">Criar conta</span>
+              <span class="auth-steps__description">Você entra como administrador da sua empresa.</span>
+            </span>
+          </li>
+          <li class="auth-steps__item">
+            <span class="auth-steps__number" aria-hidden="true">2</span>
+            <span class="auth-steps__text">
+              <span class="auth-steps__title">Configurar empresa</span>
+              <span class="auth-steps__description">Conecte Twilio, OpenAI e o token da API em Integrações.</span>
+            </span>
+          </li>
+          <li class="auth-steps__item">
+            <span class="auth-steps__number" aria-hidden="true">3</span>
+            <span class="auth-steps__text">
+              <span class="auth-steps__title">Começar validação</span>
+              <span class="auth-steps__description">Busque fornecedores ou importe uma planilha e inicie o lote.</span>
+            </span>
+          </li>
+        </ol>
+      <% else %>
+        <p class="auth-brand__eyebrow">Validação B2B por voz</p>
+        <p class="auth-brand__headline">Automatize a validação dos seus fornecedores.</p>
+        <p class="auth-brand__lead">Chamadas por IA, evidências e auditoria em um único fluxo.</p>
+
+        <figure class="auth-call" role="img" aria-label="Ilustração de uma chamada de validação: contato, segmento e interesse comercial confirmados, com resultado Fornecedor qualificado.">
+          <div class="auth-call__header">
+            <span class="auth-call__icon"><i class="fa-solid fa-phone-volume"></i></span>
+            <span class="auth-call__title">Chamada de validação</span>
+            <span class="auth-call__status">Concluída</span>
+          </div>
+          <%= render 'shared/waveform', css_class: 'auth-call__wave' %>
+          <ul class="auth-call__checks">
+            <li><i class="fa-solid fa-check"></i>Contato pertence à empresa</li>
+            <li><i class="fa-solid fa-check"></i>Fornece o segmento</li>
+            <li><i class="fa-solid fa-check"></i>Aceita retorno comercial</li>
+          </ul>
+          <div class="auth-call__result">
+            <span>Resultado</span>
+            <span class="auth-call__badge">Fornecedor qualificado</span>
+          </div>
+        </figure>
+
+        <ul class="auth-benefits">
+          <li>
+            <span class="auth-benefits__icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <span><strong>Buscar</strong> fornecedores por segmento e região.</span>
+          </li>
+          <li>
+            <span class="auth-benefits__icon" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
+            <span><strong>Validar</strong> contato, segmento e interesse com chamadas por IA.</span>
+          </li>
+          <li>
+            <span class="auth-benefits__icon" aria-hidden="true"><i class="fa-solid fa-list-check"></i></span>
+            <span><strong>Auditar</strong> com transcrição, revisão humana e exportação.</span>
+          </li>
+        </ul>
+      <% end %>
+    </div>
+
+    <footer class="auth-legal">
+      <span>© <%= Date.current.year %> LeadPulse</span>
+      <%= link_to 'Termos', terms_path %>
+      <%= link_to 'Privacidade', privacy_path %>
+    </footer>
+  </div>
+</aside>

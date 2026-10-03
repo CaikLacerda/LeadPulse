@@ -79,6 +79,18 @@
   --lp-chart-muted: #d0d5dd;
   --lp-map-canvas: #eef1f5;
 
+  /* Superfícies institucionais (painel do login/cadastro e rodapé público): iguais nos dois temas. */
+  --lp-navy: #0e1525;
+  --lp-navy-raised: #162036;
+  --lp-navy-line: #26324a;
+  --lp-navy-fg: #d0d5dd;
+  --lp-navy-muted: #98a2b3;
+  --lp-navy-link: #a9c4ff;
+  --lp-navy-success: #6ee7a0;
+  /* Laranja da marca só em detalhes: --lp-accent sobre fundo escuro, --lp-accent-fg em texto sobre claro (AA). */
+  --lp-accent: #fb8a2e;
+  --lp-accent-fg: #c2410c;
+
   --lp-radius-sm: 6px;
   --lp-radius: 8px;
   --lp-radius-lg: 12px;
