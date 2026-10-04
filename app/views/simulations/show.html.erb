@@ -53,6 +53,33 @@
       <%= render "simulations/agent", side: "counterpart", title: t(".agent.supplier"), icon: "fa-building" %>
     </div>
 
+    <%# Monitor de áudio ao vivo (somente escuta). Só aparece com a simulação em execução e
+        com suporte a Web Audio; o áudio nunca passa pelo Rails. %>
+    <div class="sim-audio"
+         data-controller="simulation-audio"
+         data-simulation-live-target="audioMonitor"
+         data-simulation-audio-ticket-url-value="<%= audio_ticket_simulation_path(@simulation) %>"
+         data-simulation-audio-active-value="<%= @simulation.active? %>"
+         data-audio-state="idle">
+      <span class="sim-audio__title"><i class="fa-solid fa-headphones" aria-hidden="true"></i><%= t(".audio.title") %></span>
+
+      <button type="button" class="sim-audio__button" data-simulation-audio-target="activate"
+              data-action="simulation-audio#activate">
+        <i class="fa-solid fa-volume-high" aria-hidden="true"></i><span><%= t(".audio.activate") %></span>
+      </button>
+
+      <span class="sim-audio__live" data-simulation-audio-target="live" hidden>
+        <span class="sim-audio__pulse" aria-hidden="true"></span>
+        <span class="sim-audio__status" data-simulation-audio-target="status"
+              data-label-live="<%= t(".audio.monitoring") %>"
+              data-label-reconnecting="<%= t(".audio.reconnecting") %>"
+              data-label-unavailable="<%= t(".audio.unavailable") %>"><%= t(".audio.monitoring") %></span>
+        <button type="button" class="sim-audio__mute" data-simulation-audio-target="mute"
+                data-action="simulation-audio#toggleMute" aria-pressed="false"
+                data-label-mute="<%= t(".audio.mute") %>" data-label-unmute="<%= t(".audio.unmute") %>"><%= t(".audio.mute") %></button>
+      </span>
+    </div>
+
     <%# Transcript ao vivo + ações %>
     <div class="sim-stage__columns">
       <%= portlet_form(t(".transcript_title")) do %>

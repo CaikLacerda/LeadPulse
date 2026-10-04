@@ -60,6 +60,7 @@ Rails.application.routes.draw do
     member do
       get :events
       post :cancel
+      post :audio_ticket
     end
   end
 

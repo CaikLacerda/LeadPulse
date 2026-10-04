@@ -7,7 +7,8 @@ module SimulationApiStub
     create: "ValidationApi::Simulations::CreateService",
     show: "ValidationApi::Simulations::ShowService",
     events: "ValidationApi::Simulations::EventsService",
-    cancel: "ValidationApi::Simulations::CancelService"
+    cancel: "ValidationApi::Simulations::CancelService",
+    audio_ticket: "ValidationApi::Simulations::AudioTicketService"
   }.freeze
 
   # Uso: stub_simulation_api(show: {...}, events: {...}) { get ... }

@@ -219,6 +219,58 @@ class SimulationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "cancelled", simulation.reload.status
   end
 
+  # --- audio ticket -------------------------------------------------------
+  test "audio_ticket returns the ticket and a wss url for the browser" do
+    simulation = account_of(@user).simulations.create!(remote_id: "sim_audio", mode: "ai_vs_ai", workflow_key: "supplier_validation", scenario_key: "favoravel", status: "running")
+    ticket = {
+      "simulation_id" => "sim_audio", "ticket" => "short.audio.ticket",
+      "audio_path" => "/simulations/sim_audio/audio", "audio_format" => "pcm16", "sample_rate" => 8000, "expires_in" => 30
+    }
+    sign_in!
+
+    stub_simulation_api(audio_ticket: ticket) do
+      post audio_ticket_simulation_url(simulation)
+    end
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "short.audio.ticket", body["ticket"]
+    assert_equal "pcm16", body["audio_format"]
+    assert_equal 8000, body["sample_rate"]
+    # URL WSS derivada da base HTTP, sem embutir o ticket (o browser anexa na query).
+    assert_match(%r{\Awss?://.+/simulations/sim_audio/audio\z}, body["url"])
+    refute_includes body["url"], "ticket"
+    # O token da empresa jamais vai para o browser.
+    refute_includes response.body, account_of(@user).validation_api_token_value
+  end
+
+  test "audio_ticket surfaces an API error as 502" do
+    simulation = account_of(@user).simulations.create!(remote_id: "sim_audio_err", mode: "ai_vs_ai", workflow_key: "supplier_validation", scenario_key: "favoravel", status: "running")
+    error = ValidationApi::Error.new("simulação encerrada", status_code: 409, details: { "detail" => "not active" })
+    sign_in!
+
+    stub_simulation_api(audio_ticket: error) do
+      post audio_ticket_simulation_url(simulation)
+    end
+
+    assert_response :bad_gateway
+    assert_equal "simulação encerrada", JSON.parse(response.body)["error"]
+  end
+
+  test "audio_ticket is scoped to the current account" do
+    other = Account.create!(name: "Outra").simulations.create!(remote_id: "sim_audio_other", mode: "ai_vs_ai", workflow_key: "supplier_validation", scenario_key: "favoravel", status: "running")
+    sign_in!
+
+    post audio_ticket_simulation_url(other)
+    assert_response :not_found
+  end
+
+  test "audio_ticket requires authentication" do
+    simulation = account_of(@user).simulations.create!(remote_id: "sim_audio_guest", mode: "ai_vs_ai", workflow_key: "supplier_validation", scenario_key: "favoravel", status: "running")
+    post audio_ticket_simulation_url(simulation)
+    assert_redirected_to new_user_session_path
+  end
+
   # --- account isolation --------------------------------------------------
   test "cannot open a simulation from another account" do
     other = Account.create!(name: "Outra").simulations.create!(remote_id: "sim_x", mode: "ai_vs_ai", workflow_key: "supplier_validation", scenario_key: "favoravel", status: "completed")

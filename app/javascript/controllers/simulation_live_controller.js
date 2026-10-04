@@ -19,7 +19,7 @@ export default class extends Controller {
     "agentCard", "counterpartCard", "agentState", "counterpartState",
     "waveAgent", "waveCounterpart",
     "transcript", "transcriptEmpty",
-    "liveActions", "report", "arena"
+    "liveActions", "report", "arena", "audioMonitor"
   ]
 
   static values = {
@@ -205,6 +205,8 @@ export default class extends Controller {
     window.clearInterval(this.clockTimer)
     this.element.classList.add("is-finished")
 
+    // Encerra o monitor de áudio junto com a execução (fecha WSS e AudioContext).
+    this.stopAudioMonitor()
     // Encerra os estados de voz: os dois lados voltam a "ouvindo" em repouso.
     this.resetAgents()
     this.liveActionsTarget?.setAttribute("hidden", "hidden")
@@ -225,5 +227,16 @@ export default class extends Controller {
     }
     this.setWave(this.waveAgentTarget, 0)
     this.setWave(this.waveCounterpartTarget, 0)
+  }
+
+  // Pede ao controller de áudio (irmão) para encerrar o monitor quando a execução termina.
+  stopAudioMonitor() {
+    if (!this.hasAudioMonitorTarget) return
+    const controller = this.application.getControllerForElementAndIdentifier(
+      this.audioMonitorTarget,
+      "simulation-audio"
+    )
+    controller?.stop()
+    this.audioMonitorTarget.hidden = true
   }
 }

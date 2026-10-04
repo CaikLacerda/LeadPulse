@@ -263,6 +263,14 @@
       agent:
         leadpulse: "Agente LeadPulse"
         supplier: "Fornecedor"
+      audio:
+        title: "Áudio da simulação"
+        activate: "Ativar áudio"
+        monitoring: "Monitorando"
+        reconnecting: "Reconectando…"
+        unavailable: "Áudio indisponível"
+        mute: "Silenciar"
+        unmute: "Ativar som"
     report:
       overview_title: "Resultado geral"
       accuracy: "Acurácia"

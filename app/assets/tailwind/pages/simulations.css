@@ -549,6 +549,113 @@
     transform-origin: left center;
   }
 
+  /* ---- Monitor de áudio (somente escuta) ---- */
+  /* Controle discreto: fica em repouso como um botão sóbrio e, ativo, vira uma faixa de
+     telemetria. Nada de player grande; é instrumentação, não mídia. */
+  .sim-audio {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius);
+    background: var(--color-surface);
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+  }
+
+  .sim-audio[hidden] { display: none; }
+
+  .sim-audio__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sim-audio__title i { font-size: 0.875rem; }
+
+  .sim-audio__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--lp-radius-sm);
+    background: var(--color-surface-subtle);
+    padding: 0.3125rem 0.75rem;
+    color: var(--color-fg-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--lp-duration) var(--lp-ease), background-color var(--lp-duration) var(--lp-ease), color var(--lp-duration) var(--lp-ease);
+  }
+
+  .sim-audio__button:hover {
+    border-color: var(--color-brand);
+    background: var(--color-brand-subtle);
+    color: var(--color-brand-fg);
+  }
+
+  .sim-audio__button:focus-visible { box-shadow: var(--lp-focus-ring); outline: none; }
+  .sim-audio__button[hidden] { display: none; }
+
+  .sim-audio__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-left: auto;
+  }
+
+  .sim-audio__live[hidden] { display: none; }
+
+  .sim-audio__pulse {
+    width: 0.5rem;
+    height: 0.5rem;
+    flex: none;
+    border-radius: 999px;
+    background: var(--color-info-dot);
+    animation: sim-pulse 1.8s var(--lp-ease) infinite;
+  }
+
+  .sim-audio__status {
+    color: var(--color-fg-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  /* Estados do monitor via data-audio-state no container. */
+  .sim-audio[data-audio-state="reconnecting"] .sim-audio__pulse { background: var(--color-warning-fg); }
+  .sim-audio[data-audio-state="reconnecting"] .sim-audio__status { color: var(--color-warning-fg); }
+  .sim-audio[data-audio-state="unavailable"] .sim-audio__pulse,
+  .sim-audio[data-audio-state="error"] .sim-audio__pulse { background: var(--color-danger-fg); animation: none; }
+  .sim-audio[data-audio-state="unavailable"] .sim-audio__status,
+  .sim-audio[data-audio-state="error"] .sim-audio__status { color: var(--color-danger-fg); }
+
+  .sim-audio__mute {
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius-sm);
+    background: transparent;
+    padding: 0.1875rem 0.5rem;
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--lp-duration) var(--lp-ease), color var(--lp-duration) var(--lp-ease);
+  }
+
+  .sim-audio__mute:hover { border-color: var(--color-line-strong); color: var(--color-fg-secondary); }
+  .sim-audio__mute:focus-visible { box-shadow: var(--lp-focus-ring); outline: none; }
+  .sim-audio__mute[aria-pressed="true"] { border-color: var(--color-brand); color: var(--color-brand-fg); }
+
+  /* O monitor some junto com o palco quando a execução termina. */
+  .sim-stage.is-finished .sim-audio { display: none; }
+
   /* ---- Transcript ---- */
   .sim-stage__columns { display: grid; gap: 1rem; }
 
@@ -733,6 +840,7 @@
     .sim-lab__active-pulse,
     .sim-agent__ring,
     .sim-agent__orb::after,
+    .sim-audio__pulse,
     .sim-badge__dot { animation: none !important; }
 
     .sim-arena__wave { transition: none; }

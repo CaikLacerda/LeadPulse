@@ -4,7 +4,7 @@
 class SimulationsController < ApplicationController
   before_action :authenticate_user!
   before_action :require_api_token, only: [ :new, :create ]
-  before_action :set_simulation, only: [ :show, :events, :cancel ]
+  before_action :set_simulation, only: [ :show, :events, :cancel, :audio_ticket ]
 
   PER_PAGE = 10
 
@@ -97,7 +97,37 @@ class SimulationsController < ApplicationController
     redirect_to simulation_path(@simulation), alert: e.message
   end
 
+  # Emite o ticket de áudio e devolve ao navegador a URL WSS completa da FastAPI. O ticket é
+  # curto e somente-leitura; o token da empresa nunca vai para o browser. Áudio não passa pelo
+  # Rails: o navegador abre o WebSocket direto na API com o ticket.
+  def audio_ticket
+    result = ValidationApi::Simulations::AudioTicketService.new.call(
+      api_token: current_account.validation_api_token_value,
+      remote_id: @simulation.remote_id
+    )
+
+    render json: {
+      ticket: result["ticket"],
+      url: audio_socket_url(result["audio_path"]),
+      audio_format: result["audio_format"] || "pcm16",
+      sample_rate: result["sample_rate"] || 8000
+    }
+  rescue ValidationApi::Error => e
+    render json: { error: e.message }, status: :bad_gateway
+  end
+
   private
+
+  # Monta a URL WSS a partir da base da API de validação. Em produção, a API pode estar atrás
+  # de outro host/esquema: VALIDATION_API_WS_BASE_URL tem prioridade; senão deriva da base HTTP
+  # trocando http(s)→ws(s).
+  def audio_socket_url(audio_path)
+    base = ENV["VALIDATION_API_WS_BASE_URL"].presence ||
+           ENV["VALIDATION_API_BASE_URL"].presence ||
+           "http://127.0.0.1:8000"
+    base = base.sub(/\Ahttp/, "ws").chomp("/")
+    "#{base}#{audio_path}"
+  end
 
   def set_simulation
     @simulation = current_account.simulations.find(params[:id])
