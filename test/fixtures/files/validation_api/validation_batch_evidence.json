@@ -1,0 +1,70 @@
+{
+  "batch_id": "lp_batch_contract",
+  "workflow_kind": "cadastral_validation",
+  "evidence_expires_at": "2027-04-01T01:21:47.828574",
+  "evidence_anonymized_at": null,
+  "total_records": 1,
+  "limit": 50,
+  "offset": 0,
+  "has_more": false,
+  "records": [
+    {
+      "external_id": "1",
+      "client_name": "Empresa Exemplo LTDA",
+      "evidence_anonymized": false,
+      "privacy_refusal_detected": false,
+      "privacy_refusal_reason": null,
+      "call_attempts": [
+        {
+          "attempt_number": 1,
+          "provider_call_id": "CA00000000000000000000000000000001",
+          "phone_dialed": "+5511987654321",
+          "from_phone_number_used": "+5511999990000",
+          "phone_source": "payload_phone",
+          "status": "answered",
+          "result": "confirmed",
+          "transcript_summary": null,
+          "conversation_turns": [
+            {
+              "sequence": 1,
+              "role": "assistant",
+              "transcript": "Este número é da Empresa Exemplo?",
+              "provider_item_id": null,
+              "question_id": null,
+              "semantic_value": null,
+              "confidence": null,
+              "started_at": null,
+              "ended_at": null,
+              "interrupted": false,
+              "audio_played_ms": null
+            },
+            {
+              "sequence": 2,
+              "role": "user",
+              "transcript": "Sim, é da empresa.",
+              "provider_item_id": null,
+              "question_id": null,
+              "semantic_value": null,
+              "confidence": null,
+              "started_at": null,
+              "ended_at": null,
+              "interrupted": false,
+              "audio_played_ms": null
+            }
+          ],
+          "sentiment": null,
+          "recording_url": "https://api.twilio.com/2010-04-01/Accounts/AC0/Recordings/RE0",
+          "recording_sid": "RE00000000000000000000000000000001",
+          "privacy_refusal_detected": false,
+          "privacy_refusal_reason": null,
+          "duration_seconds": 42,
+          "started_at": "2026-10-03T01:21:47.867454",
+          "finished_at": "2026-10-03T01:21:47.962418",
+          "observation": "Ligação enviada ao provedor de voz e aguardando eventos reais da chamada."
+        }
+      ],
+      "whatsapp_history": [],
+      "email_history": []
+    }
+  ]
+}

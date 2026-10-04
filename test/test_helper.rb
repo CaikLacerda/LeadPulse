@@ -1,4 +1,6 @@
 ENV["RAILS_ENV"] ||= "test"
+require_relative "../lib/testing/network_guard"
+Testing::NetworkGuard.install!
 require_relative "../config/environment"
 require "rails/test_help"
 Dir[File.expand_path("support/**/*.rb", __dir__)].each { |file| require file }
@@ -50,6 +52,7 @@ end
 
 module ActiveSupport
   class TestCase
+    setup { Rails.cache.clear }
     include TenancyTestHelpers
     include AnalyticsPayloadBuilder
 

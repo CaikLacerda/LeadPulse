@@ -28,12 +28,9 @@
                     <span class="workspace-tag" title="Resultado revisado manualmente">Revisado</span>
                   <% end %>
                   <% if entry.privacy_refusal_detected.present? %>
-                    <%= status_badge(t('validation_audits.index.table.privacy_refusal'), tone: :danger) %>
+                    <%= status_badge(t('validation_audits.index.table.privacy_refusal'), tone: :danger, show_label: true) %>
                   <% end %>
                 </div>
-                <% if entry.observation.present? %>
-                  <p class="workspace-result-note"><%= truncate(entry.observation, length: 120) %></p>
-                <% end %>
               </td>
               <td><%= workspace_datetime_cell(entry.occurred_at) %></td>
               <td class="is-actions">
@@ -74,10 +71,10 @@
                                       <span class="workspace-tag"><%= t("validation_audits.index.turn_questions.#{question_key}", default: turn['question_id'].to_s.split('.').last.tr('_', ' ').capitalize) %></span>
                                     <% end %>
                                     <% if turn['semantic_value'].present? %>
-                                      <%= status_badge(t("validation_audits.index.turn_values.#{turn['semantic_value']}", default: turn['semantic_value'].to_s.tr('_', ' ').capitalize), tone: :info) %>
+                                      <%= status_badge(t("validation_audits.index.turn_values.#{turn['semantic_value']}", default: turn['semantic_value'].to_s.tr('_', ' ').capitalize), tone: :info, show_label: true) %>
                                     <% end %>
                                     <% if turn['interrupted'].present? %>
-                                      <%= status_badge(t('validation_audits.index.table.interrupted_turn'), tone: :warning) %>
+                                      <%= status_badge(t('validation_audits.index.table.interrupted_turn'), tone: :warning, show_label: true) %>
                                     <% end %>
                                   </div>
                                 <% end %>
@@ -124,6 +121,13 @@
                           <% end %>
                         </div>
                       </div>
+
+                      <% if entry.observation.present? %>
+                        <div>
+                          <p class="workspace-detail-grid__title"><%= t('validation_audits.index.table.technical_detail') %></p>
+                          <p class="text-[0.8125rem] text-fg-secondary break-words"><%= entry.observation %></p>
+                        </div>
+                      <% end %>
 
                       <div>
                         <p class="workspace-detail-grid__title"><%= t('validation_audits.index.review.title') %></p>

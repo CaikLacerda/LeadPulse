@@ -1,7 +1,0 @@
-<%# Onda sonora estática, assinatura visual do LeadPulse (painel de login e landing). Decorativa. %>
-<% bars = [4, 7, 12, 9, 16, 22, 14, 8, 11, 18, 26, 20, 13, 7, 5, 9, 15, 24, 28, 19, 11, 7, 13, 21, 17, 9, 5, 8, 14, 23, 19, 12, 7, 4, 8, 13, 10, 6, 4] %>
-<svg class="<%= local_assigns[:css_class] %>" viewBox="0 0 <%= bars.size * 6 - 3 %> 28" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-  <% bars.each_with_index do |height, index| %>
-    <rect x="<%= index * 6 %>" y="<%= (28 - height) / 2.0 %>" width="3" height="<%= height %>" rx="1.5"/>
-  <% end %>
-</svg>

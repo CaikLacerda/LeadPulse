@@ -183,5 +183,95 @@ module SupplierImports
       assert supplier_import.ready_to_export?
       assert_nil supplier_import.error_message
     end
+    test "a second start while the first request is in flight does not create another remote batch" do
+      supplier_import, account = errored_import_with_confirmed_remote_batch!("double-click")
+      sent_batch_ids = []
+      second_attempt_error = nil
+      remote = Object.new
+      remote.define_singleton_method(:call) do |api_token:, payload:|
+        sent_batch_ids << payload["batch_id"]
+        begin
+          StartRemoteValidationService.new(account: account, supplier_import: SupplierImport.find(supplier_import.id)).call
+        rescue ValidationApi::Error => error
+          second_attempt_error = error
+        end
+        { "batch_id" => payload["batch_id"], "batch_status" => "processing", "result_ready" => false }
+      end
+
+      start_with(remote, supplier_import, account)
+
+      assert_equal 1, sent_batch_ids.size
+      assert_match(/em andamento/, second_attempt_error&.message)
+      assert_equal SupplierImport::LOCAL_STATUS_PROCESSING, supplier_import.reload.status
+      assert_not supplier_import.import_metadata.key?(StartRemoteValidationService::CLAIM_KEY)
+    end
+
+    test "a retry after a timeout resends the same batch id instead of creating a new remote batch" do
+      supplier_import, account = errored_import_with_confirmed_remote_batch!("timeout-retry")
+      sent_batch_ids = []
+      remote = Object.new
+      remote.define_singleton_method(:call) do |api_token:, payload:|
+        sent_batch_ids << payload["batch_id"]
+        raise ValidationApi::Error.new("Tempo esgotado ao chamar a API de validação.", status_code: 408) if sent_batch_ids.size == 1
+
+        { "batch_id" => payload["batch_id"], "batch_status" => "processing", "result_ready" => false }
+      end
+
+      assert_raises(ValidationApi::Error) { start_with(remote, supplier_import, account) }
+      supplier_import.reload
+      assert_equal SupplierImport::LOCAL_STATUS_ERROR, supplier_import.status
+      assert_not supplier_import.import_metadata.key?(StartRemoteValidationService::CLAIM_KEY)
+
+      start_with(remote, supplier_import, account)
+
+      assert_equal 2, sent_batch_ids.size
+      assert_equal sent_batch_ids.first, sent_batch_ids.last
+      assert_not_equal "old-batch-id", sent_batch_ids.first
+      assert_equal sent_batch_ids.first, supplier_import.reload.remote_batch_id
+      assert_equal SupplierImport::LOCAL_STATUS_PROCESSING, supplier_import.status
+    end
+
+    test "an expired claim from an interrupted request does not block a new start" do
+      supplier_import, account = errored_import_with_confirmed_remote_batch!("expired-claim")
+      supplier_import.update!(import_metadata: { StartRemoteValidationService::CLAIM_KEY => 10.minutes.ago.iso8601 }) # gitleaks:allow (claim timestamp, not a credential)
+      remote = Object.new
+      remote.define_singleton_method(:call) do |api_token:, payload:|
+        { "batch_id" => payload["batch_id"], "batch_status" => "processing", "result_ready" => false }
+      end
+
+      start_with(remote, supplier_import, account)
+
+      assert_equal SupplierImport::LOCAL_STATUS_PROCESSING, supplier_import.reload.status
+    end
+
+    private
+
+    def errored_import_with_confirmed_remote_batch!(label)
+      user = create_member!(name: "Operacao #{label}", email: "start-#{label}@example.com", validation_api_token: "lp_test_token")
+      supplier_import = SupplierImport.create!(
+        account: account_of(user),
+        created_by: user,
+        status: SupplierImport::LOCAL_STATUS_ERROR,
+        workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL,
+        source: SupplierImport::SOURCE_UPLOAD,
+        total_rows: 1,
+        valid_rows: 1,
+        invalid_rows: 0,
+        remote_batch_id: "old-batch-id",
+        remote_batch_status: "completed",
+        validation_started_at: 1.hour.ago,
+        request_payload: {
+          batch_id: "old-batch-id",
+          records: [ { external_id: "1", phone: "11999990000", cnpj: "11222333000181", client_name: "Empresa" } ]
+        }
+      )
+      [ supplier_import, account_of(user) ]
+    end
+
+    def start_with(remote, supplier_import, account)
+      service = StartRemoteValidationService.new(account: account, supplier_import: supplier_import)
+      service.define_singleton_method(:create_remote_batch_service) { remote }
+      service.call
+    end
   end
 end

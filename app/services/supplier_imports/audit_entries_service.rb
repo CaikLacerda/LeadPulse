@@ -24,6 +24,8 @@ module SupplierImports
       keyword_init: true
     )
 
+    COLUMNS = %i[id account_id workflow_kind source created_at finished_at response_payload].freeze
+
     def initialize(account:)
       @account = account
     end
@@ -31,7 +33,8 @@ module SupplierImports
     def call
       preload_reviews
 
-      @account.supplier_imports.order(created_at: :desc).flat_map do |supplier_import|
+      # Só as colunas lidas: supplier_imports também guarda as planilhas enviadas.
+      @account.supplier_imports.select(*COLUMNS).order(created_at: :desc).flat_map do |supplier_import|
         entries_for_import(supplier_import)
       end.sort_by { |entry| entry.occurred_at || Time.zone.at(0) }.reverse
     end

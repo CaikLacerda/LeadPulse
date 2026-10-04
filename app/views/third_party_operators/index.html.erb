@@ -1,4 +1,4 @@
-<%= platform_settings_page(title: t('platform_settings.lgpd.title'), description: t('platform_settings.lgpd.description'), nav: :lgpd, max_width: 'max-w-[90rem]') do %>
+<%= platform_settings_page(title: t('platform_settings.lgpd.title'), description: t('platform_settings.lgpd.description'), nav: :lgpd) do %>
   <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
     <section class="workspace-portlet">
       <%= workspace_panel_header(title: 'Operadores e terceiros', count: @operators.size) %>

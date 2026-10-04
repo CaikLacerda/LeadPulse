@@ -19,7 +19,7 @@
       <% end %>
     <% end %>
 
-    <%= portlet_form(t(".history_title")) do %>
+    <section class="workspace-portlet">
       <div class="workspace-table-wrap">
         <table class="workspace-table">
           <thead>
@@ -38,7 +38,7 @@
             <% else %>
               <% @simulations.each do |simulation| %>
                 <tr>
-                  <th scope="row"><%= link_to simulation.display_code, simulation_path(simulation), class: "workspace-compact-code" %></th>
+                  <td><%= workspace_code_tag(simulation.display_code, simulation_path(simulation)) %></td>
                   <td><%= t("simulations.workflows.#{simulation.workflow_key}", default: simulation.workflow_key) %></td>
                   <td><%= t("simulations.scenarios.#{simulation.scenario_key}", default: simulation.scenario_key) %></td>
                   <td><%= render "simulations/status_badge", status: simulation.status %></td>
@@ -50,6 +50,6 @@
           </tbody>
         </table>
       </div>
-    <% end %>
+    </section>
   </div>
 <% end %>

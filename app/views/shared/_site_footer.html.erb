@@ -3,8 +3,7 @@
   <div class="site-footer__inner">
     <div class="site-footer__brand">
       <%= link_to root_path, class: 'site-header__brand' do %>
-        <span class="app-logo-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
-        <span class="app-logo-text">LeadPulse</span>
+        <%= render 'shared/app_logo' %>
       <% end %>
       <p>Busca de fornecedores, validação por voz com IA e auditoria das chamadas.</p>
     </div>

@@ -50,12 +50,14 @@
     height: 1.75rem;
     width: 1.75rem;
     flex: none;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
     border-radius: 7px;
-    background: var(--lp-logo-bg);
-    color: var(--lp-logo-fg);
-    font-size: 0.8rem;
+  }
+
+  .app-logo-mark img {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   .app-logo-text {
@@ -64,6 +66,21 @@
     font-weight: 600;
     letter-spacing: -0.01em;
     white-space: nowrap;
+  }
+
+  .app-logo-text__accent {
+    background: var(--lp-logo-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* High-contrast mode drops backgrounds: keep "Pulse" in the system text color. */
+  @media (forced-colors: active) {
+    .app-logo-text__accent {
+      background: none;
+      color: CanvasText;
+    }
   }
 
   .app-sidebar .app-sidebar__close {

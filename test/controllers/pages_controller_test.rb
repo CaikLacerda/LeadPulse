@@ -1,35 +1,48 @@
 require "test_helper"
 
 class PagesControllerTest < ActionDispatch::IntegrationTest
-  test "renders public homepage" do
+  test "renders the public landing for visitors" do
     get root_url
 
     assert_response :success
-    assert_select "h1", text: /Encontre empresas\. Valide por voz\./
-    assert_select "*", text: /Busque fornecedores, confirme o contato por voz com IA/
-    assert_select "a", text: "Criar conta"
-    assert_no_match(/\+2\.000 empresas|100 validações gratuitas/, @response.body)
+    assert_select "h1", text: /Transforme conversas.*em processos/m, count: 1
+    assert_select ".hero a[href='#workflows']", text: /Explorar a plataforma/
+    assert_select "header.site-nav a[href='#{new_user_session_path}']", text: "Entrar"
+    assert_select "[data-workflow-kind]", count: 3
+    assert_select "[data-node]", count: 5
+    assert_select ".hero .hero-film video[muted][loop][playsinline][aria-label][poster*='/assets/landing/hero-film-poster'][data-source*='/assets/landing/hero-film']", count: 1
+    assert_select ".motion-toggle", count: 0
+    assert_no_match(/Prévia privada|noindex/, @response.body)
+    assert_no_match(/R\$|por mês|\/mês/, @response.body)
   end
 
-  test "public homepage has the sections, SEO tags and real product screens" do
+  test "public landing has SEO tags and serves its own digested assets" do
     get root_url
 
     assert_select "title", text: /LeadPulse/
     assert_select "meta[name='description'][content]", count: 1
+    assert_select "link[rel='canonical'][href='#{root_url}']", count: 1
     assert_select "meta[property='og:image'][content*='og-leadpulse']", count: 1
-    assert_select "h1", count: 1
-    %w[inicio como-funciona recursos planos sobre contato].each do |anchor|
+    %w[inicio workflows como-funciona integracoes confiabilidade operacao controle aplicacoes ecossistema].each do |anchor|
       assert_select "section##{anchor}", count: 1
     end
-    assert_select "header.site-header nav[aria-label='Navegação principal'] a", count: 5
-    assert_select "header.site-header a[href='#{new_user_session_path}']", text: "Entrar"
     assert_select "footer.site-footer a[href='#{terms_path}']"
     assert_select "footer.site-footer a[href='#{privacy_path}']"
-    # Telas reais servidas pelo próprio app (CSP), com dimensões para evitar layout shift.
-    assert_select ".landing-shot img[src*='/assets/landing/produto-'][width][height][alt]", count: 4
+    assert_select "link[rel='stylesheet'][href*='/assets/landing/landing-']", count: 1
+    assert_select "script[type='module'][src*='/assets/landing/landing-']", count: 1
+    # Telas reais servidas pelo próprio app, com dimensões para evitar layout shift.
+    assert_select "main img[src*='/assets/landing/'][width][height][alt]", count: 3
     assert_select "img[src^='http']", count: 0
-    assert_select "main main", count: 0
-    assert_no_match(/R\$|por mês|\/mês/, @response.body)
+  end
+
+  test "workspace pages do not load the landing stylesheet" do
+    sign_in_as_new_user("landing-scope@example.com")
+
+    get root_url
+
+    assert_response :success
+    assert_select "link[href*='/assets/landing/landing-']", count: 0
+    assert_select "aside#app-sidebar", count: 1
   end
 
   test "renders public terms and privacy pages" do
@@ -91,7 +104,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
   test "public pages always render in the light theme" do
     cookies[:lp_theme] = "dark"
 
-    get root_url
+    get terms_url
 
     assert_select "html[data-theme='light']", count: 1
   end

@@ -8,7 +8,7 @@
   </td>
   <td class="team-table__email"><%= invitation.email %></td>
   <td><%= invitation.role_label %></td>
-  <td><%= status_badge(expired ? "Convite expirado" : "Pendente", tone: expired ? :warning : :info) %></td>
+  <td><%= status_badge(expired ? "Convite expirado" : "Pendente", tone: expired ? :warning : :info, icon: ("fa-clock" unless expired)) %></td>
   <td class="is-nowrap">
     <span class="team-stacked">
       <span><%= workspace_date(invitation.sent_at) %></span>

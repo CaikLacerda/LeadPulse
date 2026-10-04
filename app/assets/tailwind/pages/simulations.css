@@ -400,10 +400,7 @@
 
   .sim-telemetry__label {
     color: var(--color-fg-muted);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    font-size: 0.8125rem;
   }
 
   .sim-telemetry__value { color: var(--color-fg); font-size: 0.9375rem; font-weight: 600; }
@@ -705,9 +702,9 @@
   .sim-transcript__empty { color: var(--color-fg-muted); font-size: 0.8125rem; text-align: center; padding: 1.5rem 0; }
 
   .sim-stage__actions { display: flex; justify-content: flex-end; }
-  .sim-stage__error { color: var(--color-danger-fg); font-size: 0.8125rem; }
 
   /* Ao terminar, o palco e as ações ao vivo saem; entra o relatório. */
+  .sim-stage.is-finished .sim-voice-page,
   .sim-stage.is-finished .sim-arena,
   .sim-stage.is-finished .sim-stage__columns,
   .sim-stage.is-finished .sim-stage__actions { display: none; }
@@ -792,35 +789,6 @@
     line-height: 1.1rem;
   }
 
-  /* ---- Selos de status ---- */
-  .sim-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    border-radius: 999px;
-    padding: 0.125rem 0.625rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: var(--color-neutral-bg);
-    color: var(--color-neutral-fg);
-  }
-
-  .sim-badge__dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 999px;
-    background: currentColor;
-    opacity: 0.75;
-  }
-
-  .sim-badge--queued { background: var(--color-neutral-bg); color: var(--color-neutral-fg); }
-  .sim-badge--running { background: var(--color-info-bg); color: var(--color-info-fg); }
-  .sim-badge--running .sim-badge__dot { animation: sim-pulse 1.6s var(--lp-ease) infinite; }
-  .sim-badge--completed { background: var(--color-success-bg); color: var(--color-success-fg); }
-  .sim-badge--failed { background: var(--color-danger-bg); color: var(--color-danger-fg); }
-  .sim-badge--cancelled { background: var(--color-neutral-bg); color: var(--color-neutral-fg); }
-  .sim-badge--interrupted { background: var(--color-warning-bg); color: var(--color-warning-fg); }
-
   @keyframes sim-pulse {
     0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent); }
     70% { box-shadow: 0 0 0 0.4rem transparent; }
@@ -840,8 +808,7 @@
     .sim-lab__active-pulse,
     .sim-agent__ring,
     .sim-agent__orb::after,
-    .sim-audio__pulse,
-    .sim-badge__dot { animation: none !important; }
+    .sim-audio__pulse { animation: none !important; }
 
     .sim-arena__wave { transition: none; }
   }

@@ -13,6 +13,10 @@ module CommercialOpportunities
           updated_at: Time.current
         )
         Rails.logger.warn("Falha ao sincronizar retorno comercial #{opportunity.id}: #{e.message}")
+      rescue StandardError => e
+        # Fronteira por item: um retorno com payload inesperado não interrompe os das demais empresas.
+        Rails.error.report(e, handled: true, context: { commercial_opportunity_id: opportunity.id, account_id: opportunity.account_id })
+        Rails.logger.error("Erro inesperado ao sincronizar retorno comercial #{opportunity.id} account_id=#{opportunity.account_id}: #{e.class}: #{e.message}")
       end
     end
   end

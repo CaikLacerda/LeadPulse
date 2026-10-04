@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
   layout :layout_by_resource
 
   around_action :use_default_locale
+  before_action { Current.request_id = request.request_id }
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :require_current_account!, if: -> { user_signed_in? && !devise_controller? }
 
@@ -30,11 +31,11 @@ class ApplicationController < ActionController::Base
     I18n.with_locale(APP_LOCALE, &action)
   end
 
-  # A edição da própria conta acontece dentro do workspace; as demais telas do Devise usam o layout de autenticação.
+  # A edição da própria conta acontece dentro do workspace; as demais telas do Devise usam o visual da landing.
   def layout_by_resource
     return "application" unless devise_controller?
     return "application" if controller_name == "registrations" && action_name.in?(%w[edit update]) && user_signed_in?
 
-    "devise"
+    "auth"
   end
 end

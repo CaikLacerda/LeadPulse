@@ -97,7 +97,29 @@ As queries isolam a origem dos dados: trocar o JSONB por projeções muda só es
 
 O CSV já é gerado em streaming e não tem esse limite.
 
+## Integração com a API de validação
+
+- Cada empresa tem um `platform_account` na API (`accounts.validation_account_id`, 1:1). A
+  chave administrativa (`PLATFORM_ADMIN_API_KEY`) só cadastra empresas e provedores; lotes e
+  consultas usam o token da própria empresa.
+- **Resultado e evidência são separados na API.** A sincronização busca
+  `GET /validations/:id/evidence` quando o progresso do lote muda e mescla tentativas,
+  recusa e validade das evidências no `response_payload` por `external_id`
+  (`SupplierImports::RemoteEvidenceMerger`). Lotes sincronizados antes disso:
+  `bin/rails evidence:backfill` (lista) e `APPLY=1` (grava).
+- **Iniciar lote é idempotente.** O início é reivindicado sob lock (2 min) e o `batch_id`
+  enviado fica gravado; depois de timeout ou erro de rede o mesmo id é reenviado, e a API
+  devolve o lote que já criou. Id novo só para refazer um lote que a API confirmou.
+- A sincronização periódica trata cada lote como fronteira: erro inesperado em um não para
+  os das outras empresas.
+- Toda chamada à API leva `X-Request-ID` (id da requisição, ou `job-<id>` em jobs), o mesmo
+  que aparece nos logs da API.
+- Testes de contrato usam JSONs gerados pela própria API em
+  `test/fixtures/files/validation_api/` (`scripts/export_contract_fixtures.py` em
+  `api_confaith_ai`). Visão completa dos dois serviços: `api_confaith_ai/docs/architecture.md`.
+
 ## Verificação
 
 - `bin/rails tenancy:verify` confere que todo dado de negócio tem empresa, que filhos de lote estão na empresa do lote e que toda empresa ativa tem admin.
+- `test/architecture/tenancy_schema_test.rb` exige `account_id` em toda tabela fora de `TABLES_WITHOUT_ACCOUNT`, que lista o motivo de cada exceção (`plans`, `suppliers` e `supplier_import_versions` estão lá por não terem uso; são candidatas a remoção).
 - `bin/rails finished_at:dry_run` mostra a situação de `finished_at`. `finished_at:apply` corrige só registros comprovados e grava antes/depois em `tmp/backups`; `finished_at:restore` desfaz.

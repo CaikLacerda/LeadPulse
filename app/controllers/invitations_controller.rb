@@ -6,7 +6,7 @@ class InvitationsController < ApplicationController
 
   skip_before_action :require_current_account!
   before_action :set_invitation
-  layout "devise"
+  layout "auth"
 
   def show
     session[SESSION_KEY] = params[:token] if @invitation&.pending?

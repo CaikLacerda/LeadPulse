@@ -137,13 +137,9 @@ class SupplierImport < ApplicationRecord
     notice.respond_to?(:deep_stringify_keys) ? notice.deep_stringify_keys : {}
   end
 
+  # Horário da API sem fuso é UTC (ValidationApi::Timestamp), não o fuso da aplicação.
   def evidence_expires_at
-    value = privacy_notice["evidence_expires_at"]
-    return if value.blank?
-
-    Time.zone.parse(value.to_s)
-  rescue ArgumentError, TypeError
-    nil
+    ValidationApi::Timestamp.parse(privacy_notice["evidence_expires_at"])
   end
 
   def evidence_anonymized?

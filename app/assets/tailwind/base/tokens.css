@@ -59,8 +59,7 @@
 :root {
   color-scheme: light;
 
-  --lp-logo-bg: #111827;
-  --lp-logo-fg: #fb8a2e;
+  --lp-logo-accent: linear-gradient(90deg, #0284c7, #2563eb);
   --lp-avatar-bg: #e0e7ff;
   --lp-avatar-fg: #3730a3;
   --lp-row-hover: #fafbfc;
@@ -165,8 +164,7 @@
     --color-neutral-line: #33373e;
     --color-neutral-dot: #6b7280;
 
-    --lp-logo-bg: #f4f5f7;
-    --lp-logo-fg: #f97316;
+    --lp-logo-accent: linear-gradient(90deg, #5fd4f4, #3b9eea);
     --lp-avatar-bg: #202b4a;
     --lp-avatar-fg: #b4c8ff;
     --lp-row-hover: #1a1d22;
@@ -243,8 +241,7 @@
   --color-neutral-line: #33373e;
   --color-neutral-dot: #6b7280;
 
-  --lp-logo-bg: #f4f5f7;
-  --lp-logo-fg: #f97316;
+  --lp-logo-accent: linear-gradient(90deg, #5fd4f4, #3b9eea);
   --lp-avatar-bg: #202b4a;
   --lp-avatar-fg: #b4c8ff;
   --lp-row-hover: #1a1d22;

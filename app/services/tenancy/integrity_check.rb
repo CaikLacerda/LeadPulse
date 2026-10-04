@@ -18,13 +18,13 @@ module Tenancy
       connection = ActiveRecord::Base.connection
 
       existing(ACCOUNT_TABLES).each do |table|
-        count = connection.select_value("SELECT COUNT(*) FROM #{table} WHERE account_id IS NULL").to_i
+        count = connection.select_value("SELECT COUNT(*) FROM #{connection.quote_table_name(table)} WHERE account_id IS NULL").to_i
         problems << Problem.new(check: "sem account_id", table: table, count: count) if count.positive?
       end
 
       existing(LOT_CHILD_TABLES).each do |table|
         count = connection.select_value(<<~SQL).to_i
-          SELECT COUNT(*) FROM #{table} t JOIN supplier_imports si ON si.id = t.supplier_import_id
+          SELECT COUNT(*) FROM #{connection.quote_table_name(table)} t JOIN supplier_imports si ON si.id = t.supplier_import_id
           WHERE t.account_id <> si.account_id
         SQL
         problems << Problem.new(check: "empresa diferente da do lote", table: table, count: count) if count.positive?

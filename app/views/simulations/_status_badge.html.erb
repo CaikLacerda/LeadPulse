@@ -1,5 +1,2 @@
-<%# Selo de status da execução, com tom por estado. locals: status %>
-<span class="sim-badge sim-badge--<%= status %>">
-  <span class="sim-badge__dot" aria-hidden="true"></span>
-  <%= t("simulations.statuses.#{status}", default: status.to_s.humanize) %>
-</span>
+<%# Selo de status da execução. locals: status %>
+<%= simulation_status_badge(status) %>

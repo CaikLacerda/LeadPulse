@@ -10,8 +10,7 @@
 <header class="site-header" data-controller="nav" data-action="keydown.esc@window->nav#close">
   <div class="site-header__inner">
     <%= link_to root_path, class: 'site-header__brand' do %>
-      <span class="app-logo-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
-      <span class="app-logo-text">LeadPulse</span>
+      <%= render 'shared/app_logo' %>
     <% end %>
 
     <nav class="site-nav" aria-label="Navegação principal">

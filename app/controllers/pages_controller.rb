@@ -5,7 +5,7 @@ class PagesController < ApplicationController
   def privacy; end
 
   def home
-    return unless current_user
+    return render("landing/show", layout: "landing") unless current_user
 
     imports_scope = current_account.supplier_imports
     searches_scope = current_account.supplier_discovery_searches

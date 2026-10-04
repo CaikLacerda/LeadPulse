@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+bin/security_check
+python3 scripts/scan_secrets.py

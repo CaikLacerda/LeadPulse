@@ -1,7 +1,7 @@
 <% workspace_breadcrumbs @commercial_opportunity.display_code %>
 <% awaiting = content_tag(:span, 'Aguardando coleta', class: 'text-fg-muted') %>
 
-<%= workspace_page(max_width: 'max-w-6xl') do %>
+<%= workspace_page do %>
   <%= workspace_page_header(
     title: @commercial_opportunity.display_code,
     status: workspace_status_tag(@commercial_opportunity.status),
@@ -37,7 +37,7 @@
           <span class="tabular-nums"><%= @commercial_opportunity.callback_phone %></span>
         <% end %>
         <%= workspace_definition_row(label: 'Origem do telefone', value: @commercial_opportunity.callback_phone_choice_label) %>
-        <%= workspace_definition_row(label: 'Data e horário', value: @commercial_opportunity.callback_schedule_label) %>
+        <%= workspace_definition_row(label: 'Data e horário', value: @commercial_opportunity.callback_preferred_at.present? ? @commercial_opportunity.callback_schedule_label : content_tag(:span, 'A confirmar', class: 'text-fg-muted')) %>
         <%= workspace_definition_row(label: 'Preferência informada', value: @commercial_opportunity.callback_preferred_time.presence || content_tag(:span, 'Sem preferência', class: 'text-fg-muted')) %>
         <%= workspace_definition_row(label: 'Lote de origem') do %>
           <%= workspace_code_tag(@commercial_opportunity.source_import_code, current_membership.can_view_evidence? ? supplier_import_path(@commercial_opportunity.supplier_import) : nil) %>

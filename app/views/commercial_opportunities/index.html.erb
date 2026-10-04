@@ -68,7 +68,7 @@
             <th scope="col">Retorno</th>
             <th scope="col">Fornecedor</th>
             <th scope="col">Telefone</th>
-            <th scope="col">Preferência informada</th>
+            <th scope="col">Data do retorno</th>
             <th scope="col">Lote de origem</th>
             <th scope="col">Status</th>
             <th scope="col" class="is-actions"><span class="sr-only">Ações</span></th>
@@ -81,7 +81,16 @@
                 <td><%= workspace_code_tag(opportunity.display_code, commercial_opportunity_path(opportunity)) %></td>
                 <td class="workspace-table__primary"><%= opportunity.supplier_name %></td>
                 <td class="is-nowrap tabular-nums"><%= opportunity.callback_phone %></td>
-                <td class="max-w-xs"><%= opportunity.callback_schedule_label %></td>
+                <%# Sem data interpretada, a fala transcrita aparece curta; o texto completo fica no detalhe. %>
+                <td class="is-nowrap tabular-nums">
+                  <% if opportunity.callback_preferred_at.present? %>
+                    <%= opportunity.callback_schedule_label %>
+                  <% elsif opportunity.callback_preferred_time.present? %>
+                    <span class="text-fg-muted" title="<%= opportunity.callback_preferred_time %>"><%= truncate(opportunity.callback_preferred_time, length: 32) %></span>
+                  <% else %>
+                    <span class="text-fg-muted">A confirmar</span>
+                  <% end %>
+                </td>
                 <td><%= workspace_code_tag(opportunity.source_import_code, current_membership.can_view_evidence? ? supplier_import_path(opportunity.supplier_import) : nil) %></td>
                 <td><%= workspace_status_tag(opportunity.status) %></td>
                 <td class="is-actions">

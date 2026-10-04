@@ -1,4 +1,4 @@
-<%= platform_settings_page(title: t('platform_settings.lgpd.title'), description: t('platform_settings.lgpd.description'), nav: :lgpd, max_width: 'max-w-[90rem]') do %>
+<%= platform_settings_page(title: t('platform_settings.lgpd.title'), description: t('platform_settings.lgpd.description'), nav: :lgpd) do %>
   <section class="workspace-portlet">
     <%= workspace_panel_header(title: 'Trilha de auditoria', count: number_with_delimiter(@events_total_count)) %>
 

@@ -7,7 +7,29 @@ class TenancySchemaTest < ActiveSupport::TestCase
     supplier_imports supplier_discovery_searches commercial_opportunities audit_reviews
     privacy_requests privacy_audit_events third_party_operators account_invitations analytics_api_tokens
   ].freeze
-  PERSONAL_USER_TABLES = %w[account_memberships workspace_notification_reads].freeze
+  PERSONAL_USER_TABLES = %w[account_memberships workspace_notification_reads mobile_sessions].freeze
+
+  # Únicas tabelas sem empresa. Uma tabela nova fora desta lista precisa de account_id.
+  TABLES_WITHOUT_ACCOUNT = {
+    "accounts" => "é o próprio tenant",
+    "users" => "pessoa; participa das empresas por account_memberships",
+    "workspace_notification_reads" => "leitura pessoal; a chave da notificação leva a empresa",
+    "plans" => "sem uso no código (candidata a remoção)",
+    "suppliers" => "sem uso no código (candidata a remoção)",
+    "supplier_import_versions" => "sem uso no código (candidata a remoção)",
+    "schema_migrations" => "Rails",
+    "ar_internal_metadata" => "Rails"
+  }.freeze
+
+  test "every table outside the explicit exceptions belongs to an account" do
+    connection = ActiveRecord::Base.connection
+    without_account = (connection.tables - TABLES_WITHOUT_ACCOUNT.keys).reject do |table|
+      column = connection.columns(table).find { |candidate| candidate.name == "account_id" }
+      column && !column.null
+    end
+
+    assert_empty without_account, "Tabelas sem account_id obrigatório: #{without_account.join(', ')}"
+  end
 
   test "only personal tables have user_id" do
     connection = ActiveRecord::Base.connection

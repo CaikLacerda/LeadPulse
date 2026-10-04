@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <% description = "Crie, teste e opere workflows de IA conversacional por voz. Conecte conversas, decisões e ações com LeadPulse." %>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090d13">
+    <meta name="description" content="<%= description %>">
+    <title>LeadPulse — Transforme conversas em processos.</title>
+    <link rel="canonical" href="<%= root_url %>">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:site_name" content="LeadPulse">
+    <meta property="og:title" content="LeadPulse — Transforme conversas em processos.">
+    <meta property="og:description" content="<%= description %>">
+    <meta property="og:url" content="<%= root_url %>">
+    <meta property="og:image" content="<%= image_url("landing/og-leadpulse.jpg") %>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <%# Lives in app/javascript/landing, outside app/assets, so stylesheet_link_tag :app never loads it in the workspace. %>
+    <%= stylesheet_link_tag "landing/landing" %>
+    <%= javascript_include_tag "lenis", defer: true %>
+    <%= javascript_include_tag "landing/landing", type: "module" %>
+    <%= javascript_include_tag "landing/glow", type: "module" %>
+  </head>
+  <body>
+    <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+    <%= yield %>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<section id="confiabilidade" class="section reliability-section" aria-labelledby="reliability-title">
+  <div class="wrap">
+    <div class="section-heading">
+      <div>
+        <p class="section-label">Simulação e avaliação</p>
+        <h2 id="reliability-title">Antes de uma conversa real,<br>um processo bem testado.</h2>
+      </div>
+      <p class="heading-aside">Explore cenários, examine decisões e ajuste o comportamento. Defina seus critérios para colocar cada workflow em operação.</p>
+    </div>
+    <ol class="lifecycle" aria-label="Ciclo de vida do workflow" data-reveal>
+      <% %w[Criar Simular Avaliar Ajustar Aprovar Publicar Monitorar].each_with_index do |step, index| %>
+        <li style="--i: <%= index %>"><span><%= format("%02d", index + 1) %></span><%= step %></li>
+      <% end %>
+    </ol>
+    <div class="reliability-layout">
+      <div class="simulation-figure">
+        <%= image_tag "landing/simulation-live.webp", width: 1265, height: 1422, alt: "Interface de simulação do LeadPulse com agente, contraparte e registro da conversa.", loading: "lazy" %>
+        <button class="expand-shot" data-image="<%= image_path("landing/simulation-live.webp") %>" data-caption="Simulação de validação de fornecedores. Interface real em desenvolvimento, com dados de demonstração." aria-label="Ampliar tela de simulação">Ampliar tela ↗</button>
+      </div>
+      <div class="reliability-copy">
+        <h3>O caminho esperado.<br>E os que você precisa prever.</h3>
+        <p>Uma resposta incompleta. Uma integração indisponível. Um pedido que exige uma pessoa. Teste como o fluxo reage antes de publicar.</p>
+        <ul class="plain-list">
+          <% [ "Cenários e caminhos alternativos", "Resultados esperados e observados", "Avaliação para orientar os ajustes", "Aprovação conforme sua operação" ].each do |item| %>
+            <li><%= landing_icon(:check) %><%= item %></li>
+          <% end %>
+        </ul>
+        <p class="asset-caption">Na imagem: simulação de validação de fornecedores. Interface real em desenvolvimento, com dados de demonstração.</p>
+      </div>
+    </div>
+  </div>
+</section>

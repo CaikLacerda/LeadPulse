@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
-  devise_for :users, controllers: { registrations: "users/registrations" }
+  devise_for :users, controllers: { registrations: "users/registrations", sessions: "users/sessions", passwords: "users/passwords" }
+  post "csp-reports", to: "csp_reports#create"
   get "up" => "rails/health#show", as: :rails_health_check
 
   resource :platform_settings, path: "configuracoes", only: [] do
@@ -89,6 +90,11 @@ Rails.application.routes.draw do
   # API de Analytics (somente leitura, token de BI da empresa).
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
+      namespace :mobile do
+        resource :session, only: %i[create destroy]
+        get :dashboard, to: "dashboard#show"
+        get :calls, to: "calls#index"
+      end
       namespace :analytics do
         get :summary, to: "summary#show"
         get :records, to: "records#index"

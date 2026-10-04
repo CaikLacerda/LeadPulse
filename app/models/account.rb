@@ -143,8 +143,7 @@ class Account < ApplicationRecord
     end
 
     # Mesma chave derivada usada desde que o token ficava no usuário: tokens antigos continuam legíveis.
-    def validation_api_token_encryptor
-      secret = Rails.application.secret_key_base
+    def validation_api_token_encryptor(secret: Rails.application.secret_key_base)
       key = ActiveSupport::KeyGenerator.new(secret).generate_key(
         TOKEN_ENCRYPTION_SALT,
         ActiveSupport::MessageEncryptor.key_len

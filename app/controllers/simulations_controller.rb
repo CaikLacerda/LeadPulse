@@ -3,6 +3,7 @@
 # projeção local para o histórico e repassamos catálogo, criação, polling e cancelamento.
 class SimulationsController < ApplicationController
   before_action :authenticate_user!
+  before_action :require_simulation_operator, only: [ :new, :cancel, :audio_ticket ]
   before_action :require_api_token, only: [ :new, :create ]
   before_action :set_simulation, only: [ :show, :events, :cancel, :audio_ticket ]
 
@@ -122,11 +123,11 @@ class SimulationsController < ApplicationController
   # de outro host/esquema: VALIDATION_API_WS_BASE_URL tem prioridade; senão deriva da base HTTP
   # trocando http(s)→ws(s).
   def audio_socket_url(audio_path)
-    base = ENV["VALIDATION_API_WS_BASE_URL"].presence ||
-           ENV["VALIDATION_API_BASE_URL"].presence ||
-           "http://127.0.0.1:8000"
-    base = base.sub(/\Ahttp/, "ws").chomp("/")
-    "#{base}#{audio_path}"
+    "#{Security::ValidationWebsocketOrigin.base_url}#{audio_path}"
+  end
+
+  def require_simulation_operator
+    head :forbidden unless current_membership.can_start_validation?
   end
 
   def set_simulation

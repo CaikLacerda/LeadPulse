@@ -63,15 +63,32 @@ module ApplicationHelper
       processando processing in_progress in-progress accepted answered call_answered queued
       whatsapp_sent email_sent waiting_whatsapp_reply waiting_email_reply
     ],
-    warning: %w[inconclusive inconclusive_call not_answered call_not_answered],
+    warning: %w[
+      inconclusive inconclusive_call not_answered call_not_answered
+      pendente pending awaiting_submission open ready_for_call ready_for_retry_call
+    ],
     danger: %w[
       erro error failed validation_failed invalid_phone wrong_company does_not_supply_segment
       not_interested privacy_refusal cnpj_not_found rejected rejected_by_call rejected_by_whatsapp rejected_by_email
     ],
-    neutral: %w[pendente pending awaiting_submission open cancelled canceled ready_for_call ready_for_retry_call]
+    neutral: %w[cancelled canceled]
   }.each_with_object({}) { |(tone, statuses), map| statuses.each { |status| map[status] = tone } }.freeze
 
   PULSING_STATUSES = %w[processando processing in_progress in-progress].freeze
+
+  # O ícone acompanha o rótulo: o tom define o ícone padrão; esperas ganham relógio.
+  STATUS_TONE_ICONS = {
+    success: "fa-circle-check",
+    warning: "fa-circle-exclamation",
+    danger: "fa-circle-xmark",
+    info: "fa-circle-info",
+    neutral: "fa-circle-minus"
+  }.freeze
+
+  WAITING_STATUSES = %w[
+    pendente pending awaiting_submission open ready_for_call ready_for_retry_call queued
+    waiting_whatsapp_reply waiting_email_reply
+  ].freeze
 
   # Status remotos em inglês que têm equivalente local traduzido em shared.statuses.
   LOCAL_STATUS_ALIASES = {
@@ -139,7 +156,8 @@ module ApplicationHelper
     file: "fa-file-lines"
   }.freeze
 
-  def workspace_page(max_width: "max-w-[90rem]", classes: nil, content_classes: nil, &block)
+  # Internal screens use almost the whole width; the cap only keeps ultrawide monitors readable.
+  def workspace_page(max_width: "max-w-[120rem]", classes: nil, content_classes: nil, &block)
     content_tag(:div, class: workspace_class_names("workspace-page", classes)) do
       content_tag(:div, class: workspace_class_names("workspace-content", max_width, content_classes)) do
         capture(&block)
@@ -436,8 +454,8 @@ module ApplicationHelper
     content_tag(:div, message, class: workspace_class_names("settings-feedback", "settings-feedback--#{variant}", ("settings-feedback--standalone" if standalone)), role: (variant == :alert ? "alert" : "status"))
   end
 
-  def platform_settings_page(title:, description: nil, max_width: "max-w-5xl", tutorial_key: nil, nav: :integrations, &block)
-    workspace_page(max_width:) do
+  def platform_settings_page(title:, description: nil, tutorial_key: nil, nav: :integrations, &block)
+    workspace_page do
       turbo_frame_tag "platform_settings_content" do
         safe_join([
           workspace_page_header(title:, description:),
@@ -453,18 +471,21 @@ module ApplicationHelper
     classes.flatten.compact.flat_map { |klass| klass.to_s.split(/\s+/) }.reject(&:blank?).uniq.join(" ")
   end
 
-  # StatusBadge: único componente visual de status (ponto + rótulo).
-  def status_badge(label, tone: :neutral, pulse: false, title: nil)
+  # StatusBadge: único componente visual de status. Por padrão só o ícone aparece; o rótulo
+  # fica para leitores de tela e na dica. show_label: true para etiquetas informativas.
+  def status_badge(label, tone: :neutral, pulse: false, title: nil, icon: nil, show_label: false)
     tone = :neutral unless %i[success warning danger info neutral].include?(tone.to_sym)
+    icon = "fa-circle-notch fa-spin" if pulse
+    icon ||= STATUS_TONE_ICONS.fetch(tone.to_sym)
 
     content_tag(
       :span,
-      class: workspace_class_names("workspace-status", "workspace-status--#{tone}", ("workspace-status--pulse" if pulse)),
-      title: title.presence
+      class: workspace_class_names("workspace-status", "workspace-status--#{tone}", ("workspace-status--pulse" if pulse), ("workspace-status--icon" unless show_label)),
+      title: title.presence || (label unless show_label)
     ) do
       safe_join([
-        content_tag(:span, "", class: "workspace-status__dot", aria: { hidden: true }),
-        content_tag(:span, label, class: "workspace-status__label")
+        content_tag(:i, "", class: "workspace-status__icon fa-solid #{icon}", aria: { hidden: true }),
+        content_tag(:span, label, class: show_label ? "workspace-status__label" : "sr-only")
       ])
     end
   end
@@ -473,9 +494,14 @@ module ApplicationHelper
     STATUS_TONES.fetch(status.to_s.strip.downcase, :neutral)
   end
 
+  # Ícone específico do status, quando o padrão do tom não basta (ex.: esperas → relógio).
+  def workspace_status_icon(status)
+    "fa-clock" if WAITING_STATUSES.include?(status.to_s.strip.downcase)
+  end
+
   def workspace_status_tag(status)
     normalized = status.to_s.strip.downcase
-    status_badge(local_status_label(status), tone: workspace_status_tone(normalized), pulse: PULSING_STATUSES.include?(normalized))
+    status_badge(local_status_label(status), tone: workspace_status_tone(normalized), pulse: PULSING_STATUSES.include?(normalized), icon: workspace_status_icon(normalized))
   end
 
   def local_status_label(status)
@@ -541,7 +567,7 @@ module ApplicationHelper
 
   def audit_result_tag(result_code)
     normalized = result_code.to_s.strip
-    status_badge(audit_result_label(normalized), tone: workspace_status_tone(normalized), pulse: PULSING_STATUSES.include?(normalized))
+    status_badge(audit_result_label(normalized), tone: workspace_status_tone(normalized), pulse: PULSING_STATUSES.include?(normalized), icon: workspace_status_icon(normalized))
   end
 
   def audit_review_result_options

@@ -1,5 +1,14 @@
 import { Controller } from "@hotwired/stimulus"
 
+const STATUS_BADGES = {
+  queued: ["warning", "fa-clock"],
+  running: ["info", "fa-circle-notch fa-spin"],
+  completed: ["success", "fa-circle-check"],
+  failed: ["danger", "fa-circle-xmark"],
+  cancelled: ["neutral", "fa-circle-minus"],
+  interrupted: ["warning", "fa-circle-exclamation"]
+}
+
 // Tela ao vivo do Ambiente de Simulação. O navegador nunca fala com a FastAPI: faz polling
 // no endpoint do Rails (events), que repassa à API. A cada ciclo pede os eventos novos a
 // partir de next_after, aplica-os (estado dos agentes, nível de voz, transcript) e, ao
@@ -148,7 +157,14 @@ export default class extends Controller {
     const text = (payload.text || "").trim()
     if (!text) return
 
-    this.transcriptEmptyTarget?.remove()
+    // Getter de target singular do Stimulus LANÇA "Missing target element" quando o
+    // alvo some do DOM — e o optional chaining NÃO protege, pois a exceção ocorre ao
+    // avaliar o getter. Após o 1º turno remover o placeholder, as chamadas seguintes
+    // lançavam aqui, a exceção subia até o catch do poll (que só reagenda) e os demais
+    // turnos nunca entravam no DOM (Turnos travava em 1). Guardamos com hasXTarget.
+    if (this.hasTranscriptEmptyTarget) {
+      this.transcriptEmptyTarget.remove()
+    }
 
     const item = document.createElement("li")
     const who = payload.speaker === "agent" ? "agent" : "counterpart"
@@ -181,7 +197,9 @@ export default class extends Controller {
 
   statusBadgeHtml(status) {
     const label = this.statusBadgeTarget.dataset[`label${status.charAt(0).toUpperCase()}${status.slice(1)}`] || status
-    return `<span class="sim-badge sim-badge--${status}"><span class="sim-badge__dot" aria-hidden="true"></span>${label}</span>`
+    // Mesmo markup de status_badge / SimulationsHelper::SIMULATION_STATUS_BADGES.
+    const [tone, icon] = STATUS_BADGES[status] || ["neutral", "fa-circle-minus"]
+    return `<span class="workspace-status workspace-status--${tone} workspace-status--icon" title="${label}"><i class="workspace-status__icon fa-solid ${icon}" aria-hidden="true"></i><span class="sr-only">${label}</span></span>`
   }
 
   startClock() {
@@ -209,7 +227,11 @@ export default class extends Controller {
     this.stopAudioMonitor()
     // Encerra os estados de voz: os dois lados voltam a "ouvindo" em repouso.
     this.resetAgents()
-    this.liveActionsTarget?.setAttribute("hidden", "hidden")
+    // Mesmo cuidado do appendTurn: getter singular ausente lança; o optional chaining
+    // não protege. Guardamos com hasLiveActionsTarget.
+    if (this.hasLiveActionsTarget) {
+      this.liveActionsTarget.setAttribute("hidden", "hidden")
+    }
 
     if (reportHtml && this.hasReportTarget) {
       this.reportTarget.innerHTML = reportHtml

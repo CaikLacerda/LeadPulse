@@ -5,7 +5,8 @@ module SupplierDiscoverySearchesHelper
     status_badge(
       label,
       tone: workspace_status_tone(search.status),
-      pulse: ApplicationHelper::PULSING_STATUSES.include?(search.status.to_s)
+      pulse: ApplicationHelper::PULSING_STATUSES.include?(search.status.to_s),
+      icon: workspace_status_icon(search.status)
     )
   end
 end

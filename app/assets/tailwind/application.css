@@ -6,7 +6,6 @@
 
 /* Layouts */
 @import "./layouts/app-shell.css";
-@import "./layouts/auth.css";
 @import "./layouts/public.css";
 
 /* Componentes do workspace */
@@ -24,6 +23,6 @@
 /* Páginas */
 @import "./pages/analytics.css";
 @import "./pages/simulations.css";
+@import "./pages/simulation_voice.css";
 @import "./pages/developer.css";
-@import "./pages/landing.css";
 @import "./pages/team.css";

@@ -5,7 +5,8 @@ module SupplierImports
     module_function
 
     def blocked_phone_numbers_for(account)
-      account.supplier_imports.find_each.with_object(Set.new) do |supplier_import, numbers|
+      # Só o resultado: as planilhas binárias do lote não são lidas aqui.
+      account.supplier_imports.select(:id, :response_payload).find_each.with_object(Set.new) do |supplier_import, numbers|
         Array(supplier_import.response_payload["records"]).each do |record|
           next unless privacy_refusal?(record)
 

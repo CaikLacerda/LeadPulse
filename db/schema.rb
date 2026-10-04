@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -160,6 +160,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_120000) do
     t.index ["remote_batch_id"], name: "index_commercial_opportunities_on_remote_batch_id"
     t.index ["supplier_import_id", "source_external_id"], name: "index_commercial_opportunities_on_source_record", unique: true
     t.check_constraint "status::text = ANY (ARRAY['pendente'::character varying, 'processando'::character varying, 'concluido'::character varying, 'erro'::character varying]::text[])", name: "commercial_opportunities_status_check"
+  end
+
+  create_table "mobile_sessions", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.string "password_fingerprint", null: false
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["account_id"], name: "index_mobile_sessions_on_account_id"
+    t.index ["token_digest"], name: "index_mobile_sessions_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_mobile_sessions_on_user_id"
   end
 
   create_table "plans", force: :cascade do |t|
@@ -373,6 +386,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_120000) do
   add_foreign_key "audit_reviews", "users", column: "reviewed_by_id", on_delete: :nullify
   add_foreign_key "commercial_opportunities", "accounts"
   add_foreign_key "commercial_opportunities", "supplier_imports"
+  add_foreign_key "mobile_sessions", "accounts", on_delete: :cascade
+  add_foreign_key "mobile_sessions", "users", on_delete: :cascade
   add_foreign_key "privacy_audit_events", "accounts"
   add_foreign_key "privacy_audit_events", "supplier_imports", on_delete: :nullify
   add_foreign_key "privacy_audit_events", "users", column: "performed_by_id", on_delete: :nullify

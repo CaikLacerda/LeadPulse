@@ -16,6 +16,7 @@ module SupplierImports
         api_token: @account.validation_api_token_value,
         batch_id: requested_batch_id
       )
+      response = remote_evidence_merger.call(response, batch_id: requested_batch_id)
       apply_response!(response, requested_batch_id: requested_batch_id)
 
       CommercialOpportunities::UpsertFromSupplierImportService.new(
@@ -26,10 +27,16 @@ module SupplierImports
 
     private
 
+    def remote_evidence_merger
+      RemoteEvidenceMerger.new(account: @account, supplier_import: @supplier_import)
+    end
+
     def apply_response!(response, requested_batch_id:)
       @supplier_import.with_lock do
         return if @supplier_import.remote_batch_id != requested_batch_id
 
+        # Reloaded by with_lock: a concurrent privacy request must win over fetched evidence.
+        response = RemoteEvidenceMerger.new(account: @account, supplier_import: @supplier_import).carry_over(response)
         status_mapper = RemoteStatusMapper.new(supplier_import: @supplier_import)
         if status_mapper.stale_response?(
           response,

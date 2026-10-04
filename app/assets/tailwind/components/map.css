@@ -2,9 +2,12 @@
 @layer components {
   .supplier-location-map__canvas {
     position: relative;
-    min-height: 22rem;
+    /* Grows with the (now full-width) page so the map does not turn into a thin strip. */
+    min-height: clamp(22rem, 30vw, 38rem);
     overflow: hidden;
     background: var(--lp-map-canvas);
+    /* Keeps Leaflet's internal z-indexes (panes 400, controls 1000) inside the map, below modals. */
+    isolation: isolate;
   }
 
   @media (max-width: 640px) {

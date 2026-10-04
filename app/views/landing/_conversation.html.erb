@@ -1,0 +1,35 @@
+<section id="como-funciona" class="section conversation-section" aria-labelledby="conversation-title">
+  <div class="wrap split-layout">
+    <div class="section-copy">
+      <p class="section-label">Conversa que movimenta a operação</p>
+      <h2 id="conversation-title">A IA conversa.<br>O processo acontece.</h2>
+      <p>A cada resposta, o workflow conecta contexto, regras e sistemas. A conversa continua com o resultado da ação.</p>
+      <ol class="story-steps" aria-label="Etapas do exemplo de visita técnica">
+        <% [
+          [ "Entender o contexto", "A IA identifica a necessidade e coleta os dados." ],
+          [ "Consultar e decidir", "Uma ferramenta busca a informação no sistema." ],
+          [ "Agir e continuar", "O resultado da ação volta para a conversa." ]
+        ].each_with_index do |(title, description), index| %>
+          <li>
+            <button data-story="<%= index %>" aria-pressed="<%= index.zero? %>"><span><%= format("%02d", index + 1) %></span><span><strong><%= title %></strong><small><%= description %></small></span></button>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+    <div class="conversation-example">
+      <div class="example-heading"><%= landing_icon(:voice) %><span>Uma conversa. Um processo em execução.</span></div>
+      <div class="conversation-content" aria-live="polite" aria-atomic="true" data-reveal>
+        <p class="speaker">Pessoa</p>
+        <blockquote data-person>“Preciso de uma visita técnica na quinta pela manhã.”</blockquote>
+        <div class="voice-divider" aria-hidden="true"><% 11.times do %><span></span><% end %></div>
+        <p class="speaker agent-speaker">LeadPulse</p>
+        <blockquote data-agent>“Claro. Qual é o serviço e o endereço da visita?”</blockquote>
+        <div class="action-receipt">
+          <%= landing_icon(:flow) %>
+          <div><span data-action-label>Etapa do workflow</span><strong data-action-result>Coletar informações para o atendimento</strong></div>
+        </div>
+      </div>
+      <div class="example-caption">Exemplo ilustrativo: agendamento de visita técnica.</div>
+    </div>
+  </div>
+</section>

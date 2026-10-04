@@ -9,7 +9,7 @@ class DeveloperDocsController < ApplicationController
       "Padronize telefones no formato E.164, como +55DDDNÚMERO, antes de enviar o lote.",
       "Envie lotes cadastrais ou de fornecedor para a API.",
       "Consulte o processamento dos lotes pelo batch_id retornado.",
-      "Consuma supplier discovery e resultados de validação direto do seu sistema."
+      "Consuma a busca de fornecedores e os resultados de validação direto do seu sistema."
     ]
     @auth_modes = [
       {
@@ -28,7 +28,7 @@ class DeveloperDocsController < ApplicationController
         description: "Fluxo por planilha para confirmar se o contato atende um segmento e se existe abertura comercial."
       },
       {
-        title: "Supplier discovery",
+        title: "Busca de fornecedores",
         description: "Busca fornecedores na web, estrutura o resultado e devolve planilha sem disparar chamadas automaticamente."
       },
       {
@@ -152,7 +152,7 @@ class DeveloperDocsController < ApplicationController
         ]
       },
       {
-        title: "Supplier discovery",
+        title: "Busca de fornecedores",
         description: "Busca web estruturada para formar lotes de fornecedores.",
         items: [
           {

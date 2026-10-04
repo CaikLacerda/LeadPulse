@@ -117,7 +117,7 @@
                   <td>
                     <%= audit_result_tag(supplier_import_record_result_code(record)) %>
                     <% if record['privacy_refusal_detected'].present? || attempts.any? { |attempt| attempt['privacy_refusal_detected'].present? } %>
-                      <div class="mt-1.5"><%= status_badge(t('.records.privacy_refusal'), tone: :danger) %></div>
+                      <div class="mt-1.5"><%= status_badge(t('.records.privacy_refusal'), tone: :danger, show_label: true) %></div>
                     <% end %>
                   </td>
                   <td class="min-w-[16rem]">

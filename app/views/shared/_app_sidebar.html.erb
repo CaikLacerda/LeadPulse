@@ -1,8 +1,7 @@
 <aside class="app-sidebar" id="app-sidebar">
   <div class="app-sidebar__header">
     <%= link_to root_path, class: 'app-brand-link', title: t('shared.app_name') do %>
-      <span class="app-logo-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
-      <span class="app-logo-text"><%= t('shared.app_name') %></span>
+      <%= render 'shared/app_logo' %>
     <% end %>
 
     <button type="button" class="app-icon-button app-sidebar__close" data-action="sidebar#closeMobile" aria-label="Fechar menu">

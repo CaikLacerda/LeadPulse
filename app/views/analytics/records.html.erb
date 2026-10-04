@@ -21,7 +21,7 @@
               <tr>
                 <td><%= workspace_code_tag(analytics_batch_code(row[:batch_id]), supplier_import_path(row[:batch_id])) %></td>
                 <td class="workspace-table__primary"><%= row[:company_name].presence || row[:external_id] %></td>
-                <td><%= row[:call_result] ? status_badge(analytics_result_label(row[:call_result]), tone: workspace_status_tone(row[:call_result])) : "—" %></td>
+                <td><%= row[:call_result] ? status_badge(analytics_result_label(row[:call_result]), tone: workspace_status_tone(row[:call_result]), icon: workspace_status_icon(row[:call_result])) : "—" %></td>
                 <td><%= row[:call_status] ? t("analytics.call_statuses.#{row[:call_status]}", default: row[:call_status]) : "—" %></td>
                 <td><%= row[:qualification_outcome] ? analytics_outcome_label(row[:qualification_outcome]) : "—" %></td>
                 <td><%= workspace_datetime_cell(row[:validation_started_at]) %></td>

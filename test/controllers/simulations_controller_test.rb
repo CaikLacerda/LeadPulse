@@ -49,6 +49,18 @@ class SimulationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal I18n.t("simulations.messages.missing_token"), flash[:alert]
   end
 
+  test "viewer cannot create cancel or obtain audio tickets" do
+    change_role!(@user, "viewer")
+    simulation = account_of(@user).simulations.create!(remote_id: "sim_forbidden", mode: "ai_vs_ai", workflow_key: "supplier_validation", scenario_key: "favoravel", status: "running")
+    sign_in!
+    post simulations_url, params: { simulation: { workflow_key: "supplier_validation", scenario_key: "favoravel" } }
+    assert_redirected_to simulations_path
+    post cancel_simulation_url(simulation)
+    assert_response :forbidden
+    post audio_ticket_simulation_url(simulation)
+    assert_response :forbidden
+  end
+
   # --- index --------------------------------------------------------------
   test "index lists only the current account simulations" do
     mine = account_of(@user).simulations.create!(remote_id: "sim_mine", mode: "ai_vs_ai", workflow_key: "supplier_validation", scenario_key: "favoravel", status: "completed", accuracy: 1.0)
@@ -59,7 +71,7 @@ class SimulationsControllerTest < ActionDispatch::IntegrationTest
     get simulations_url
 
     assert_response :success
-    assert_select "h1", text: /Ambiente de Simulação/
+    assert_select "h1", text: /Simulações/
     assert_match mine.display_code, response.body
     assert_no_match(/sim_other/, response.body)
   end

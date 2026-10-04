@@ -34,6 +34,8 @@
 
 # Rails credentials key must be provisioned outside version control.
 /config/master.key
+/config/credentials/*.key
+/.secrets/
 
 /app/assets/builds/*
 !/app/assets/builds/.keep

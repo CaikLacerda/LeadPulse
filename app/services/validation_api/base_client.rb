@@ -69,7 +69,7 @@ module ValidationApi
       response = Typhoeus::Request.new(
         "#{@base_url}#{path}",
         method: method,
-        headers: DEFAULT_HEADERS.merge(headers),
+        headers: DEFAULT_HEADERS.merge(correlation_headers).merge(headers),
         params: params.presence,
         body: body.nil? ? nil : JSON.generate(body),
         timeout: timeout_ms,
@@ -94,6 +94,10 @@ module ValidationApi
         response_body: response.body,
         details: parsed_body
       )
+    end
+
+    def correlation_headers
+      Current.request_id.present? ? { "X-Request-ID" => Current.request_id } : {}
     end
 
     def parse_body(body)
