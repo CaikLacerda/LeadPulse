@@ -28,6 +28,12 @@ module WorkspaceNavigationHelper
         ].compact
       },
       {
+        title: "Laboratório",
+        items: [
+          workspace_nav_item(:simulations, "Simulações", simulations_path, icon: :simulation)
+        ]
+      },
+      {
         title: "Administração",
         items: [
           (workspace_nav_item(:company, "Empresa", company_platform_settings_path, icon: :building) if current_membership.can_manage_settings?),

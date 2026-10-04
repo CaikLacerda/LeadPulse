@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_27_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -211,6 +211,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_200000) do
     t.check_constraint "status::text = ANY (ARRAY['open'::character varying, 'in_progress'::character varying, 'resolved'::character varying, 'rejected'::character varying]::text[])", name: "privacy_requests_status_check"
   end
 
+  create_table "simulations", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.float "accuracy"
+    t.string "call_result", limit: 40
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.integer "duration_ms"
+    t.datetime "finished_at"
+    t.string "mode", limit: 24, null: false
+    t.float "raw_value_accuracy"
+    t.string "remote_id", limit: 120, null: false
+    t.string "scenario_key", limit: 40, null: false
+    t.string "status", limit: 24, default: "queued", null: false
+    t.string "target_type", limit: 40, default: "system_workflow", null: false
+    t.integer "turn_count"
+    t.datetime "updated_at", null: false
+    t.string "workflow_key", limit: 80, null: false
+    t.index ["account_id", "created_at"], name: "index_simulations_on_account_id_and_created_at"
+    t.index ["account_id", "remote_id"], name: "index_simulations_on_account_id_and_remote_id", unique: true
+    t.index ["account_id"], name: "index_simulations_on_account_id"
+    t.index ["created_by_id"], name: "index_simulations_on_created_by_id"
+  end
+
   create_table "supplier_discovery_searches", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.string "callback_contact_name"
@@ -356,6 +379,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_200000) do
   add_foreign_key "privacy_requests", "accounts"
   add_foreign_key "privacy_requests", "supplier_imports", on_delete: :nullify
   add_foreign_key "privacy_requests", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "simulations", "accounts"
+  add_foreign_key "simulations", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "supplier_discovery_searches", "accounts"
   add_foreign_key "supplier_discovery_searches", "users", column: "created_by_id", on_delete: :nullify
   add_foreign_key "supplier_import_versions", "supplier_imports"

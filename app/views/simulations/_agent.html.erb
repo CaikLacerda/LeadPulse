@@ -1,0 +1,18 @@
+<%# Um lado do palco: avatar com estado (listening/thinking/speaking) e nível de voz.
+    O Stimulus controla os data-attributes e a variável --sim-level. locals: side, title, icon %>
+<div class="sim-agent sim-agent--<%= side %>"
+     data-simulation-live-target="<%= side == "agent" ? "agentCard" : "counterpartCard" %>"
+     data-state="listening">
+  <div class="sim-agent__orb">
+    <span class="sim-agent__ring" aria-hidden="true"></span>
+    <span class="sim-agent__ring sim-agent__ring--2" aria-hidden="true"></span>
+    <span class="sim-agent__avatar" aria-hidden="true"><i class="fa-solid <%= icon %>"></i></span>
+  </div>
+  <p class="sim-agent__name"><%= title %></p>
+  <p class="sim-agent__state" data-simulation-live-target="<%= side == "agent" ? "agentState" : "counterpartState" %>"
+     data-label-listening="<%= t("simulations.states.listening") %>"
+     data-label-thinking="<%= t("simulations.states.thinking") %>"
+     data-label-speaking="<%= t("simulations.states.speaking") %>">
+    <%= t("simulations.states.listening") %>
+  </p>
+</div>

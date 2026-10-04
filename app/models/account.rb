@@ -22,6 +22,7 @@ class Account < ApplicationRecord
   has_many :supplier_imports, dependent: :destroy
   has_many :supplier_discovery_searches, dependent: :destroy
   has_many :commercial_opportunities, dependent: :destroy
+  has_many :simulations, dependent: :destroy
   has_many :audit_reviews, dependent: :destroy
   has_many :privacy_requests, dependent: :destroy
   has_many :third_party_operators, dependent: :destroy

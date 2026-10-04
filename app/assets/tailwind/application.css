@@ -23,6 +23,7 @@
 
 /* Páginas */
 @import "./pages/analytics.css";
+@import "./pages/simulations.css";
 @import "./pages/developer.css";
 @import "./pages/landing.css";
 @import "./pages/team.css";

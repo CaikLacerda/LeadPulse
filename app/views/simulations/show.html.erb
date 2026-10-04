@@ -1,0 +1,84 @@
+<%= workspace_page do %>
+  <%= workspace_page_header(title: t(".title", code: @simulation.display_code), description: t(".description")) do %>
+    <%= workspace_link_button(t(".back"), simulations_path, variant: :ghost) %>
+  <% end %>
+
+  <div class="sim-lab sim-stage"
+       data-controller="simulation-live"
+       data-simulation-live-events-url-value="<%= events_simulation_path(@simulation) %>"
+       data-simulation-live-status-value="<%= @simulation.status %>"
+       data-simulation-live-terminal-value="<%= @simulation.terminal? %>"
+       data-simulation-live-interval-value="1000">
+
+    <%# Telemetria: status, cronômetro, workflow, cenário, turnos %>
+    <div class="sim-telemetry">
+      <div class="sim-telemetry__item">
+        <span class="sim-telemetry__label"><%= t(".telemetry.status") %></span>
+        <span class="sim-telemetry__value" data-simulation-live-target="statusBadge"
+              data-label-queued="<%= t("simulations.statuses.queued") %>"
+              data-label-running="<%= t("simulations.statuses.running") %>"
+              data-label-completed="<%= t("simulations.statuses.completed") %>"
+              data-label-failed="<%= t("simulations.statuses.failed") %>"
+              data-label-cancelled="<%= t("simulations.statuses.cancelled") %>"
+              data-label-interrupted="<%= t("simulations.statuses.interrupted") %>"><%= render "simulations/status_badge", status: @simulation.status %></span>
+      </div>
+      <div class="sim-telemetry__item">
+        <span class="sim-telemetry__label"><%= t(".telemetry.elapsed") %></span>
+        <span class="sim-telemetry__value sim-telemetry__value--mono" data-simulation-live-target="clock">00:00</span>
+      </div>
+      <div class="sim-telemetry__item">
+        <span class="sim-telemetry__label"><%= t(".telemetry.workflow") %></span>
+        <span class="sim-telemetry__value"><%= t("simulations.workflows.#{@simulation.workflow_key}", default: @simulation.workflow_key) %></span>
+      </div>
+      <div class="sim-telemetry__item">
+        <span class="sim-telemetry__label"><%= t(".telemetry.scenario") %></span>
+        <span class="sim-telemetry__value"><%= t("simulations.scenarios.#{@simulation.scenario_key}", default: @simulation.scenario_key) %></span>
+      </div>
+      <div class="sim-telemetry__item">
+        <span class="sim-telemetry__label"><%= t(".telemetry.turns") %></span>
+        <span class="sim-telemetry__value sim-telemetry__value--mono" data-simulation-live-target="turnCount">0</span>
+      </div>
+    </div>
+
+    <%# Palco ao vivo: dois agentes com estado e nível de voz %>
+    <div class="sim-arena" data-simulation-live-target="arena" role="img" aria-label="<%= t(".arena_aria") %>">
+      <%= render "simulations/agent", side: "agent", title: t(".agent.leadpulse"), icon: "fa-headset" %>
+
+      <div class="sim-arena__link" aria-hidden="true">
+        <span class="sim-arena__wave" data-simulation-live-target="waveAgent"></span>
+        <span class="sim-arena__core"></span>
+        <span class="sim-arena__wave sim-arena__wave--reverse" data-simulation-live-target="waveCounterpart"></span>
+      </div>
+
+      <%= render "simulations/agent", side: "counterpart", title: t(".agent.supplier"), icon: "fa-building" %>
+    </div>
+
+    <%# Transcript ao vivo + ações %>
+    <div class="sim-stage__columns">
+      <%= portlet_form(t(".transcript_title")) do %>
+        <ol class="sim-transcript" data-simulation-live-target="transcript"
+            data-agent-label="<%= t(".agent.leadpulse") %>"
+            data-counterpart-label="<%= t(".agent.supplier") %>">
+          <li class="sim-transcript__empty" data-simulation-live-target="transcriptEmpty"><%= t(".transcript_empty") %></li>
+        </ol>
+      <% end %>
+    </div>
+
+    <div class="sim-stage__actions" data-simulation-live-target="liveActions">
+      <%= button_to t(".cancel"), cancel_simulation_path(@simulation), method: :post,
+            class: workspace_button_class(:danger),
+            data: { turbo_confirm: t(".cancel_confirm") } %>
+    </div>
+
+    <%# Relatório final: preenchido ao término (via polling) ou já no load se terminal. %>
+    <div class="sim-report" data-simulation-live-target="report">
+      <% if @simulation.terminal? && @run.present? %>
+        <%= render "simulations/report", run: @run, simulation: @simulation %>
+      <% end %>
+    </div>
+
+    <% if @run_error.present? %>
+      <p class="sim-stage__error" role="status"><%= @run_error %></p>
+    <% end %>
+  </div>
+<% end %>

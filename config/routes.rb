@@ -56,6 +56,13 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :simulations, path: "simulacoes", only: [ :index, :new, :create, :show ] do
+    member do
+      get :events
+      post :cancel
+    end
+  end
+
   post "empresa/selecionar", to: "account_selections#create", as: :account_selection
 
   get "equipe", to: "team#index", as: :team
