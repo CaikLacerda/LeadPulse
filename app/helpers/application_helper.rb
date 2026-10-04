@@ -108,6 +108,7 @@ module ApplicationHelper
     code: "fa-code",
     chart: "fa-chart-column",
     analytics: "fa-chart-line",
+    simulation: "fa-flask-vial",
     team: "fa-user-group",
     integrations: "fa-plug",
     database: "fa-database",
