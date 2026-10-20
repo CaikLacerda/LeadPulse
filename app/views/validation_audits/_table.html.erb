@@ -1,0 +1,191 @@
+<section class="workspace-portlet" data-tutorial-id="audit-results" data-controller="disclosure">
+  <div class="workspace-table-wrap">
+    <table class="workspace-table">
+      <thead>
+        <tr>
+          <th scope="col"><%= t('validation_audits.index.table.headers.lot') %></th>
+          <th scope="col"><%= t('validation_audits.index.table.headers.action') %></th>
+          <th scope="col"><%= t('validation_audits.index.table.headers.result') %></th>
+          <th scope="col"><%= t('validation_audits.index.table.headers.datetime') %></th>
+          <th scope="col" class="is-actions"><span class="sr-only"><%= t('validation_audits.index.table.headers.conversation') %></span></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if @audit_entries.any? %>
+          <% @audit_entries.each_with_index do |entry, index| %>
+            <% detail_id = "audit-entry-#{@audit_page}-#{index}" %>
+            <tr>
+              <td class="min-w-[14rem]">
+                <span class="workspace-table__primary"><%= entry.supplier_name %></span>
+                <span class="workspace-table__secondary"><%= workspace_code_tag(entry.lot_code) %></span>
+              </td>
+              <td class="min-w-[10rem]"><%= audit_action_label(entry.workflow_kind) %></td>
+              <td class="min-w-[14rem]">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <%= audit_result_tag(entry.result_code) %>
+                  <% if entry.review.present? %>
+                    <span class="workspace-tag" title="Resultado revisado manualmente">Revisado</span>
+                  <% end %>
+                  <% if entry.privacy_refusal_detected.present? %>
+                    <%= status_badge(t('validation_audits.index.table.privacy_refusal'), tone: :danger, show_label: true) %>
+                  <% end %>
+                </div>
+              </td>
+              <td><%= workspace_datetime_cell(entry.occurred_at) %></td>
+              <td class="is-actions">
+                <% if current_membership.can_view_evidence? %>
+                  <button type="button"
+                          class="workspace-row-toggle"
+                          aria-expanded="false"
+                          aria-controls="<%= detail_id %>"
+                          data-action="disclosure#toggle"
+                          <%= 'data-tutorial-id=audit-transcripts' if index.zero? %>>
+                    <i class="fa-solid fa-comment-dots text-fg-subtle" aria-hidden="true"></i>
+                    <span><%= t('validation_audits.index.table.view_transcripts') %></span>
+                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                  </button>
+                <% else %>
+                  <span class="pr-2 text-[0.8125rem] text-fg-muted">Protegida pelo perfil</span>
+                <% end %>
+              </td>
+            </tr>
+
+            <% if current_membership.can_view_evidence? %>
+              <tr class="workspace-table__detail-row" id="<%= detail_id %>" hidden>
+                <td colspan="5">
+                  <div class="workspace-detail-grid">
+                    <div class="min-w-0">
+                      <% if entry.conversation_turns.present? %>
+                        <p class="workspace-detail-grid__title"><%= t('validation_audits.index.table.chronological_conversation') %></p>
+                        <div class="workspace-transcript" data-testid="chronological-conversation">
+                          <% entry.conversation_turns.each do |turn| %>
+                            <% customer_turn = turn['role'] == 'user' %>
+                            <div class="workspace-transcript-turn <%= 'workspace-transcript-turn--agent' unless customer_turn %>">
+                              <span class="workspace-transcript-turn__speaker"><%= customer_turn ? t('validation_audits.index.table.customer_label') : t('validation_audits.index.table.assistant_label') %></span>
+                              <div class="min-w-0">
+                                <% if turn['question_id'].present? || turn['semantic_value'].present? || turn['interrupted'].present? %>
+                                  <div class="workspace-transcript-turn__meta">
+                                    <% if turn['question_id'].present? %>
+                                      <% question_key = turn['question_id'].to_s.tr('.', '_') %>
+                                      <span class="workspace-tag"><%= t("validation_audits.index.turn_questions.#{question_key}", default: turn['question_id'].to_s.split('.').last.tr('_', ' ').capitalize) %></span>
+                                    <% end %>
+                                    <% if turn['semantic_value'].present? %>
+                                      <%= status_badge(t("validation_audits.index.turn_values.#{turn['semantic_value']}", default: turn['semantic_value'].to_s.tr('_', ' ').capitalize), tone: :info, show_label: true) %>
+                                    <% end %>
+                                    <% if turn['interrupted'].present? %>
+                                      <%= status_badge(t('validation_audits.index.table.interrupted_turn'), tone: :warning, show_label: true) %>
+                                    <% end %>
+                                  </div>
+                                <% end %>
+                                <p class="workspace-transcript-block"><%= turn['transcript'] %></p>
+                              </div>
+                            </div>
+                          <% end %>
+                        </div>
+                      <% else %>
+                        <p class="workspace-detail-grid__title">Transcrição</p>
+                        <div class="workspace-transcript">
+                          <div class="workspace-transcript-turn">
+                            <span class="workspace-transcript-turn__speaker"><%= t('validation_audits.index.table.customer_label') %></span>
+                            <p class="workspace-transcript-block"><%= entry.customer_transcript.presence || t('validation_audits.index.table.missing_customer') %></p>
+                          </div>
+                          <div class="workspace-transcript-turn workspace-transcript-turn--agent">
+                            <span class="workspace-transcript-turn__speaker"><%= t('validation_audits.index.table.assistant_label') %></span>
+                            <p class="workspace-transcript-block"><%= entry.assistant_transcript.presence || t('validation_audits.index.table.missing_assistant') %></p>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+
+                    <div class="min-w-0 space-y-5">
+                      <div>
+                        <p class="workspace-detail-grid__title"><%= t('validation_audits.index.table.evidence_label') %></p>
+                        <div class="space-y-1.5 text-[0.8125rem]">
+                          <% if entry.recording_url.present? %>
+                            <p>
+                              <%= link_to entry.recording_url, target: '_blank', rel: 'noopener', class: 'workspace-link inline-flex items-center gap-1.5' do %>
+                                <i class="fa-solid fa-play text-[0.625rem]" aria-hidden="true"></i><%= t('validation_audits.index.table.recording_link') %>
+                              <% end %>
+                            </p>
+                          <% else %>
+                            <p class="text-fg-muted"><%= t('validation_audits.index.table.missing_recording') %></p>
+                          <% end %>
+
+                          <% if entry.privacy_refusal_detected.present? %>
+                            <p class="text-danger-fg"><%= entry.privacy_refusal_reason.presence || t('validation_audits.index.table.privacy_refusal') %></p>
+                          <% end %>
+
+                          <% if entry.evidence_anonymized.present? %>
+                            <p class="text-fg-muted"><%= t('validation_audits.index.table.evidence_anonymized') %></p>
+                          <% end %>
+                        </div>
+                      </div>
+
+                      <% if entry.observation.present? %>
+                        <div>
+                          <p class="workspace-detail-grid__title"><%= t('validation_audits.index.table.technical_detail') %></p>
+                          <p class="text-[0.8125rem] text-fg-secondary break-words"><%= entry.observation %></p>
+                        </div>
+                      <% end %>
+
+                      <div>
+                        <p class="workspace-detail-grid__title"><%= t('validation_audits.index.review.title') %></p>
+
+                        <% if entry.review.present? %>
+                          <div class="workspace-callout workspace-callout--success mb-3">
+                            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                            <div>
+                              <p><span class="font-medium"><%= t('validation_audits.index.review.saved_status') %>:</span> <%= audit_result_label(entry.review.reviewed_result) %></p>
+                              <% if entry.review.review_note.present? %>
+                                <p class="mt-0.5 text-fg-secondary"><%= entry.review.review_note %></p>
+                              <% end %>
+                            </div>
+                          </div>
+                        <% end %>
+
+                        <%= form_with url: validation_audit_reviews_path, scope: :audit_review, method: :post, local: true, class: 'grid gap-3' do |f| %>
+                          <%= f.hidden_field :supplier_import_id, value: entry.lot_id %>
+                          <%= f.hidden_field :record_external_id, value: entry.record_external_id %>
+                          <%= f.hidden_field :provider_call_id, value: entry.provider_call_id %>
+                          <%= f.hidden_field :attempt_number, value: entry.attempt_number %>
+                          <%= f.hidden_field :original_result, value: entry.result_code %>
+
+                          <div>
+                            <%= f.label :reviewed_result, t('validation_audits.index.review.result_label'), class: 'settings-label', for: "#{detail_id}-result" %>
+                            <%= f.select :reviewed_result,
+                                audit_review_result_options,
+                                { selected: entry.review&.reviewed_result || entry.result_code },
+                                class: 'settings-input', id: "#{detail_id}-result" %>
+                          </div>
+
+                          <div>
+                            <%= f.label :review_note, t('validation_audits.index.review.note_label'), class: 'settings-label', for: "#{detail_id}-note" %>
+                            <%= f.text_field :review_note,
+                                value: entry.review&.review_note,
+                                placeholder: t('validation_audits.index.review.note_placeholder'),
+                                class: 'settings-input', id: "#{detail_id}-note" %>
+                          </div>
+
+                          <div>
+                            <%= f.submit t('validation_audits.index.review.submit'), class: workspace_submit_class(:primary, size: :sm), data: { turbo_submits_with: 'Salvando…' } %>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          <% end %>
+        <% else %>
+          <%= workspace_empty_table_row(colspan: 5,
+                message: t('validation_audits.index.table.empty'),
+                hint: params[:q].present? ? t('validation_audits.index.table.empty_filtered_hint') : t('validation_audits.index.table.empty_hint')) %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%= render 'shared/pagination', current_page: @audit_page, total_pages: @audit_total_pages %>
+</section>

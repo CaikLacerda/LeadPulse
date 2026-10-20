@@ -1,135 +1,53 @@
-<%# app/views/devise/registrations/new.html.erb %>
+<% content_for :title, 'Criar conta · LeadPulse' %>
+<% content_for :description, 'Crie a conta da sua empresa no LeadPulse e transforme conversas em processos com IA por voz.' %>
+<% content_for :auth_brand, 'signup' %>
 
-<div class="auth-shell auth-shell--register flex min-h-[calc(100vh-4rem)] flex-col-reverse md:min-h-screen md:flex-row" data-controller="auth-transition" data-auth-transition-direction="backward">
-  <!-- LADO ESQUERDO - Formulário -->
-  <div class="auth-card flex-1 overflow-y-auto bg-white px-5 pb-10 pt-8 sm:px-8 md:flex md:items-start md:justify-center md:px-16 md:pt-12">
-    <div class="auth-card-bolts">
-      <div class="home-bolt left-[10%] top-[11%] hidden h-24 w-14 md:block"></div>
-      <div class="home-bolt home-bolt--soft right-[10%] top-[18%] hidden h-20 w-12 md:block"></div>
-      <div class="home-bolt right-[16%] bottom-[18%] hidden h-28 w-16 md:block"></div>
-      <div class="home-bolt home-bolt--soft left-[18%] bottom-[10%] hidden h-20 w-12 md:block"></div>
-    </div>
-    <div class="mx-auto w-full max-w-md">
+<h1 class="auth-title">Criar conta</h1>
+<p class="auth-description">Crie seu acesso. Depois, configure sua empresa e prepare o primeiro workflow.</p>
 
-      <!-- Voltar -->
-      <%= link_to "← Voltar para Início", root_path,
-          class: "text-sm font-semibold text-blue-600 hover:underline mb-8 inline-block" %>
+<%= render 'devise/shared/messages', resource: resource, inline_fields: %i[name email password password_confirmation] %>
 
-      <!-- Título -->
-      <h2 class="text-3xl font-black text-gray-900 mt-4 mb-1">Criar conta</h2>
-      <p class="text-gray-500 mb-7 text-sm">Preencha os campos para começar agora.</p>
-
-      <!-- Erros -->
-      <% if resource.errors.any? %>
-        <div class="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-6">
-          <% resource.errors.full_messages.each do |msg| %>
-            <p>• <%= msg %></p>
-          <% end %>
-        </div>
-      <% end %>
-
-      <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-
-        <!-- Nome completo -->
-        <div class="mb-4">
-          <%= f.label :name, "Nome Completo",
-              class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
-          <%= f.text_field :name,
-              autofocus: true,
-              placeholder: "Seu nome aqui",
-              class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
-        </div>
-
-        <!-- E-mail -->
-        <div class="mb-4">
-          <%= f.label :email, "E-mail",
-              class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
-          <%= f.email_field :email,
-              autocomplete: "email",
-              placeholder: "voce@empresa.com",
-              class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
-        </div>
-
-        <!-- Senha + Confirmar (lado a lado) -->
-        <div class="flex gap-4 mb-5">
-          <div class="flex-1">
-            <%= f.label :password, "Senha",
-                class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
-            <%= f.password_field :password,
-                autocomplete: "new-password",
-                placeholder: "••••••",
-                class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
-          </div>
-          <div class="flex-1">
-            <%= f.label :password_confirmation, "Confirmar",
-                class: "block text-sm font-semibold text-gray-800 mb-1.5" %>
-            <%= f.password_field :password_confirmation,
-                autocomplete: "new-password",
-                placeholder: "••••••",
-                class: "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" %>
-          </div>
-        </div>
-
-        <!-- Termos -->
-        <p class="text-xs text-gray-400 mb-6">
-          Ao se registrar, você concorda com nossos
-          <a href="#" class="text-gray-600 underline">Termos de Serviço</a>
-          e
-          <a href="#" class="text-gray-600 underline">Política de Privacidade</a>.
-        </p>
-
-        <!-- Botão -->
-        <%= f.submit "Criar minha conta",
-            class: "w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl transition-all hover:-translate-y-0.5 shadow-lg shadow-orange-200 cursor-pointer" %>
-
-      <% end %>
-
-      <!-- Link login -->
-      <p class="text-center text-sm text-gray-500 mt-7">
-        Já é um cliente?
-        <%= link_to "Fazer login", new_session_path(resource_name),
-            class: "font-bold text-orange-500 hover:underline",
-            data: {
-              action: "click->auth-transition#rememberDirection",
-              auth_transition_direction: "backward"
-            } %>
-      </p>
-
-    </div>
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: 'auth-form' }) do |f| %>
+  <div class="auth-field">
+    <%= f.label :name, 'Nome completo', class: 'settings-label' %>
+    <%= f.text_field :name, autofocus: true, autocomplete: 'name', class: 'settings-input auth-input', aria: auth_field_aria(resource, :name) %>
+    <%= auth_field_error(resource, :name) %>
   </div>
 
-  <!-- LADO DIREITO - Banner laranja -->
-  <div class="auth-copy auth-banner hidden md:flex w-1/2 flex-col justify-center overflow-hidden bg-orange-500 p-14 relative">
-
-    <!-- Círculos decorativos -->
-    <div class="auth-orb auth-orb--slow absolute -bottom-32 -right-32 w-96 h-96 bg-orange-400 rounded-full opacity-40"></div>
-    <div class="auth-orb auth-orb--delay auth-orb--reverse absolute -top-24 -left-24 w-72 h-72 bg-orange-600 rounded-full opacity-30"></div>
-
-    <div class="z-10">
-      <p class="text-blue-900 text-xs font-bold tracking-widest uppercase mb-6">Junte-se a nós</p>
-      <h1 class="text-7xl font-black text-white leading-none">COMECE</h1>
-      <h1 class="text-7xl font-black text-blue-800 leading-none mb-8">DO ZERO.</h1>
-      <p class="text-orange-100 text-lg leading-relaxed max-w-sm mb-10">
-        Em menos de 2 minutos, você terá acesso à tecnologia de voz que está revolucionando a limpeza de banco de dados.
-      </p>
-
-      <!-- Benefícios -->
-      <div class="flex flex-col gap-4">
-        <div class="flex items-center gap-3">
-          <div class="w-7 h-7 rounded-full bg-blue-800 flex items-center justify-center shrink-0">
-            <span class="text-white text-xs">✓</span>
-          </div>
-          <p class="text-white font-semibold">100 validações gratuitas mensais</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="w-7 h-7 rounded-full bg-blue-800 flex items-center justify-center shrink-0">
-            <span class="text-white text-xs">✓</span>
-          </div>
-          <p class="text-white font-semibold">Relatórios em tempo real</p>
-        </div>
-      </div>
-    </div>
-
+  <div class="auth-field">
+    <%= f.label :email, 'E-mail corporativo', class: 'settings-label' %>
+    <%= f.email_field :email, autocomplete: 'email', placeholder: 'voce@empresa.com', class: 'settings-input auth-input', aria: auth_field_aria(resource, :email) %>
+    <%= auth_field_error(resource, :email) %>
   </div>
 
-</div>
+  <div class="auth-field">
+    <%= f.label :password, 'Senha', class: 'settings-label' %>
+    <%= render 'devise/shared/password_field', form: f, attribute: :password,
+          options: { autocomplete: 'new-password', aria: auth_field_aria(resource, :password, hint: ('password_hint' if @minimum_password_length)) } %>
+    <% if @minimum_password_length %>
+      <p class="auth-field-hint" id="password_hint">Use pelo menos <%= @minimum_password_length %> caracteres.</p>
+    <% end %>
+    <%= auth_field_error(resource, :password) %>
+  </div>
+
+  <div class="auth-field">
+    <%= f.label :password_confirmation, 'Confirmar senha', class: 'settings-label' %>
+    <%= render 'devise/shared/password_field', form: f, attribute: :password_confirmation,
+          options: { autocomplete: 'new-password', aria: auth_field_aria(resource, :password_confirmation) } %>
+    <%= auth_field_error(resource, :password_confirmation) %>
+  </div>
+
+  <p class="auth-terms">
+    Ao criar a conta, você concorda com os
+    <%= link_to terms_path, target: '_blank', rel: 'noopener' do %>Termos de Serviço<span class="sr-only"> (abre em nova aba)</span><% end %>
+    e a
+    <%= link_to privacy_path, target: '_blank', rel: 'noopener' do %>Política de Privacidade<span class="sr-only"> (abre em nova aba)</span><% end %>.
+  </p>
+
+  <%= f.button 'Criar conta', type: 'submit', name: nil, class: workspace_submit_class(:primary, 'auth-submit'), data: { turbo_submits_with: 'Criando conta…' } %>
+<% end %>
+
+<p class="auth-footer">
+  Já tem conta?
+  <%= link_to 'Entrar', new_session_path(resource_name), class: 'workspace-link' %>
+</p>

@@ -1,0 +1,16 @@
+<%# Lista de turnos de uma perspectiva do transcript. locals: turns
+    Cada turno tem role ("assistant" = agente, "user" = contraparte) e transcript/text. %>
+<ol class="sim-transcript sim-transcript--static">
+  <% turns.each do |turn| %>
+    <% role = turn["role"] %>
+    <% text = (turn["transcript"].presence || turn["text"]).to_s %>
+    <% next if text.strip.blank? %>
+    <li class="sim-transcript__row sim-transcript__row--<%= role == "assistant" ? "agent" : "counterpart" %>">
+      <span class="sim-transcript__who"><%= role == "assistant" ? t("simulations.show.agent.leadpulse") : t("simulations.show.agent.supplier") %></span>
+      <span class="sim-transcript__text"><%= text %></span>
+    </li>
+  <% end %>
+  <% if turns.all? { |turn| (turn["transcript"].presence || turn["text"]).to_s.strip.blank? } %>
+    <li class="sim-transcript__empty"><%= t("simulations.show.transcript_empty") %></li>
+  <% end %>
+</ol>

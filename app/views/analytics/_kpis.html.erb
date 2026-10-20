@@ -1,0 +1,7 @@
+<%# Faixa de KPIs de uma página. metrics: { chave => Comparison ou Metric }; links (opcional): { chave => caminho } %>
+<% links = local_assigns[:links] || {} %>
+<%= workspace_metrics(classes: "analytics-kpis analytics-kpis--#{metrics.size}") do %>
+  <% metrics.each do |key, comparison| %>
+    <%= analytics_kpi(key, comparison, page: page, link: links[key]) %>
+  <% end %>
+<% end %>

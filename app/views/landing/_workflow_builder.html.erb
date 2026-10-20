@@ -1,0 +1,83 @@
+<section id="workflows" class="section builder-section" aria-labelledby="builder-title">
+  <div class="wrap">
+    <div class="workflow-studio" data-workflow>
+      <div class="studio-top">
+        <span><%= landing_icon(:flow) %> Explore um processo</span>
+        <span class="studio-meta">
+          <span class="diagram-caption">Representação conceitual</span>
+          <button class="demo-toggle" type="button" hidden>Pausar demonstração</button>
+        </span>
+      </div>
+      <div class="workflow-options" role="group" aria-label="Exemplo de workflow">
+        <button data-workflow-kind="support" aria-pressed="true">Suporte e triagem</button>
+        <button data-workflow-kind="qualification" aria-pressed="false">Qualificação comercial</button>
+        <button data-workflow-kind="scheduling" aria-pressed="false">Agendamento</button>
+      </div>
+      <div class="flow-canvas" aria-label="Etapas e caminhos do workflow">
+        <svg class="flow-connections" viewBox="0 0 1080 360" preserveAspectRatio="none" aria-hidden="true">
+          <% {
+            in1: "M194 180H267",
+            in2: "M457 180H532",
+            yes: "M722 180H750Q775 180 775 155V94Q775 74 795 74H826",
+            no: "M722 180H750Q775 180 775 205V266Q775 286 795 286H826"
+          }.each do |segment, path| %>
+            <path d="<%= path %>" />
+            <path class="flow-signal" data-segment="<%= segment %>" d="<%= path %>" pathLength="1" />
+          <% end %>
+          <circle cx="230" cy="180" r="3" />
+          <circle cx="495" cy="180" r="3" />
+          <circle cx="775" cy="180" r="4" />
+        </svg>
+        <% [
+          [ "start", "phone", "Início", "Receber uma chamada", "O processo ganha voz" ],
+          [ "question", "voice", "Conversa", "Entender a solicitação", "Contexto antes da ação" ],
+          [ "decision", "decision", "Decisão", "Pode ser resolvido?", "Suas regras definem o caminho" ],
+          [ "action", "tool", "Tool + ação", "Consultar e orientar", "Conectar. Executar. Continuar." ],
+          [ "human", "person", "Encaminhamento", "Transferir com contexto", "Sua equipe entra no fluxo" ]
+        ].each do |key, icon, type, title, description| %>
+          <button class="flow-node node-<%= key %> <%= "selected" if key == "decision" %>" data-node="<%= key %>" aria-pressed="<%= key == "decision" %>"><span class="node-icon"><%= landing_icon(icon) %></span><span class="node-type"><%= type %></span><strong data-node-title="<%= key %>"><%= title %></strong>
+            <span class="node-description"><%= description %></span>
+          </button>
+        <% end %>
+        <span class="branch-label branch-yes">Sim</span>
+        <span class="branch-label branch-no">Precisa de uma pessoa</span>
+      </div>
+      <div class="flow-explanation" aria-live="polite" aria-atomic="true">
+        <span class="explanation-icon"><%= landing_icon(:flow) %></span>
+        <div>
+          <strong data-flow-heading>Uma decisão, caminhos diferentes.</strong>
+          <p data-flow-description>O workflow avalia as informações coletadas e aplica os critérios da sua operação. A conversa segue pelo caminho adequado.</p>
+        </div>
+        <span class="interaction-hint">Selecione uma etapa</span>
+      </div>
+    </div>
+    <div class="process-marquee">
+      <p>Um mesmo motor para diferentes processos</p>
+      <div class="marquee-track">
+        <% processes = [
+          [ "person", "Suporte N1" ], [ "decision", "Triagem" ], [ "flow", "Qualificação comercial" ],
+          [ "check", "Agendamento" ], [ "phone", "Confirmação de consultas" ], [ "shield", "Cobrança" ],
+          [ "arrow", "Logística" ], [ "message", "Pesquisas" ], [ "tool", "Validação cadastral" ], [ "voice", "Reativação de clientes" ]
+        ] %>
+        <% 2.times do |copy| %>
+          <%# The second copy only closes the loop visually. %>
+          <%= tag.ul(aria: { hidden: copy == 1 ? "true" : nil }) do %>
+            <% processes.each do |icon, name| %>
+              <li><%= landing_icon(icon) %><%= name %></li>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+    <div class="section-heading builder-heading">
+      <div>
+        <p class="section-label">Workflow Builder</p>
+        <h2 id="builder-title">Sua operação.<br>Suas regras.</h2>
+      </div>
+      <div class="heading-aside">
+        <p>Você define o processo. O LeadPulse o transforma em execução conversacional.</p>
+        <p class="muted">Conecte perguntas, condições e ferramentas. Defina o que acontece a cada resposta.</p>
+      </div>
+    </div>
+  </div>
+</section>

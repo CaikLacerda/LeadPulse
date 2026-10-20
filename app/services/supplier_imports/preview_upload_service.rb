@@ -6,17 +6,44 @@ module SupplierImports
 
     COLUMN_LABELS = {
       "external_id" => "Registro",
+      "search" => "Código da busca",
+      "search_id" => "Código da busca",
       "client_name" => "Empresa",
       "supplier_name" => "Empresa",
+      "empresa" => "Empresa",
       "cnpj" => "CNPJ",
       "phone" => "Telefone",
+      "telefone" => "Telefone",
       "email" => "E-mail",
       "city" => "Cidade",
+      "cidade" => "Cidade",
       "state" => "UF",
+      "estado" => "UF",
+      "uf" => "UF",
       "notes" => "Observação",
+      "observacao" => "Observação",
       "segment_name" => "Segmento",
+      "segmento" => "Segmento",
+      "region" => "Região",
+      "regiao" => "Região",
+      "website" => "Site",
+      "address" => "Endereço",
+      "endereco" => "Endereço",
+      "latitude" => "Latitude",
+      "longitude" => "Longitude",
+      "google_maps_url" => "Link do Google Maps",
+      "google_place" => "ID do Google Places",
+      "google_place_id" => "ID do Google Places",
+      "openstreetmap_url" => "Link do OpenStreetMap",
+      "osm_place" => "ID do OpenStreetMap",
+      "osm_place_id" => "ID do OpenStreetMap",
+      "location_provider" => "Fonte da localização",
+      "location_precision" => "Precisão da localização",
+      "source_urls" => "Fontes consultadas",
+      "discovery_confidence" => "Confiança da busca",
       "callback_phone" => "Telefone de retorno",
-      "callback_contact_name" => "Contato de retorno"
+      "callback_contact_name" => "Contato de retorno",
+      "expected_result" => "Resultado esperado"
     }.freeze
 
     def initialize(file:, separator: ",", workflow_kind: SupplierImport::WORKFLOW_KIND_CADASTRAL)
@@ -76,8 +103,8 @@ module SupplierImports
       warnings = []
       warnings << "Nenhuma linha válida foi encontrada no arquivo." if parsed.records.empty?
 
-      if supplier_validation? && (metadata[:segment_name].blank? || metadata[:callback_phone].blank?)
-        warnings << "Para lote de segmento, a planilha precisa trazer segmento e telefone de retorno."
+      if supplier_validation? && metadata[:segment_name].blank?
+        warnings << "Para lote de segmento, a planilha precisa informar o segmento."
       end
 
       warnings
@@ -86,7 +113,12 @@ module SupplierImports
     def sample_headers(parsed)
       sample = parsed.records.first(SAMPLE_LIMIT)
       headers = sample.flat_map(&:keys).uniq
-      preferred_headers = supplier_validation? ? %w[external_id supplier_name phone city state notes] : %w[external_id client_name cnpj phone email]
+      preferred_headers =
+        if supplier_validation?
+          %w[external_id supplier_name phone city state notes expected_result]
+        else
+          %w[external_id client_name cnpj phone email expected_result]
+        end
 
       ordered = preferred_headers.select { |header| headers.include?(header.to_sym) || headers.include?(header) }
       remaining = headers.map(&:to_s) - ordered
@@ -118,7 +150,7 @@ module SupplierImports
     end
 
     def summarize_invalid_data(data)
-      visible = data.slice("client_name", "phone", "cnpj", "segment_name", "callback_phone", "callback_contact_name")
+      visible = data.slice("client_name", "phone", "cnpj", "segment_name", "callback_phone", "callback_contact_name", "expected_result")
       source = visible.presence || data
 
       source.filter_map do |key, value|

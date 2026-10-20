@@ -1,0 +1,87 @@
+<section class="workspace-portlet" data-tutorial-id="search-results">
+  <div class="workspace-table-wrap">
+    <table class="workspace-table">
+      <thead>
+        <tr>
+          <th scope="col"><%= t('supplier_discovery_searches.index.table.headers.search') %></th>
+          <th scope="col"><%= t('supplier_discovery_searches.index.table.headers.segment') %></th>
+          <th scope="col"><%= t('supplier_discovery_searches.index.table.headers.region') %></th>
+          <th scope="col" class="is-numeric"><%= t('supplier_discovery_searches.index.table.headers.found') %></th>
+          <th scope="col"><%= t('supplier_discovery_searches.index.table.headers.status') %></th>
+          <th scope="col"><%= t('supplier_discovery_searches.index.table.headers.generated_at') %></th>
+          <th scope="col" class="is-actions"><span class="sr-only"><%= t('supplier_discovery_searches.index.table.headers.actions') %></span></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if @searches.any? %>
+          <% @searches.each do |search| %>
+            <tr>
+              <td><%= workspace_code_tag(search.display_code) %></td>
+              <td class="workspace-table__primary"><%= search.segment_name %></td>
+              <td><%= search.region.presence || content_tag(:span, t('supplier_discovery_searches.index.table.no_region'), class: 'workspace-table__muted') %></td>
+              <td class="is-numeric"><%= search.completed? ? number_with_delimiter(search.total_suppliers) : content_tag(:span, '—', class: 'workspace-table__empty-dash') %></td>
+              <td>
+                <%= supplier_discovery_status_badge(search) %>
+                <% if search.errored? && search.error_message.present? %>
+                  <p class="workspace-result-note" title="<%= search.error_message %>"><%= truncate(search.error_message, length: 90) %></p>
+                <% end %>
+              </td>
+              <td><%= workspace_datetime_cell(search.generated_at || search.created_at) %></td>
+              <td class="is-actions">
+                <% if search.completed? && (current_membership.can_export_data? || current_membership.can_import_data?) %>
+                  <details data-controller="action-menu" data-action-menu-floating-value="true" class="relative inline-block text-left">
+                    <summary class="workspace-row-menu-trigger" aria-label="<%= t('supplier_discovery_searches.index.actions.label') %> da busca <%= search.display_code %>">
+                      <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+                    </summary>
+
+                    <div class="workspace-menu absolute right-0 top-full w-48">
+                      <% if current_membership.can_export_data? %>
+                        <%= link_to download_results_supplier_discovery_search_path(search),
+                            class: "workspace-menu-item #{'workspace-menu-item--disabled' unless search.download_ready?}",
+                            aria: { disabled: !search.download_ready? } do %>
+                          <i class="fa-solid fa-download" aria-hidden="true"></i><span><%= t('supplier_discovery_searches.index.actions.download') %></span>
+                        <% end %>
+                      <% end %>
+
+                      <% if current_membership.can_import_data? %>
+                        <%= button_to create_segment_import_supplier_discovery_search_path(search),
+                            method: :post,
+                            class: 'workspace-menu-item' do %>
+                          <i class="fa-solid fa-layer-group" aria-hidden="true"></i><span><%= t('supplier_discovery_searches.index.actions.import') %></span>
+                        <% end %>
+                      <% end %>
+                    </div>
+                  </details>
+                <% elsif search.errored? && current_membership.can_import_data? %>
+                  <%= button_to retry_search_supplier_discovery_search_path(search),
+                      method: :post,
+                      class: workspace_button_class(:secondary, size: :sm),
+                      data: { turbo_submits_with: 'Reenviando…' } do %>
+                    <i class="fa-solid fa-rotate-right" aria-hidden="true"></i><span><%= t('supplier_discovery_searches.index.actions.retry') %></span>
+                  <% end %>
+                <% elsif search.active? %>
+                  <span class="inline-flex items-center gap-2 pr-2 text-[0.8125rem] text-fg-muted"><span class="workspace-spinner" aria-hidden="true"></span><%= t('supplier_discovery_searches.index.actions.wait') %></span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <%= workspace_empty_table_row(colspan: 7,
+                message: t('supplier_discovery_searches.index.table.empty'),
+                hint: params[:q].present? ? t('supplier_discovery_searches.index.table.empty_filtered_hint') : t('supplier_discovery_searches.index.table.empty_hint')) do %>
+            <% if params[:q].present? %>
+              <%= workspace_link_button t('supplier_discovery_searches.index.filters.clear'), supplier_discovery_searches_path, size: :sm %>
+            <% elsif current_membership.can_import_data? %>
+              <%= workspace_button_tag type: :button, variant: :primary, size: :sm, data: { action: 'search-modal#open' } do %>
+                <%= workspace_icon(:plus) %><span><%= t('supplier_discovery_searches.index.new_search') %></span>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%= render 'shared/pagination', current_page: @searches_page, total_pages: @searches_total_pages %>
+</section>

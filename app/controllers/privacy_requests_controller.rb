@@ -1,0 +1,119 @@
+class PrivacyRequestsController < ApplicationController
+  before_action :authenticate_user!
+  require_permission :can_manage_lgpd?, message: "Seu perfil não possui permissão para gerenciar LGPD."
+  before_action :set_privacy_request, only: :update
+
+  def index
+    @privacy_requests = current_account.privacy_requests.includes(:supplier_import).order(created_at: :desc)
+    @privacy_request = current_account.privacy_requests.new(requested_at: Time.current)
+  end
+
+  def create
+    attributes = privacy_request_params.except(:supplier_import_id).merge(requested_at: Time.current)
+    @privacy_request = current_account.privacy_requests.new(attributes.merge(created_by: current_user))
+    @privacy_request.supplier_import = selected_supplier_import
+
+    if @privacy_request.save
+      PrivacyAudit::Logger.log!(
+        account: current_account,
+        user: current_user,
+        action: "privacy_request_created",
+        supplier_import: @privacy_request.supplier_import,
+        resource: @privacy_request,
+        metadata: {
+          request_type: @privacy_request.request_type,
+          subject_contact: @privacy_request.subject_contact
+        }
+      )
+      redirect_to privacy_requests_path, notice: "Solicitação LGPD registrada."
+    else
+      @privacy_requests = current_account.privacy_requests.includes(:supplier_import).order(created_at: :desc)
+      flash.now[:alert] = @privacy_request.errors.full_messages.to_sentence
+      render :index, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    @privacy_request.assign_attributes(
+      privacy_request_update_params.merge(resolved_at: resolved_at_value)
+    )
+
+    if @privacy_request.valid?
+      apply_request_effect!
+      @privacy_request.save!
+      PrivacyAudit::Logger.log!(
+        account: current_account,
+        user: current_user,
+        action: "privacy_request_updated",
+        supplier_import: @privacy_request.supplier_import,
+        resource: @privacy_request,
+        metadata: {
+          status: @privacy_request.status,
+          request_type: @privacy_request.request_type
+        }
+      )
+      redirect_to privacy_requests_path, notice: "Solicitação LGPD atualizada."
+    else
+      @privacy_requests = current_account.privacy_requests.includes(:supplier_import).order(created_at: :desc)
+      flash.now[:alert] = @privacy_request.errors.full_messages.to_sentence
+      render :index, status: :unprocessable_entity
+    end
+  rescue ValidationApi::Error, ActiveRecord::ActiveRecordError => e
+    @privacy_requests = current_account.privacy_requests.includes(:supplier_import).order(created_at: :desc)
+    flash.now[:alert] = "Não foi possível concluir a solicitação LGPD: #{e.message}"
+    render :index, status: :unprocessable_entity
+  end
+
+  private
+
+  def set_privacy_request
+    @privacy_request = current_account.privacy_requests.find(params[:id])
+  end
+
+  def privacy_request_params
+    params.require(:privacy_request).permit(
+      :supplier_import_id,
+      :request_type,
+      :subject_name,
+      :subject_contact,
+      :supplier_name,
+      :phone,
+      :description
+    )
+  end
+
+  def privacy_request_update_params
+    params.require(:privacy_request).permit(:status, :resolution)
+  end
+
+  def selected_supplier_import
+    supplier_import_id = privacy_request_params[:supplier_import_id]
+    return if supplier_import_id.blank?
+
+    current_account.supplier_imports.find(supplier_import_id)
+  end
+
+  def resolved_at_value
+    %w[resolved rejected].include?(privacy_request_update_params[:status]) ? Time.current : nil
+  end
+
+  def apply_request_effect!
+    return unless @privacy_request.status == "resolved"
+    return unless %w[anonymization deletion].include?(@privacy_request.request_type)
+    return if @privacy_request.supplier_import.blank?
+
+    SupplierImports::AnonymizeEvidenceService.new(
+      account: current_account,
+      supplier_import: @privacy_request.supplier_import
+    ).call
+
+    PrivacyAudit::Logger.log!(
+      account: current_account,
+      user: current_user,
+      action: "privacy_request_evidence_anonymized",
+      supplier_import: @privacy_request.supplier_import,
+      resource: @privacy_request,
+      metadata: { request_type: @privacy_request.request_type }
+    )
+  end
+end

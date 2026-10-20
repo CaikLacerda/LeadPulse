@@ -1,0 +1,92 @@
+<%# Relatório final da execução. Todos os dados vêm da API (GET /simulations/{id}).
+    locals: run, simulation %>
+<% evaluation = run["evaluation"] || {} %>
+<% fields = Array(evaluation["fields"]) %>
+<% transcript = run["transcript"] || {} %>
+<% agent_view = Array(transcript["agent_view"]) %>
+<% counterpart_view = Array(transcript["counterpart_view"]) %>
+<% diagnostics = run["diagnostics"] %>
+<% semantic = run["semantic_interpreter"] %>
+
+<div class="sim-report__inner">
+  <section class="sim-report__section">
+    <h2 class="sim-report__heading"><%= t("simulations.report.overview_title") %></h2>
+    <%= workspace_metrics do %>
+      <%= workspace_metric_card(label: t("simulations.report.accuracy"), value: run["accuracy"].present? ? number_to_percentage(run["accuracy"] * 100, precision: 0) : "—", description: t("simulations.report.accuracy_hint")) %>
+      <%= workspace_metric_card(label: t("simulations.report.raw_accuracy"), value: run["raw_value_accuracy"].present? ? number_to_percentage(run["raw_value_accuracy"] * 100, precision: 0) : "—") %>
+      <%= workspace_metric_card(label: t("simulations.report.call_result"), value: t("simulations.call_results.#{run["call_result"]}", default: run["call_result"] || "—")) %>
+      <%= workspace_metric_card(label: t("simulations.report.expected"), value: t("simulations.call_results.#{evaluation["expected_outcome"]}", default: evaluation["expected_outcome"] || "—")) %>
+      <%= workspace_metric_card(label: t("simulations.report.duration"), value: simulation_duration(run["duration_ms"])) %>
+      <%= workspace_metric_card(label: t("simulations.report.turns"), value: run["turn_count"] || agent_view.size) %>
+    <% end %>
+  </section>
+
+  <% if fields.present? %>
+    <section class="sim-report__section">
+      <h2 class="sim-report__heading"><%= t("simulations.report.comparison_title") %></h2>
+      <div class="workspace-table-wrap">
+        <table class="workspace-table sim-report__table">
+          <thead>
+            <tr>
+              <th scope="col"><%= t("simulations.report.field") %></th>
+              <th scope="col"><%= t("simulations.report.expected_value") %></th>
+              <th scope="col"><%= t("simulations.report.collected_value") %></th>
+              <th scope="col"><%= t("simulations.report.status") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% fields.each do |field| %>
+              <tr>
+                <th scope="row"><%= field["label"].presence || field["name"] %></th>
+                <td><%= simulation_field_value(field["expected"]) %></td>
+                <td><%= simulation_field_value(field["collected"]) %></td>
+                <td><%= render "simulations/field_status", status: field["status"] %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  <% end %>
+
+  <section class="sim-report__section" <%= "data-controller=tabs".html_safe if counterpart_view.present? %>>
+    <div class="sim-report__heading-row">
+      <h2 class="sim-report__heading"><%= t("simulations.report.conversation_title") %></h2>
+      <% if counterpart_view.present? %>
+        <div class="sim-transcript-switch" role="tablist" aria-label="<%= t("simulations.report.perspective_aria") %>">
+          <button type="button" class="sim-transcript-switch__item" role="tab" id="sim-tab-agent"
+                  aria-controls="sim-panel-agent" aria-selected="true" data-tabs-target="tab" data-tabs-id="agente"
+                  data-action="click->tabs#show keydown->tabs#keydown"><%= t("simulations.report.agent_view") %></button>
+          <button type="button" class="sim-transcript-switch__item" role="tab" id="sim-tab-counterpart"
+                  aria-controls="sim-panel-counterpart" aria-selected="false" data-tabs-target="tab" data-tabs-id="fornecedor"
+                  data-action="click->tabs#show keydown->tabs#keydown"><%= t("simulations.report.counterpart_view") %></button>
+        </div>
+      <% end %>
+    </div>
+
+    <div id="sim-panel-agent" data-tabs-target="panel" role="tabpanel" aria-labelledby="sim-tab-agent">
+      <%= render "simulations/transcript_list", turns: agent_view %>
+    </div>
+    <% if counterpart_view.present? %>
+      <div id="sim-panel-counterpart" data-tabs-target="panel" role="tabpanel" aria-labelledby="sim-tab-counterpart" hidden>
+        <%= render "simulations/transcript_list", turns: counterpart_view %>
+      </div>
+    <% end %>
+  </section>
+
+  <% if diagnostics.present? || semantic.present? %>
+    <details class="sim-report__diagnostics">
+      <summary><%= t("simulations.report.diagnostics_title") %></summary>
+      <div class="sim-report__diagnostics-body">
+        <% if semantic.present? %>
+          <h3 class="sim-report__subheading"><%= t("simulations.report.semantic") %></h3>
+          <pre class="sim-report__json"><%= JSON.pretty_generate(semantic) %></pre>
+        <% end %>
+        <% if diagnostics.present? %>
+          <h3 class="sim-report__subheading"><%= t("simulations.report.diagnostics_data") %></h3>
+          <pre class="sim-report__json"><%= JSON.pretty_generate(diagnostics) %></pre>
+        <% end %>
+      </div>
+    </details>
+  <% end %>
+</div>

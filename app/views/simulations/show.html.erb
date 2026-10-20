@@ -1,0 +1,144 @@
+<% content_for :title, t(".title", code: @simulation.display_code) %>
+<%= workspace_page do %>
+  <%= workspace_page_header(title: t(".title", code: @simulation.display_code), description: t(".description")) %>
+
+  <div class="sim-lab sim-stage"
+       data-controller="simulation-live"
+       data-simulation-live-events-url-value="<%= events_simulation_path(@simulation) %>"
+       data-simulation-live-status-value="<%= @simulation.status %>"
+       data-simulation-live-terminal-value="<%= @simulation.terminal? %>"
+       data-simulation-live-interval-value="1000">
+
+    <%# Telemetria: status, cronômetro, workflow, cenário, turnos %>
+    <div class="sim-telemetry">
+      <div class="sim-telemetry__item">
+        <span class="sim-telemetry__label"><%= t(".telemetry.status") %></span>
+        <span class="sim-telemetry__value" data-simulation-live-target="statusBadge"
+              data-label-queued="<%= t("simulations.statuses.queued") %>"
+              data-label-running="<%= t("simulations.statuses.running") %>"
+              data-label-completed="<%= t("simulations.statuses.completed") %>"
+              data-label-failed="<%= t("simulations.statuses.failed") %>"
+              data-label-cancelled="<%= t("simulations.statuses.cancelled") %>"
+              data-label-interrupted="<%= t("simulations.statuses.interrupted") %>"><%= render "simulations/status_badge", status: @simulation.status %></span>
+      </div>
+      <div class="sim-telemetry__item">
+        <span class="sim-telemetry__label"><%= t(".telemetry.elapsed") %></span>
+        <span class="sim-telemetry__value sim-telemetry__value--mono" data-simulation-live-target="clock"><%= @simulation.duration_ms.present? ? format("%02d:%02d", *(@simulation.duration_ms / 1000).divmod(60)) : "00:00" %></span>
+      </div>
+      <div class="sim-telemetry__item">
+        <span class="sim-telemetry__label"><%= t(".telemetry.workflow") %></span>
+        <span class="sim-telemetry__value"><%= t("simulations.workflows.#{@simulation.workflow_key}", default: @simulation.workflow_key) %></span>
+      </div>
+      <div class="sim-telemetry__item">
+        <span class="sim-telemetry__label"><%= t(".telemetry.scenario") %></span>
+        <span class="sim-telemetry__value"><%= t("simulations.scenarios.#{@simulation.scenario_key}", default: @simulation.scenario_key) %></span>
+      </div>
+      <div class="sim-telemetry__item">
+        <span class="sim-telemetry__label"><%= t(".telemetry.turns") %></span>
+        <span class="sim-telemetry__value sim-telemetry__value--mono" data-simulation-live-target="turnCount"><%= @simulation.turn_count.to_i %></span>
+      </div>
+    </div>
+
+    <div class="sim-voice-page">
+    <%# Os mesmos estados/targets dirigem o visual; as órbitas são apenas decoração CSS. %>
+    <section class="sim-arena" data-simulation-live-target="arena" aria-label="<%= t(".arena_aria") %>">
+      <div class="sim-arena__heading">
+        <span class="sim-arena__channel"><span aria-hidden="true"></span><%= t(".voice_channel") %></span>
+        <span class="sim-arena__mode"><%= t(".voice_mode") %></span>
+      </div>
+
+      <div class="sim-orbit-stage">
+        <span class="sim-orbit-link sim-orbit-link--agent" aria-hidden="true"></span>
+        <span class="sim-orbit-link sim-orbit-link--counterpart" aria-hidden="true"></span>
+        <% initial_voice_state = @simulation.status == "running" ? "listening" : "idle" %>
+        <%= render "simulations/agent", side: "agent", title: t(".agent.leadpulse"),
+              initial_state: initial_voice_state, caption: t(".agent.leadpulse_caption") %>
+
+        <%= render "simulations/orb" %>
+
+        <%= render "simulations/agent", side: "counterpart", title: t(".agent.supplier"),
+              initial_state: initial_voice_state, caption: t(".agent.supplier_caption") %>
+      </div>
+
+      <p class="sim-arena__caption"><span aria-hidden="true"></span><%= t(".voice_caption") %></p>
+    </section>
+
+    <%# Monitor de áudio ao vivo (somente escuta). Só aparece com a simulação em execução e
+        com suporte a Web Audio; o áudio nunca passa pelo Rails. %>
+    <div class="sim-audio"
+         data-controller="simulation-audio"
+         data-simulation-live-target="audioMonitor"
+         data-simulation-audio-ticket-url-value="<%= audio_ticket_simulation_path(@simulation) %>"
+         data-simulation-audio-active-value="<%= @simulation.active? %>"
+         data-audio-state="idle">
+      <div class="sim-audio__identity">
+        <span class="sim-audio__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-3a8 8 0 0 1 16 0v3M7 12H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2v-8Zm10 0h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2v-8Z" /></svg>
+        </span>
+        <div>
+          <span class="sim-audio__title"><%= t(".audio.title") %></span>
+          <p class="sim-audio__description"><%= t(".audio.description") %></p>
+        </div>
+      </div>
+
+      <button type="button" class="sim-audio__button" data-simulation-audio-target="activate"
+              data-action="simulation-audio#activate">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m11 4-6 5H2v6h3l6 5V4Zm4 4a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" /></svg><span><%= t(".audio.activate") %></span>
+      </button>
+
+      <span class="sim-audio__live" data-simulation-audio-target="live" hidden>
+        <span class="sim-audio__pulse" aria-hidden="true"></span>
+        <span class="sim-audio__status" data-simulation-audio-target="status"
+              data-label-live="<%= t(".audio.monitoring") %>"
+              data-label-reconnecting="<%= t(".audio.reconnecting") %>"
+              data-label-unavailable="<%= t(".audio.unavailable") %>"><%= t(".audio.monitoring") %></span>
+        <button type="button" class="sim-audio__mute" data-simulation-audio-target="mute"
+                data-action="simulation-audio#toggleMute" aria-pressed="false"
+                data-label-mute="<%= t(".audio.mute") %>" data-label-unmute="<%= t(".audio.unmute") %>"><%= t(".audio.mute") %></button>
+      </span>
+    </div>
+
+    <%# Transcript ao vivo + ações %>
+    <section class="sim-stage__columns sim-conversation" aria-labelledby="sim-conversation-title">
+      <header class="sim-conversation__header">
+        <div>
+          <p class="sim-conversation__eyebrow"><%= t(".transcript_eyebrow") %></p>
+          <h2 id="sim-conversation-title"><%= t(".transcript_title") %></h2>
+        </div>
+        <span class="sim-conversation__hint"><%= t(".transcript_hint") %></span>
+      </header>
+      <div role="log" aria-live="polite" aria-relevant="additions text" aria-labelledby="sim-conversation-title">
+        <ol class="sim-transcript" data-simulation-live-target="transcript" tabindex="0"
+            data-agent-label="<%= t(".agent.leadpulse") %>"
+            data-counterpart-label="<%= t(".agent.supplier") %>">
+          <li class="sim-transcript__empty" data-simulation-live-target="transcriptEmpty">
+            <span class="sim-transcript__empty-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 15a3 3 0 0 1-3 3H8l-5 3V6a3 3 0 0 1 3-3h11a3 3 0 0 1 3 3v9ZM7 8h9M7 12h6" /></svg>
+            </span>
+            <%= t(".transcript_empty") %>
+          </li>
+        </ol>
+      </div>
+    </section>
+    </div>
+
+    <div class="sim-stage__actions" data-simulation-live-target="liveActions">
+      <%= button_to t(".cancel"), cancel_simulation_path(@simulation), method: :post,
+            class: workspace_button_class(:danger),
+            data: { turbo_confirm: t(".cancel_confirm") } %>
+    </div>
+
+    <%# Relatório final: preenchido ao término (via polling) ou já no load se terminal. %>
+    <div class="sim-report" data-simulation-live-target="report">
+      <% if @simulation.terminal? && @run.present? %>
+        <%= render "simulations/report", run: @run, simulation: @simulation %>
+      <% end %>
+    </div>
+
+    <% if @run_error.present? %>
+      <div class="workspace-callout workspace-callout--danger" role="alert">
+        <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span><%= @run_error %></span>
+      </div>
+    <% end %>
+  </div>
+<% end %>

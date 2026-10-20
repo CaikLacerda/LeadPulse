@@ -1,0 +1,18 @@
+<%# Seletor padrão de visualização [2D | 3D] de um gráfico do Analytics. Nasce oculto: o controller
+    só mostra no desktop (≥ 1024 px) com WebGL, e baixa o ECharts GL no primeiro clique em 3D.
+    O 2D é a leitura de referência; o 3D é exploração das mesmas células. %>
+<div class="analytics-control analytics-control--view" hidden data-analytics-chart-target="viewSwitch">
+  <span class="analytics-control__label" aria-hidden="true"><%= t("analytics.view_switch.label") %></span>
+  <div class="analytics-segmented" role="group" aria-label="<%= t("analytics.view_switch.aria") %>">
+    <% { "2d" => t("analytics.view_switch.flat"), "3d" => t("analytics.view_switch.depth") }.each do |view, label| %>
+      <button type="button" class="analytics-segmented__item" aria-pressed="<%= view == "2d" %>"
+              data-analytics-chart-target="view" data-action="analytics-chart#setView" data-analytics-chart-view-param="<%= view %>"
+              aria-label="<%= t("analytics.view_switch.#{view}_aria") %>">
+        <i class="fa-solid <%= view == "2d" ? "fa-table-cells" : "fa-cube" %>" aria-hidden="true"></i><span><%= label %></span>
+      </button>
+    <% end %>
+  </div>
+</div>
+<button type="button" class="analytics-chart__reset" hidden data-analytics-chart-target="reset" data-action="analytics-chart#resetCamera">
+  <i class="fa-solid fa-rotate-left" aria-hidden="true"></i><span><%= t("analytics.view_switch.reset_camera") %></span>
+</button>

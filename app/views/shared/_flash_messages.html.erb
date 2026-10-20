@@ -1,0 +1,21 @@
+<% visible_flashes = controller_name == 'platform_settings' ? {} : flash.to_hash.except('generated_api_token').select { |_, message| message.present? } %>
+<% if visible_flashes.any? %>
+  <div class="app-flash-overlay">
+    <div class="app-flash-stack">
+      <% visible_flashes.each do |type, message| %>
+        <% variant = %w[alert error].include?(type.to_s) ? 'alert' : 'notice' %>
+        <div class="app-flash app-flash--<%= variant %>"
+             role="<%= variant == 'alert' ? 'alert' : 'status' %>"
+             data-controller="flash"
+             data-action="click->flash#dismiss"
+             data-flash-delay-value="<%= variant == 'alert' ? 8000 : 5000 %>">
+          <i class="app-flash__icon fa-solid <%= variant == 'alert' ? 'fa-circle-exclamation' : 'fa-circle-check' %>" aria-hidden="true"></i>
+          <p class="app-flash__message">
+            <span class="sr-only"><%= t("shared.flash.#{variant}") %>: </span><%= message %>
+          </p>
+          <span class="app-flash__close" aria-hidden="true"><i class="fa-solid fa-xmark"></i></span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

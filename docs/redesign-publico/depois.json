@@ -1,0 +1,272 @@
+[
+  {
+    "name": "login",
+    "width": 390,
+    "status": 200,
+    "overflow": false,
+    "height": 844,
+    "form": {
+      "x": 16,
+      "y": 234,
+      "width": 358,
+      "height": 268.5,
+      "top": 234,
+      "right": 374,
+      "bottom": 502.5,
+      "left": 16
+    },
+    "errors": []
+  },
+  {
+    "name": "cadastro",
+    "width": 390,
+    "status": 200,
+    "overflow": false,
+    "height": 910,
+    "form": {
+      "x": 16,
+      "y": 258,
+      "width": 358,
+      "height": 498,
+      "top": 258,
+      "right": 374,
+      "bottom": 756,
+      "left": 16
+    },
+    "errors": []
+  },
+  {
+    "name": "landing",
+    "width": 390,
+    "status": 200,
+    "overflow": false,
+    "height": 6971,
+    "heroImage": {
+      "x": 17,
+      "y": 479.234375,
+      "width": 356,
+      "height": 261.203125,
+      "top": 479.234375,
+      "right": 373,
+      "bottom": 740.4375,
+      "left": 17
+    },
+    "errors": []
+  },
+  {
+    "name": "login",
+    "width": 768,
+    "status": 200,
+    "overflow": false,
+    "height": 1024,
+    "form": {
+      "x": 168,
+      "y": 254,
+      "width": 432,
+      "height": 268.5,
+      "top": 254,
+      "right": 600,
+      "bottom": 522.5,
+      "left": 168
+    },
+    "errors": []
+  },
+  {
+    "name": "cadastro",
+    "width": 768,
+    "status": 200,
+    "overflow": false,
+    "height": 1024,
+    "form": {
+      "x": 168,
+      "y": 278,
+      "width": 432,
+      "height": 498,
+      "top": 278,
+      "right": 600,
+      "bottom": 776,
+      "left": 168
+    },
+    "errors": []
+  },
+  {
+    "name": "landing",
+    "width": 768,
+    "status": 200,
+    "overflow": false,
+    "height": 6443,
+    "heroImage": {
+      "x": 25,
+      "y": 414.9375,
+      "width": 718,
+      "height": 526.828125,
+      "top": 414.9375,
+      "right": 743,
+      "bottom": 941.765625,
+      "left": 25
+    },
+    "errors": []
+  },
+  {
+    "name": "login",
+    "width": 1024,
+    "status": 200,
+    "overflow": false,
+    "height": 768,
+    "form": {
+      "x": 508.84375,
+      "y": 266.75,
+      "width": 432,
+      "height": 256.5,
+      "top": 266.75,
+      "right": 940.84375,
+      "bottom": 523.25,
+      "left": 508.84375
+    },
+    "errors": []
+  },
+  {
+    "name": "cadastro",
+    "width": 1024,
+    "status": 200,
+    "overflow": false,
+    "height": 768,
+    "form": {
+      "x": 508.84375,
+      "y": 168,
+      "width": 432,
+      "height": 478,
+      "top": 168,
+      "right": 940.84375,
+      "bottom": 646,
+      "left": 508.84375
+    },
+    "errors": []
+  },
+  {
+    "name": "landing",
+    "width": 1024,
+    "status": 200,
+    "overflow": false,
+    "height": 4818,
+    "heroImage": {
+      "x": 464.03125,
+      "y": 130,
+      "width": 526.96875,
+      "height": 386.65625,
+      "top": 130,
+      "right": 991,
+      "bottom": 516.65625,
+      "left": 464.03125
+    },
+    "errors": []
+  },
+  {
+    "name": "login",
+    "width": 1440,
+    "status": 200,
+    "overflow": false,
+    "height": 900,
+    "form": {
+      "x": 787.359375,
+      "y": 330.75,
+      "width": 432,
+      "height": 268.5,
+      "top": 330.75,
+      "right": 1219.359375,
+      "bottom": 599.25,
+      "left": 787.359375
+    },
+    "errors": []
+  },
+  {
+    "name": "cadastro",
+    "width": 1440,
+    "status": 200,
+    "overflow": false,
+    "height": 901,
+    "form": {
+      "x": 787.359375,
+      "y": 228.5625,
+      "width": 432,
+      "height": 498,
+      "top": 228.5625,
+      "right": 1219.359375,
+      "bottom": 726.5625,
+      "left": 787.359375
+    },
+    "errors": []
+  },
+  {
+    "name": "landing",
+    "width": 1440,
+    "status": 200,
+    "overflow": false,
+    "height": 4892,
+    "heroImage": {
+      "x": 661.796875,
+      "y": 130,
+      "width": 601.1875,
+      "height": 441.109375,
+      "top": 130,
+      "right": 1262.984375,
+      "bottom": 571.109375,
+      "left": 661.796875
+    },
+    "errors": []
+  },
+  {
+    "name": "login",
+    "width": 1920,
+    "status": 200,
+    "overflow": false,
+    "height": 1080,
+    "form": {
+      "x": 1027.359375,
+      "y": 420.734375,
+      "width": 432,
+      "height": 268.5,
+      "top": 420.734375,
+      "right": 1459.359375,
+      "bottom": 689.234375,
+      "left": 1027.359375
+    },
+    "errors": []
+  },
+  {
+    "name": "cadastro",
+    "width": 1920,
+    "status": 200,
+    "overflow": false,
+    "height": 1080,
+    "form": {
+      "x": 1027.359375,
+      "y": 317.984375,
+      "width": 432,
+      "height": 498,
+      "top": 317.984375,
+      "right": 1459.359375,
+      "bottom": 815.984375,
+      "left": 1027.359375
+    },
+    "errors": []
+  },
+  {
+    "name": "landing",
+    "width": 1920,
+    "status": 200,
+    "overflow": false,
+    "height": 4892,
+    "heroImage": {
+      "x": 901.796875,
+      "y": 130,
+      "width": 601.1875,
+      "height": 441.109375,
+      "top": 130,
+      "right": 1502.984375,
+      "bottom": 571.109375,
+      "left": 901.796875
+    },
+    "errors": []
+  }
+]

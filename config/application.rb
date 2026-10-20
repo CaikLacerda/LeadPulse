@@ -22,9 +22,11 @@ module Leadpulse
     # in config/environments, which are processed later.
     #
     config.time_zone = "America/Sao_Paulo"
+    # Requisições por minuto por token na API de Analytics (BI).
+    config.x.analytics_api_rate_limit = 120
     config.active_record.default_timezone = :utc
     # config.eager_load_paths << Rails.root.join("extras")
     config.i18n.default_locale = :"pt-BR"
-    config.i18n.available_locales = [:"pt-BR", :en]
+    config.i18n.available_locales = [ :"pt-BR", :en ]
   end
 end

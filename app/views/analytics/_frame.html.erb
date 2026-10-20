@@ -1,0 +1,14 @@
+<%# Casca das páginas do Analytics. Abas, filtros e conteúdo ficam no mesmo turbo-frame:
+    filtrar ou trocar de aba recarrega só esse trecho e atualiza a URL. %>
+<%= workspace_page do %>
+  <%= workspace_page_header(title: t("analytics.title"), description: t("analytics.description")) %>
+
+  <%= turbo_frame_tag "analytics_content", class: "analytics-frame", data: { turbo_action: "advance" } do %>
+    <%= render "analytics/tabs" %>
+    <%= render "analytics/filters" %>
+
+    <div class="analytics-body">
+      <%= yield %>
+    </div>
+  <% end %>
+<% end %>

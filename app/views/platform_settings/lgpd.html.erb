@@ -1,0 +1,97 @@
+<%= platform_settings_page(title: t('.title'), description: t('.description'), nav: :lgpd, tutorial_key: :platform_settings_lgpd) do %>
+  <%= settings_panel(classes: 'mb-6') do %>
+    <div class="settings-panel__header" data-tutorial-id="lgpd-policy">
+      <h2 class="settings-section__title">Política aplicada a todos os lotes</h2>
+      <p class="settings-section__description max-w-3xl">Ao importar uma base, o LeadPulse aplica automaticamente a base legal, a finalidade, o aviso falado, a retenção das evidências e o tratamento de recusas definidos abaixo.</p>
+    </div>
+
+    <%= form_with model: current_account, url: lgpd_platform_settings_path, method: :patch, local: true, data: { tutorial_id: 'lgpd-form' } do |f| %>
+      <%= settings_feedback_messages %>
+
+      <%= settings_section(title: 'Responsabilidade', description: 'Quem responde administrativamente pela política e pelas solicitações de titulares.') do %>
+        <div class="settings-fields settings-fields--2">
+          <div class="settings-field settings-field--full">
+            <%= render 'field_label', form: f, field: :lgpd_legal_basis, text: 'Base legal padrão', help: 'Hipótese legal aplicada aos lotes importados pela conta.', required: true %>
+            <%= f.select :lgpd_legal_basis,
+                SupplierImports::PrivacyNoticePayload::LEGAL_BASIS_OPTIONS.map { |value, label| [label, value] },
+                {},
+                class: 'settings-input md:max-w-sm' %>
+          </div>
+
+          <div class="settings-field">
+            <%= render 'field_label', form: f, field: :lgpd_controller_name, text: 'Controlador ou responsável', required: false %>
+            <%= f.text_field :lgpd_controller_name, class: 'settings-input' %>
+          </div>
+
+          <div class="settings-field">
+            <%= render 'field_label', form: f, field: :lgpd_controller_email, text: 'E-mail do responsável', required: false %>
+            <%= f.email_field :lgpd_controller_email, class: 'settings-input' %>
+          </div>
+        </div>
+      <% end %>
+
+      <%= settings_section(title: 'Uso dos dados', description: 'A finalidade e o aviso são enviados para a API e aparecem na auditoria do lote.') do %>
+        <div class="settings-fields">
+          <div class="settings-field">
+            <%= render 'field_label', form: f, field: :lgpd_purpose, text: 'Finalidade padrão', help: 'Finalidade operacional aplicada aos lotes importados.', required: true %>
+            <%= f.text_field :lgpd_purpose, class: 'settings-input' %>
+          </div>
+
+          <div class="settings-field">
+            <%= render 'field_label', form: f, field: :lgpd_notice_script, text: 'Aviso falado pela IA', help: 'Dito no início de cada chamada automatizada.', required: false %>
+            <%= f.text_area :lgpd_notice_script, value: current_account.lgpd_notice_script_value, rows: 3, class: 'settings-input' %>
+          </div>
+        </div>
+      <% end %>
+
+      <%= settings_section(title: 'Evidências e recusas', description: 'Por quanto tempo gravações e transcrições ficam disponíveis e como o sistema reage a recusas.') do %>
+        <div class="settings-fields">
+          <div class="settings-field">
+            <%= render 'field_label', form: f, field: :lgpd_evidence_retention_days, text: 'Retenção das evidências (dias)', help: 'Após o prazo, a rotina de retenção anonimiza transcrições e referências de gravação.', required: true %>
+            <%= f.number_field :lgpd_evidence_retention_days, min: 1, max: 3650, class: 'settings-input max-w-[10rem]' %>
+          </div>
+
+          <label class="settings-check">
+            <%= f.check_box :lgpd_recording_allowed %>
+            <span>
+              Permitir gravação e transcrição como evidência auditável
+              <span class="settings-check__hint">As chamadas ficam disponíveis na auditoria até o fim da retenção.</span>
+            </span>
+          </label>
+
+          <label class="settings-check">
+            <%= f.check_box :lgpd_stop_automatic_calls_on_refusal %>
+            <span>
+              Bloquear novas chamadas automáticas após recusa
+              <span class="settings-check__hint">Vale para recusas e pedidos de interrupção detectados na conversa.</span>
+            </span>
+          </label>
+        </div>
+      <% end %>
+
+      <div class="settings-panel__footer" data-tutorial-id="lgpd-save">
+        <p class="settings-panel__footer-note"><span class="text-danger-fg">*</span> Obrigatórios.</p>
+        <div class="settings-panel__footer-actions">
+          <%= f.submit 'Salvar política', class: workspace_submit_class(:primary), data: { turbo_submits_with: 'Salvando…' } %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%= settings_panel do %>
+    <div class="settings-section" data-tutorial-id="lgpd-principles">
+      <div>
+        <h2 class="settings-section__title">Princípios aplicados</h2>
+        <p class="settings-section__description"><%= t('.operational_note') %></p>
+      </div>
+      <dl class="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+        <% t('.items').each do |item| %>
+          <div>
+            <dt class="text-sm font-medium text-fg"><%= item[:title] || item['title'] %></dt>
+            <dd class="mt-0.5 text-[0.8125rem] leading-5 text-fg-muted"><%= item[:description] || item['description'] %></dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+  <% end %>
+<% end %>

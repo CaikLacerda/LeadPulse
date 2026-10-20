@@ -15,6 +15,9 @@ Rails.application.configure do
   # Enable server timing.
   config.server_timing = true
 
+  # Permite os subdomínios locais usados para testar tenants, como beta1.lvh.me.
+  config.hosts << ".lvh.me"
+
   # Enable/disable Action Controller caching. By default Action Controller caching is disabled.
   # Run rails dev:cache to toggle Action Controller caching.
   if Rails.root.join("tmp/caching-dev.txt").exist?
@@ -71,6 +74,7 @@ Rails.application.configure do
   config.active_record.query_log_tags_enabled = true
 
   # Highlight code that enqueued background job in logs.
+  config.active_job.queue_adapter = :async
   config.active_job.verbose_enqueue_logs = true
 
   # Highlight code that triggered redirect in logs.

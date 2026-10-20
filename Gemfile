@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
 gem "rails", "~> 8.1.2"
+gem "json", ">= 2.21.2", "< 3"
 gem "propshaft"
 gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
@@ -39,3 +40,5 @@ end
 gem "tailwindcss-rails", "~> 4.4"
 
 gem "paper_trail", "~> 17.0"
+
+gem "caxlsx", "~> 4.4"

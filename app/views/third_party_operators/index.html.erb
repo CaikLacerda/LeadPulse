@@ -1,0 +1,101 @@
+<%= platform_settings_page(title: t('platform_settings.lgpd.title'), description: t('platform_settings.lgpd.description'), nav: :lgpd) do %>
+  <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+    <section class="workspace-portlet">
+      <%= workspace_panel_header(title: 'Operadores e terceiros', count: @operators.size) %>
+
+      <div class="workspace-table-wrap">
+        <table class="workspace-table workspace-table--top">
+          <thead>
+            <tr>
+              <th scope="col">Operador</th>
+              <th scope="col">Dados compartilhados</th>
+              <th scope="col">Finalidade</th>
+              <th scope="col">País</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="is-actions"><span class="sr-only">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @operators.any? %>
+              <% @operators.each do |operator| %>
+                <tr>
+                  <td class="min-w-[11rem]">
+                    <span class="workspace-table__primary"><%= operator.name %></span>
+                    <span class="workspace-table__secondary"><%= operator.service_type_label %></span>
+                    <% if operator.contract_reference.present? %>
+                      <span class="workspace-table__secondary">Contrato: <%= operator.contract_reference %></span>
+                    <% end %>
+                  </td>
+                  <td class="min-w-[12rem]"><%= operator.data_shared.presence || content_tag(:span, '—', class: 'workspace-table__empty-dash') %></td>
+                  <td class="min-w-[12rem]"><%= operator.purpose.presence || content_tag(:span, '—', class: 'workspace-table__empty-dash') %></td>
+                  <td class="is-nowrap"><%= operator.country.presence || content_tag(:span, '—', class: 'workspace-table__empty-dash') %></td>
+                  <td><%= status_badge(operator.active? ? 'Ativo' : 'Inativo', tone: operator.active? ? :success : :neutral) %></td>
+                  <td class="is-actions">
+                    <% if operator.active? %>
+                      <%= button_to 'Desativar', third_party_operator_path(operator), method: :delete,
+                          class: workspace_button_class(:ghost, size: :sm),
+                          form: { data: { turbo_confirm: 'O operador deixa de constar como ativo no registro de tratamento.', turbo_confirm_title: "Desativar #{operator.name}?", turbo_confirm_confirm_label: 'Desativar', turbo_confirm_variant: 'danger' } } %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <%= workspace_empty_table_row(colspan: 6, message: 'Nenhum operador cadastrado.', hint: 'Registre os provedores que tratam dados: telefonia, IA, mapas, e-mail e armazenamento.') %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <%= portlet_form('Registrar operador', []) do %>
+      <p class="-mt-1 mb-4 text-[0.8125rem] text-fg-muted">Documente cada provedor envolvido no tratamento dos dados.</p>
+
+      <%= form_with model: @operator, url: third_party_operators_path, local: true, class: 'grid gap-4' do |f| %>
+        <div>
+          <%= f.label :name, 'Nome', class: 'settings-label' %>
+          <%= f.text_field :name, class: 'settings-input', required: true, placeholder: 'Twilio, OpenAI, Google Maps...' %>
+        </div>
+
+        <div>
+          <%= f.label :service_type, 'Tipo de serviço', class: 'settings-label' %>
+          <%= f.select :service_type, ThirdPartyOperator::SERVICE_TYPES.map { |value, label| [label, value] }, {}, class: 'settings-input' %>
+        </div>
+
+        <div>
+          <%= f.label :data_shared, 'Dados compartilhados', class: 'settings-label' %>
+          <%= f.text_area :data_shared, rows: 2, class: 'settings-input', placeholder: 'Telefone, áudio, transcrição, localização...' %>
+        </div>
+
+        <div>
+          <%= f.label :purpose, 'Finalidade', class: 'settings-label' %>
+          <%= f.text_area :purpose, rows: 2, class: 'settings-input', placeholder: 'Realizar chamada, transcrever áudio...' %>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+          <div>
+            <%= f.label :country, 'País de processamento', class: 'settings-label' %>
+            <%= f.text_field :country, class: 'settings-input' %>
+          </div>
+          <div>
+            <%= f.label :technical_owner, 'Responsável técnico', class: 'settings-label' %>
+            <%= f.text_field :technical_owner, class: 'settings-input' %>
+          </div>
+        </div>
+
+        <div>
+          <%= f.label :contract_reference, 'Contrato ou referência', class: 'settings-label' %>
+          <%= f.text_field :contract_reference, class: 'settings-input' %>
+        </div>
+
+        <label class="settings-check">
+          <%= f.check_box :active %>
+          <span>Integração ativa</span>
+        </label>
+
+        <div>
+          <%= f.submit 'Registrar operador', class: workspace_submit_class(:primary), data: { turbo_submits_with: 'Registrando…' } %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

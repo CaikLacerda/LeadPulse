@@ -1,12 +1,119 @@
 require "test_helper"
 
 class PagesControllerTest < ActionDispatch::IntegrationTest
-  test "renders public homepage" do
+  test "renders the public landing for visitors" do
     get root_url
 
     assert_response :success
-    assert_select "h1", text: /Abra o mercado certo/
-    assert_select "*", text: /Descoberta, validação e retorno no mesmo fluxo/
-    assert_select "a", text: "Criar conta"
+    assert_select "h1", text: /Transforme conversas.*em processos/m, count: 1
+    assert_select ".hero a[href='#workflows']", text: /Explorar a plataforma/
+    assert_select "header.site-nav a[href='#{new_user_session_path}']", text: "Entrar"
+    assert_select "[data-workflow-kind]", count: 3
+    assert_select "[data-node]", count: 5
+    assert_select ".hero .hero-film video[muted][loop][playsinline][aria-label][poster*='/assets/landing/hero-film-poster'][data-source*='/assets/landing/hero-film']", count: 1
+    assert_select ".motion-toggle", count: 0
+    assert_no_match(/Prévia privada|noindex/, @response.body)
+    assert_no_match(/R\$|por mês|\/mês/, @response.body)
+  end
+
+  test "public landing has SEO tags and serves its own digested assets" do
+    get root_url
+
+    assert_select "title", text: /LeadPulse/
+    assert_select "meta[name='description'][content]", count: 1
+    assert_select "link[rel='canonical'][href='#{root_url}']", count: 1
+    assert_select "meta[property='og:image'][content*='og-leadpulse']", count: 1
+    %w[inicio workflows como-funciona integracoes confiabilidade operacao controle aplicacoes ecossistema].each do |anchor|
+      assert_select "section##{anchor}", count: 1
+    end
+    assert_select "footer.site-footer a[href='#{terms_path}']"
+    assert_select "footer.site-footer a[href='#{privacy_path}']"
+    assert_select "link[rel='stylesheet'][href*='/assets/landing/landing-']", count: 1
+    assert_select "script[type='module'][src*='/assets/landing/landing-']", count: 1
+    # Telas reais servidas pelo próprio app, com dimensões para evitar layout shift.
+    assert_select "main img[src*='/assets/landing/'][width][height][alt]", count: 3
+    assert_select "img[src^='http']", count: 0
+  end
+
+  test "workspace pages do not load the landing stylesheet" do
+    sign_in_as_new_user("landing-scope@example.com")
+
+    get root_url
+
+    assert_response :success
+    assert_select "link[href*='/assets/landing/landing-']", count: 0
+    assert_select "aside#app-sidebar", count: 1
+  end
+
+  test "renders public terms and privacy pages" do
+    get terms_url
+    assert_response :success
+    assert_select "h1", text: "Termos de Serviço"
+
+    get privacy_url
+    assert_response :success
+    assert_select "h1", text: "Política de Privacidade"
+  end
+
+
+  test "viewer dashboard does not offer administrative actions" do
+    password = "Password123!"
+    user = create_member!(
+      name: "Leitor",
+      email: "viewer-home@example.com",
+      password: password,
+      password_confirmation: password,
+      role: "viewer"
+    )
+    post user_session_url, params: { user: { email: user.email, password: password } }
+
+    get root_url
+
+    assert_response :success
+    assert_select "a", text: "Configurações", count: 0
+    assert_select "a", text: "Novo lote", count: 0
+    assert_select "a", text: "Nova busca", count: 0
+    assert_select "nav[aria-label='Navegação principal']", count: 1
+    assert_select "aside#app-sidebar", count: 1
+    assert_select "aside#app-sidebar a", text: "Configurações", count: 0
+    assert_select "aside#app-sidebar a", text: "Lotes de validação", count: 1
+    assert_select ".app-account-avatar", count: 1
+  end
+
+  test "workspace follows the saved theme preference" do
+    sign_in_as_new_user("theme-dark@example.com")
+    cookies[:lp_theme] = "dark"
+
+    get root_url
+
+    assert_select "html[data-theme='dark']", count: 1
+    assert_select "body[data-page-theme='dark']", count: 1
+    assert_select ".app-theme-switch__option[data-appearance-theme-param='dark'][aria-pressed='true']", count: 1
+  end
+
+  test "system theme leaves the choice to the operating system" do
+    sign_in_as_new_user("theme-system@example.com")
+    cookies[:lp_theme] = "qualquer-coisa"
+
+    get root_url
+
+    assert_select "html[data-theme]", count: 0
+    assert_select ".app-theme-switch__option[data-appearance-theme-param='system'][aria-pressed='true']", count: 1
+  end
+
+  test "public pages always render in the light theme" do
+    cookies[:lp_theme] = "dark"
+
+    get terms_url
+
+    assert_select "html[data-theme='light']", count: 1
+  end
+
+  private
+
+  def sign_in_as_new_user(email)
+    password = "Password123!"
+    user = create_member!(name: "Tema", email: email, password: password, password_confirmation: password)
+    post user_session_url, params: { user: { email: user.email, password: password } }
   end
 end

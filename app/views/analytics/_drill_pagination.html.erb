@@ -1,0 +1,16 @@
+<% next_path = analytics_drill_next_path(kind, @next_cursor) %>
+<% if params[:pagina].present? || next_path %>
+  <div class="workspace-pagination">
+    <p class="workspace-pagination__summary"><%= t("analytics.drill.page_size", count: AnalyticsController::DRILL_PAGE_SIZE) %></p>
+    <nav class="workspace-pagination__nav" aria-label="<%= t("shared.pagination.aria") %>">
+      <% if params[:pagina].present? %>
+        <%= link_to t("analytics.drill.first_page"), analytics_drill_path(kind, @drill[:params]), class: "workspace-pagination__link", data: { turbo_frame: "analytics_content", turbo_action: "advance" } %>
+      <% end %>
+      <% if next_path %>
+        <%= link_to next_path, class: "workspace-pagination__link", rel: "next", data: { turbo_frame: "analytics_content", turbo_action: "advance" } do %>
+          <span><%= t("shared.pagination.next") %></span><i class="fa-solid fa-chevron-right text-[0.625rem]" aria-hidden="true"></i>
+        <% end %>
+      <% end %>
+    </nav>
+  </div>
+<% end %>

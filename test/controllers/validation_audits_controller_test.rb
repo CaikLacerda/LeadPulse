@@ -3,14 +3,15 @@ require "test_helper"
 class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @password = "Password123!"
-    @user = User.create!(
+    @user = create_member!(
       name: "Caio Alves",
       email: "auditoria@example.com",
       password: @password,
       password_confirmation: @password
     )
 
-    @user.supplier_imports.create!(
+    @supplier_import = account_of(@user).supplier_imports.create!(
+      created_by: @user,
       status: SupplierImport::LOCAL_STATUS_COMPLETED,
       workflow_kind: SupplierImport::WORKFLOW_KIND_SUPPLIER,
       source: SupplierImport::SOURCE_UPLOAD,
@@ -31,7 +32,22 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
                 "finished_at" => "2026-04-03T10:05:00Z",
                 "customer_transcript" => "Pode falar.",
                 "assistant_transcript" => "Estamos validando o segmento.",
-                "transcript_summary" => "Cliente confirmou continuidade."
+                "transcript_summary" => "Cliente confirmou continuidade.",
+                "conversation_turns" => [
+                  {
+                    "sequence" => 1,
+                    "role" => "assistant",
+                    "transcript" => "Esse contato pertence à empresa?",
+                    "question_id" => "phone_belongs"
+                  },
+                  {
+                    "sequence" => 2,
+                    "role" => "user",
+                    "transcript" => "Sim, pertence.",
+                    "question_id" => "phone_belongs",
+                    "semantic_value" => "confirmed"
+                  }
+                ]
               }
             ]
           }
@@ -54,7 +70,45 @@ class ValidationAuditsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: /Auditoria/
     assert_select "*", text: /Fornecedor Exemplo/
-    assert_select "*", text: /Pode falar/
-    assert_select "*", text: /Estamos validando o segmento/
+    assert_select "[data-testid='chronological-conversation']", count: 1
+    assert_select "*", text: /Esse contato pertence à empresa\?/
+    assert_select "*", text: /Sim, pertence\./
+    assert_operator response.body.index("Esse contato pertence à empresa?"), :<,
+      response.body.index("Sim, pertence.")
+    assert_no_match(/Pode falar\./, response.body)
+  end
+
+  test "creates human review for audit entry" do
+    post user_session_url, params: { user: { email: @user.email, password: @password } }
+
+    assert_difference -> { AuditReview.count }, 1 do
+      post validation_audit_reviews_url, params: {
+        audit_review: {
+          supplier_import_id: @supplier_import.id,
+          record_external_id: "1",
+          provider_call_id: "CA123",
+          attempt_number: 1,
+          original_result: "inconclusive",
+          reviewed_result: "qualified_supplier",
+          review_note: "Operador conferiu a transcrição."
+        }
+      }
+    end
+
+    review = AuditReview.last
+    assert_equal @user, review.reviewed_by
+    assert_equal @supplier_import, review.supplier_import
+    assert_equal "qualified_supplier", review.reviewed_result
+    assert_redirected_to validation_audits_url
+  end
+
+  test "viewer cannot open audit evidence by direct url" do
+    change_role!(@user, "viewer")
+    post user_session_url, params: { user: { email: @user.email, password: @password } }
+
+    get validation_audits_url
+
+    assert_redirected_to root_url
+    assert_equal "Seu perfil não possui permissão para visualizar auditorias.", flash[:alert]
   end
 end

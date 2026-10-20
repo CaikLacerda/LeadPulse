@@ -1,0 +1,5 @@
+<p>Olá,</p>
+<p><%= @inviter.presence || "Um administrador" %> convidou você para a equipe de <strong><%= @company %></strong> no LeadPulse, com o papel <strong><%= @invitation.role_label %></strong>.</p>
+<p><a href="<%= @url %>">Aceitar convite</a></p>
+<p>O link vale até <%= l(@invitation.expires_at.in_time_zone("America/Sao_Paulo"), format: "%d/%m/%Y %H:%M") %> e só pode ser usado uma vez.</p>
+<p>Se você não esperava este convite, ignore este e-mail.</p>

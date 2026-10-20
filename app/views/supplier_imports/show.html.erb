@@ -1,0 +1,233 @@
+<% records = supplier_import_detail_records(@import) %>
+<% timeline_events = [
+  [@import.created_at, t('.timeline.imported'), @import.file_name.presence || @import.source_label],
+  [@import.validation_started_at, t('.timeline.started'), @import.remote_batch_id],
+  [@import.last_synced_at, t('.timeline.synced'), translated_remote_batch_status(@import.remote_batch_status)],
+  [@import.finished_at, t('.timeline.finished'), local_status_label(@import.status)]
+].select { |occurred_at, _title, _detail| occurred_at.present? } %>
+<% labeled_count = Array(@import.import_metadata['reference_labels']).size %>
+<% privacy_notice = supplier_import_privacy_notice(@import) %>
+<% recording_count = supplier_import_recording_count(@import) %>
+<% privacy_refusal_count = supplier_import_privacy_refusal_count(@import) %>
+<% evidence_expires_at = supplier_import_evidence_expires_at(@import) %>
+<% evidence_anonymized = supplier_import_evidence_anonymized?(@import) %>
+<% can_export = @import.ready_to_export? && current_membership.can_export_data? %>
+<% workspace_breadcrumbs @import.display_code %>
+
+<%= workspace_page do %>
+  <%= workspace_page_header(
+    title: @import.display_code,
+    status: workspace_status_tag(@import.status),
+    meta: safe_join([
+      content_tag(:span, @import.workflow_kind_label),
+      content_tag(:span, @import.source_label),
+      content_tag(:span, "Importado em #{workspace_datetime(@import.created_at)}", class: 'tabular-nums')
+    ])
+  ) do %>
+    <% if current_membership.can_export_data? %>
+      <%= workspace_link_button privacy_report_supplier_import_path(@import), variant: :secondary, data: { turbo: false } do %>
+        <i class="fa-solid fa-file-shield" aria-hidden="true"></i><span>Relatório LGPD</span>
+      <% end %>
+    <% end %>
+
+    <% if can_export %>
+      <details data-controller="action-menu" class="relative">
+        <summary class="<%= workspace_button_class(:primary) %>">
+          <i class="fa-solid fa-download" aria-hidden="true"></i><span>Exportar</span><i class="fa-solid fa-chevron-down workspace-button__caret" aria-hidden="true"></i>
+        </summary>
+        <div class="workspace-menu absolute right-0 top-[calc(100%+0.25rem)] z-30 w-44">
+          <%= link_to export_result_supplier_import_path(@import), data: { turbo: false }, class: 'workspace-menu-item' do %>
+            <i class="fa-solid fa-file-csv" aria-hidden="true"></i><span><%= t('.export_csv') %></span>
+          <% end %>
+          <%= link_to export_result_supplier_import_path(@import, format: :xlsx), data: { turbo: false }, class: 'workspace-menu-item' do %>
+            <i class="fa-solid fa-file-excel" aria-hidden="true"></i><span><%= t('.export_xlsx') %></span>
+          <% end %>
+        </div>
+      </details>
+    <% end %>
+  <% end %>
+
+  <% if @import.error_message.present? %>
+    <div class="workspace-callout workspace-callout--danger mb-6" role="alert">
+      <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span><%= @import.error_message %></span>
+    </div>
+  <% end %>
+
+  <section class="workspace-portlet mb-6" aria-label="<%= t('.summary.title') %>">
+    <%= workspace_metrics(classes: 'workspace-metrics--flush') do %>
+      <%= workspace_metric_card(label: t('.summary.total'), value: number_with_delimiter(@import.total_rows)) %>
+      <%= workspace_metric_card(label: t('.summary.valid'), value: number_with_delimiter(@import.valid_rows)) %>
+      <%= workspace_metric_card(label: t('.summary.invalid'), value: number_with_delimiter(@import.invalid_rows), value_class: ('text-danger-fg' if @import.invalid_rows.to_i.positive?)) %>
+      <%= workspace_metric_card(label: t('.summary.labeled'), value: number_with_delimiter(labeled_count)) %>
+    <% end %>
+
+    <dl class="workspace-kv px-5 py-4">
+      <div>
+        <dt><%= t('.summary.type') %></dt>
+        <dd><%= @import.workflow_kind_label %></dd>
+      </div>
+      <div>
+        <dt><%= t('.summary.remote_batch') %></dt>
+        <dd class="workspace-mono"><%= @import.remote_batch_id.presence || content_tag(:span, '—', class: 'text-fg-subtle') %></dd>
+      </div>
+      <div>
+        <dt><%= t('.summary.phone_standard') %></dt>
+        <dd><%= @import.import_metadata['phone_standard'].presence || t('.summary.default_phone_standard') %></dd>
+      </div>
+    </dl>
+  </section>
+
+  <div data-controller="tabs">
+    <div class="workspace-tabs mb-4" role="tablist" aria-label="Seções do lote">
+      <button type="button" role="tab" id="lote-tab-registros" class="workspace-tab" aria-controls="lote-panel-registros" aria-selected="true"
+              data-tabs-id="registros" data-tabs-target="tab" data-action="tabs#show keydown->tabs#keydown">
+        <%= t('.records.title') %> <span class="workspace-tab__count"><%= records.size %></span>
+      </button>
+      <button type="button" role="tab" id="lote-tab-linha-do-tempo" class="workspace-tab" aria-controls="lote-panel-linha-do-tempo" aria-selected="false" tabindex="-1"
+              data-tabs-id="linha-do-tempo" data-tabs-target="tab" data-action="tabs#show keydown->tabs#keydown">
+        <%= t('.timeline.title') %> <span class="workspace-tab__count"><%= timeline_events.size %></span>
+      </button>
+      <button type="button" role="tab" id="lote-tab-evidencias" class="workspace-tab" aria-controls="lote-panel-evidencias" aria-selected="false" tabindex="-1"
+              data-tabs-id="evidencias" data-tabs-target="tab" data-action="tabs#show keydown->tabs#keydown">
+        Evidências e LGPD
+      </button>
+    </div>
+
+    <section id="lote-panel-registros" role="tabpanel" aria-labelledby="lote-tab-registros" class="workspace-tab-panel workspace-portlet" data-tabs-target="panel">
+      <div class="workspace-table-wrap">
+        <table class="workspace-table workspace-table--top">
+          <thead>
+            <tr>
+              <th scope="col"><%= t('.records.headers.record') %></th>
+              <th scope="col"><%= t('.records.headers.company') %></th>
+              <th scope="col"><%= t('.records.headers.phone') %></th>
+              <th scope="col"><%= t('.records.headers.result') %></th>
+              <th scope="col"><%= t('.records.headers.calls') %></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% if records.any? %>
+              <% records.each do |record| %>
+                <% attempts = supplier_import_record_attempts(record) %>
+                <tr>
+                  <td class="workspace-mono text-fg-muted"><%= record['external_id'].presence || '—' %></td>
+                  <td class="workspace-table__primary"><%= supplier_import_record_name(record) %></td>
+                  <td class="is-nowrap tabular-nums"><%= supplier_import_record_phone(record) %></td>
+                  <td>
+                    <%= audit_result_tag(supplier_import_record_result_code(record)) %>
+                    <% if record['privacy_refusal_detected'].present? || attempts.any? { |attempt| attempt['privacy_refusal_detected'].present? } %>
+                      <div class="mt-1.5"><%= status_badge(t('.records.privacy_refusal'), tone: :danger, show_label: true) %></div>
+                    <% end %>
+                  </td>
+                  <td class="min-w-[16rem]">
+                    <% if attempts.any? %>
+                      <div class="workspace-attempts">
+                        <% attempts.each do |attempt| %>
+                          <div class="workspace-attempt">
+                            <span class="workspace-attempt__number"><%= t('.records.attempt', number: attempt['attempt_number'].presence || '-') %></span>
+                            <span class="workspace-attempt__meta"><%= supplier_import_attempt_duration(attempt) %></span>
+                            <% if attempt['recording_url'].present? && current_membership.can_view_evidence? %>
+                              <%= link_to attempt['recording_url'], target: '_blank', rel: 'noopener', class: 'workspace-link inline-flex items-center gap-1' do %>
+                                <%= t('.records.recording') %><i class="fa-solid fa-arrow-up-right-from-square text-[0.625rem]" aria-hidden="true"></i>
+                              <% end %>
+                            <% elsif attempt['recording_url'].present? %>
+                              <span class="text-fg-muted">Gravação protegida por perfil</span>
+                            <% end %>
+                            <% if attempt['provider_call_id'].present? %>
+                              <span class="workspace-attempt__id" title="<%= t('.records.provider_call', id: attempt['provider_call_id']) %>"><%= attempt['provider_call_id'] %></span>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% else %>
+                      <span class="text-fg-subtle"><%= t('.records.no_calls') %></span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <%= workspace_empty_table_row(colspan: 5, message: t('.records.empty')) %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="lote-panel-linha-do-tempo" role="tabpanel" aria-labelledby="lote-tab-linha-do-tempo" class="workspace-tab-panel workspace-portlet" data-tabs-target="panel" hidden>
+      <% if timeline_events.any? %>
+        <ol class="workspace-timeline">
+          <% timeline_events.each do |occurred_at, title, detail| %>
+            <li class="workspace-timeline__item">
+              <div class="flex flex-wrap items-baseline gap-x-3">
+                <p class="workspace-timeline__title"><%= title %></p>
+                <time class="workspace-timeline__time" datetime="<%= occurred_at.iso8601 %>"><%= workspace_datetime(occurred_at) %></time>
+              </div>
+              <% if detail.present? %>
+                <p class="workspace-timeline__detail"><%= detail %></p>
+              <% end %>
+            </li>
+          <% end %>
+        </ol>
+      <% else %>
+        <p class="workspace-empty-inline"><%= t('.timeline.empty') %></p>
+      <% end %>
+    </section>
+
+    <section id="lote-panel-evidencias" role="tabpanel" aria-labelledby="lote-tab-evidencias" class="workspace-tab-panel workspace-portlet" data-tabs-target="panel" hidden>
+      <div class="workspace-portlet-title">
+        <div class="caption">
+          <div class="workspace-portlet-title__heading">
+            <h2 class="subtitle"><%= t('.evidence.title') %></h2>
+            <%= status_badge(t(".evidence.status.#{evidence_anonymized ? 'anonymized' : 'active'}"), tone: evidence_anonymized ? :neutral : :success) %>
+          </div>
+
+          <% if !evidence_anonymized && current_membership.can_anonymize_evidence? %>
+            <%= button_to anonymize_evidence_supplier_import_path(@import),
+                method: :post,
+                class: workspace_button_class(:secondary, size: :sm),
+                form: { data: { turbo_confirm: t('.evidence.anonymize_confirm'), turbo_confirm_title: 'Anonimizar evidências?', turbo_confirm_confirm_label: 'Anonimizar', turbo_confirm_variant: 'danger' } } do %>
+              <i class="fa-solid fa-user-secret" aria-hidden="true"></i><span><%= t('.evidence.anonymize') %></span>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="workspace-portlet-body space-y-5">
+        <dl class="workspace-kv">
+          <div>
+            <dt><%= t('.evidence.legal_basis') %></dt>
+            <dd><%= privacy_notice['legal_basis'].presence || t('.evidence.legal_basis_default') %></dd>
+          </div>
+          <div>
+            <dt><%= t('.evidence.purpose') %></dt>
+            <dd><%= privacy_notice['purpose'].presence || t('.evidence.purpose_default') %></dd>
+          </div>
+          <div>
+            <dt><%= t('.evidence.retention') %></dt>
+            <dd><%= privacy_notice['evidence_retention_days'].present? ? t('.evidence.retention_days', count: privacy_notice['evidence_retention_days']) : '—' %></dd>
+          </div>
+          <div>
+            <dt><%= t('.evidence.expires_at') %></dt>
+            <dd class="tabular-nums"><%= evidence_expires_at.present? ? workspace_datetime(evidence_expires_at) : '—' %></dd>
+          </div>
+          <div>
+            <dt><%= t('.evidence.recordings') %></dt>
+            <dd class="tabular-nums"><%= recording_count %></dd>
+          </div>
+          <div>
+            <dt><%= t('.evidence.refusals') %></dt>
+            <dd class="tabular-nums"><%= privacy_refusal_count %></dd>
+          </div>
+        </dl>
+
+        <div>
+          <p class="workspace-kv__label"><%= t('.evidence.notice_script') %></p>
+          <blockquote class="mt-1.5 border-l-2 border-line-strong pl-3 text-sm leading-6 text-fg-secondary">
+            <%= privacy_notice['notice_script'].presence || t('.evidence.notice_default') %>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+  </div>
+<% end %>

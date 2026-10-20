@@ -1,0 +1,141 @@
+<% remote_status_urls = if current_membership.can_start_validation?
+     @opportunities.select { |item| item.processing? && item.syncable? }
+       .map { |item| sync_status_commercial_opportunity_path(item, format: :json) }
+   else
+     []
+   end %>
+<% filtered = params[:q].present? || params[:status].present? %>
+
+<div data-controller="remote-status-poll"
+     data-remote-status-poll-urls-value="<%= remote_status_urls.to_json %>">
+<%= workspace_page do %>
+  <%= workspace_page_header(
+    title: 'Retornos comerciais',
+    description: 'Fornecedores que aceitaram um novo contato e aguardam a coleta de condições comerciais.'
+  ) %>
+
+  <%= workspace_metrics(classes: 'mb-6') do %>
+    <%= workspace_metric_card(
+      label: 'Aguardando início',
+      value: number_with_delimiter(@status_counts.fetch(CommercialOpportunity::STATUS_PENDING, 0)),
+      description: 'Liberados para início manual',
+      path: commercial_opportunities_path(status: CommercialOpportunity::STATUS_PENDING)
+    ) %>
+    <%= workspace_metric_card(
+      label: 'Em andamento',
+      value: number_with_delimiter(@status_counts.fetch(CommercialOpportunity::STATUS_PROCESSING, 0)),
+      description: 'Chamadas iniciadas ou aguardando atualização',
+      path: commercial_opportunities_path(status: CommercialOpportunity::STATUS_PROCESSING)
+    ) %>
+    <%= workspace_metric_card(
+      label: 'Concluídos',
+      value: number_with_delimiter(@status_counts.fetch(CommercialOpportunity::STATUS_COMPLETED, 0)),
+      description: 'Coletas disponíveis para revisão',
+      path: commercial_opportunities_path(status: CommercialOpportunity::STATUS_COMPLETED)
+    ) %>
+  <% end %>
+
+  <%= portlet_search do %>
+    <%= form_with url: commercial_opportunities_path, method: :get, local: true, class: 'workspace-filters__row' do |f| %>
+      <label class="workspace-filters__search">
+        <span class="sr-only">Buscar por código, fornecedor ou telefone</span>
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <%= f.search_field :q,
+          value: params[:q],
+          placeholder: 'Buscar por código, fornecedor ou telefone',
+          class: 'settings-input' %>
+      </label>
+      <%= f.select :status,
+        [['Todos os status', '']] + CommercialOpportunity::STATUSES.map { |status| [local_status_label(status), status] },
+        { selected: params[:status] },
+        class: 'settings-input workspace-filters__select', aria: { label: 'Status' } %>
+      <div class="workspace-filters__actions">
+        <%= workspace_button_tag 'Filtrar', type: :submit, variant: :secondary %>
+        <% if filtered %>
+          <%= workspace_link_button 'Limpar', commercial_opportunities_path, variant: :ghost %>
+        <% end %>
+      </div>
+
+      <p class="ml-auto text-[0.8125rem] text-fg-muted tabular-nums"><%= pluralize(@opportunities_total_count, 'retorno', plural: 'retornos') %></p>
+    <% end %>
+  <% end %>
+
+  <section class="workspace-portlet">
+    <div class="workspace-table-wrap">
+      <table class="workspace-table">
+        <thead>
+          <tr>
+            <th scope="col">Retorno</th>
+            <th scope="col">Fornecedor</th>
+            <th scope="col">Telefone</th>
+            <th scope="col">Data do retorno</th>
+            <th scope="col">Lote de origem</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="is-actions"><span class="sr-only">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @opportunities.any? %>
+            <% @opportunities.each do |opportunity| %>
+              <tr>
+                <td><%= workspace_code_tag(opportunity.display_code, commercial_opportunity_path(opportunity)) %></td>
+                <td class="workspace-table__primary"><%= opportunity.supplier_name %></td>
+                <td class="is-nowrap tabular-nums"><%= opportunity.callback_phone %></td>
+                <%# Sem data interpretada, a fala transcrita aparece curta; o texto completo fica no detalhe. %>
+                <td class="is-nowrap tabular-nums">
+                  <% if opportunity.callback_preferred_at.present? %>
+                    <%= opportunity.callback_schedule_label %>
+                  <% elsif opportunity.callback_preferred_time.present? %>
+                    <span class="text-fg-muted" title="<%= opportunity.callback_preferred_time %>"><%= truncate(opportunity.callback_preferred_time, length: 32) %></span>
+                  <% else %>
+                    <span class="text-fg-muted">A confirmar</span>
+                  <% end %>
+                </td>
+                <td><%= workspace_code_tag(opportunity.source_import_code, current_membership.can_view_evidence? ? supplier_import_path(opportunity.supplier_import) : nil) %></td>
+                <td><%= workspace_status_tag(opportunity.status) %></td>
+                <td class="is-actions">
+                  <details data-controller="action-menu" data-action-menu-floating-value="true" class="relative inline-block text-left">
+                    <summary class="workspace-row-menu-trigger" aria-label="Ações do retorno <%= opportunity.display_code %>">
+                      <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+                    </summary>
+                    <div class="workspace-menu absolute right-0 top-full w-48">
+                      <%= link_to commercial_opportunity_path(opportunity), class: 'workspace-menu-item' do %>
+                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i><span>Ver detalhes</span>
+                      <% end %>
+                      <% if opportunity.startable? && current_membership.can_start_validation? %>
+                        <%= button_to start_commercial_opportunity_path(opportunity), method: :post, class: 'workspace-menu-item' do %>
+                          <i class="fa-solid fa-play" aria-hidden="true"></i><span>Iniciar coleta</span>
+                        <% end %>
+                      <% end %>
+                      <% if opportunity.syncable? && current_membership.can_start_validation? %>
+                        <%= button_to sync_status_commercial_opportunity_path(opportunity), method: :post, class: 'workspace-menu-item' do %>
+                          <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i><span>Consultar status</span>
+                        <% end %>
+                      <% end %>
+                      <% if opportunity.ready_to_export? && current_membership.can_export_data? %>
+                        <%= link_to export_commercial_opportunity_path(opportunity), data: { turbo: false }, class: 'workspace-menu-item' do %>
+                          <i class="fa-solid fa-file-excel" aria-hidden="true"></i><span>Exportar XLSX</span>
+                        <% end %>
+                      <% end %>
+                    </div>
+                  </details>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <%= workspace_empty_table_row(colspan: 7,
+                  message: filtered ? 'Nenhum retorno encontrado.' : 'Nenhum retorno comercial ainda.',
+                  hint: filtered ? 'Nenhum retorno corresponde aos filtros aplicados.' : 'Fornecedores que aceitarem um novo contato durante a validação aparecem aqui.') do %>
+              <% if filtered %>
+                <%= workspace_link_button 'Limpar filtros', commercial_opportunities_path, size: :sm %>
+              <% end %>
+            <% end %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <%= render 'shared/pagination', current_page: @opportunities_page, total_pages: @opportunities_total_pages %>
+  </section>
+<% end %>
+</div>

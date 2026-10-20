@@ -1,0 +1,30 @@
+<dialog class="team-dialog" data-dialog-target="dialog" aria-labelledby="invite-dialog-title" data-action="click->dialog#backdropClose">
+  <%= form_with model: AccountInvitation.new(role: "operator"), url: team_invitations_path, class: "workspace-modal team-dialog__panel" do |f| %>
+    <div class="workspace-modal__header">
+      <div>
+        <h2 class="workspace-modal__title" id="invite-dialog-title">Convidar usuário</h2>
+        <p class="workspace-modal__description">A pessoa recebe um link válido por 7 dias para entrar na empresa.</p>
+      </div>
+      <button type="button" class="workspace-modal__close" data-action="dialog#close" aria-label="Fechar">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="workspace-modal__body team-dialog__body">
+      <div>
+        <%= f.label :email, "E-mail", class: "settings-label" %>
+        <%= f.email_field :email, required: true, autocomplete: "off", placeholder: "pessoa@empresa.com", class: "settings-input" %>
+      </div>
+      <div>
+        <%= f.label :role, "Papel", class: "settings-label" %>
+        <%= f.select :role, AccountMembership::ROLES.map { |value, label| [label, value] }, {}, class: "settings-input" %>
+        <p class="settings-field-help">O papel pode ser alterado depois. Veja "Permissões por papel" abaixo da lista.</p>
+      </div>
+    </div>
+
+    <div class="workspace-modal__footer">
+      <button type="button" class="<%= workspace_button_class(:ghost) %>" data-action="dialog#close">Cancelar</button>
+      <%= f.submit "Enviar convite", class: workspace_submit_class(:primary), data: { turbo_submits_with: "Enviando…" } %>
+    </div>
+  <% end %>
+</dialog>

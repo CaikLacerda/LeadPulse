@@ -1,0 +1,815 @@
+/*
+  Ambiente de Simulação. Escopo próprio (.sim-lab) com identidade de laboratório técnico:
+  superfícies um pouco mais profundas, grade discreta, telemetria em mono e estados de voz
+  suaves. Tudo sobre os tokens do design system; nada global. Sem neon nem estética gamer.
+*/
+@layer components {
+  .sim-lab {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    --sim-depth: color-mix(in srgb, var(--color-canvas) 60%, var(--color-surface));
+    --sim-grid-line: color-mix(in srgb, var(--color-line-subtle) 70%, transparent);
+    --sim-agent-accent: var(--color-brand);
+    --sim-counterpart-accent: var(--lp-accent);
+  }
+
+  /* Banner de execução ativa na listagem */
+  .sim-lab__active-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--color-info-line);
+    border-radius: var(--lp-radius);
+    background: var(--color-info-bg);
+    padding: 0.75rem 1rem;
+    color: var(--color-info-fg);
+    transition: background-color var(--lp-duration) var(--lp-ease);
+  }
+
+  .sim-lab__active-banner:hover {
+    background: color-mix(in srgb, var(--color-info-bg) 80%, var(--color-info-line));
+  }
+
+  .sim-lab__active-pulse {
+    width: 0.625rem;
+    height: 0.625rem;
+    flex: none;
+    border-radius: 999px;
+    background: var(--color-info-dot);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-info-dot) 60%, transparent);
+    animation: sim-pulse 2s var(--lp-ease) infinite;
+  }
+
+  .sim-lab__active-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    line-height: 1.25rem;
+  }
+
+  .sim-lab__active-text strong { font-weight: 600; }
+  .sim-lab__active-text span { color: var(--color-info-fg); font-size: 0.8125rem; opacity: 0.85; }
+  .sim-lab__active-go { margin-left: auto; }
+
+  /* ---- Nova simulação: modos e escolhas ---- */
+  /* ---- Nova simulação: cabeçalho de laboratório ---- */
+  .sim-setup { gap: 1.5rem; }
+
+  .sim-setup__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .sim-setup__eyebrow-dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 999px;
+    background: var(--lp-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--lp-accent) 20%, transparent);
+  }
+
+  .sim-setup__header-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .sim-setup__title { color: var(--color-fg); font-size: 1.375rem; font-weight: 600; letter-spacing: -0.01em; }
+  .sim-setup__subtitle { margin-top: 0.25rem; color: var(--color-fg-muted); font-size: 0.875rem; }
+
+  /* ---- Modos ---- */
+  .sim-modes {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+
+  .sim-mode {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius-lg);
+    background: var(--color-surface);
+    padding: 1.25rem;
+    opacity: 0.78;
+    transition: border-color var(--lp-duration) var(--lp-ease), box-shadow var(--lp-duration) var(--lp-ease);
+  }
+
+  /* Modo selecionado: destaque sóbrio pela borda e superfície, sem faixa colorida nem glow. */
+  .sim-mode--available {
+    opacity: 1;
+    border-color: var(--color-brand);
+    box-shadow: inset 0 0 0 1px var(--color-brand);
+  }
+
+  .sim-mode__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sim-mode__icon {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--lp-radius);
+    background: var(--sim-depth);
+    color: var(--color-fg-secondary);
+    font-size: 1.0625rem;
+  }
+
+  .sim-mode--available .sim-mode__icon {
+    background: var(--color-brand-subtle);
+    color: var(--color-brand-fg);
+  }
+
+  /* Estado neutro do modo selecionado (sem sinal verde). */
+  .sim-mode__state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--color-brand-fg);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .sim-mode__state::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 2px;
+    background: var(--color-brand);
+  }
+
+  .sim-mode__tag {
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: var(--color-surface-subtle);
+    padding: 0.125rem 0.5rem;
+    color: var(--color-fg-muted);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .sim-mode__title { color: var(--color-fg); font-size: 0.9375rem; font-weight: 600; }
+  .sim-mode__description { color: var(--color-fg-muted); font-size: 0.8125rem; line-height: 1.25rem; }
+
+  /* ---- Configuração da execução (bancada do experimento) ---- */
+  .sim-setup__form { display: flex; flex-direction: column; gap: 1.25rem; }
+
+  .sim-config {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius-lg);
+    background: var(--color-surface);
+    padding: 1.5rem;
+  }
+
+  .sim-config__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-line-subtle);
+  }
+
+  .sim-config__kicker {
+    color: var(--color-fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .sim-config__title { color: var(--color-fg); font-size: 1rem; font-weight: 600; }
+
+  .sim-field { border: 0; margin: 0; padding: 0; }
+
+  .sim-field__legend {
+    display: block;
+    margin-bottom: 0.625rem;
+    padding: 0;
+    color: var(--color-fg-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .sim-choice-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  }
+
+  /* Cards mais leves: borda sutil, destaque forte só quando selecionado. */
+  .sim-choice {
+    position: relative;
+    display: flex;
+    gap: 0.75rem;
+    border: 1px solid var(--color-line-subtle);
+    border-radius: var(--lp-radius);
+    background: var(--color-surface-subtle);
+    padding: 1rem;
+    cursor: pointer;
+    transition: border-color var(--lp-duration) var(--lp-ease), background-color var(--lp-duration) var(--lp-ease), box-shadow var(--lp-duration) var(--lp-ease);
+  }
+
+  .sim-choice[hidden] { display: none; }
+
+  .sim-choice:hover {
+    border-color: var(--color-line-strong);
+    background: var(--color-surface);
+  }
+
+  .sim-choice:has(.sim-choice__input:checked) {
+    border-color: var(--color-brand);
+    background: var(--color-brand-subtle);
+    box-shadow: inset 0 0 0 1px var(--color-brand);
+  }
+
+  .sim-choice:has(.sim-choice__input:focus-visible) {
+    box-shadow: var(--lp-focus-ring);
+  }
+
+  /* Input nativo escondido: o card inteiro é o alvo clicável e o check mostra o estado. */
+  .sim-choice__input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sim-choice__body { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
+  .sim-choice__title { color: var(--color-fg); font-size: 0.875rem; font-weight: 600; }
+  .sim-choice__description { color: var(--color-fg-muted); font-size: 0.8125rem; line-height: 1.25rem; }
+  .sim-choice__meta {
+    margin-top: 0.25rem;
+    color: var(--color-fg-subtle);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.02em;
+  }
+
+  .sim-choice__check {
+    display: inline-flex;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid var(--color-line-strong);
+    color: transparent;
+    font-size: 0.625rem;
+    transition: background-color var(--lp-duration) var(--lp-ease), border-color var(--lp-duration) var(--lp-ease), color var(--lp-duration) var(--lp-ease);
+  }
+
+  .sim-choice:has(.sim-choice__input:checked) .sim-choice__check {
+    border-color: var(--color-brand);
+    background: var(--color-brand);
+    color: #fff;
+  }
+
+  /* ---- Resumo técnico dos parâmetros ---- */
+  .sim-params {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    margin: 0;
+    border: 1px solid var(--color-line-subtle);
+    border-radius: var(--lp-radius);
+    background: var(--color-line-subtle);
+  }
+
+  .sim-params__row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: var(--sim-depth);
+    padding: 0.75rem 1rem;
+  }
+
+  .sim-params__row dt {
+    color: var(--color-fg-muted);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .sim-params__row dd {
+    margin: 0;
+    color: var(--color-fg);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .sim-params__value--mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---- Barra de execução ---- */
+  .sim-launch {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius-lg);
+    background: var(--color-surface);
+    padding: 1rem 1.25rem;
+    /* Linha de acento à esquerda: marca a "bancada" sem colorir a barra toda. */
+    box-shadow: inset 3px 0 0 var(--color-brand);
+  }
+
+  .sim-launch__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+
+  .sim-launch__kicker {
+    color: var(--color-fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .sim-launch__params {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem 0.5rem;
+  }
+
+  .sim-launch__chip {
+    color: var(--color-fg);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .sim-launch__chip--mode { color: var(--color-brand-fg); }
+
+  .sim-launch__sep { color: var(--color-fg-subtle); }
+
+  .sim-launch__button { padding-inline: 1.5rem; }
+
+  .sim-setup__forbidden { color: var(--color-fg-muted); font-size: 0.8125rem; }
+
+  /* ---- Palco ao vivo ---- */
+  .sim-telemetry {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius-lg);
+    background: var(--color-line);
+  }
+
+  .sim-telemetry__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: var(--color-surface);
+    padding: 0.75rem 1rem;
+  }
+
+  .sim-telemetry__label {
+    color: var(--color-fg-muted);
+    font-size: 0.8125rem;
+  }
+
+  .sim-telemetry__value { color: var(--color-fg); font-size: 0.9375rem; font-weight: 600; }
+  .sim-telemetry__value--mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .sim-arena {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    min-height: 16rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius-lg);
+    padding: 2rem 1.5rem;
+    background:
+      linear-gradient(var(--sim-grid-line) 1px, transparent 1px) 0 0 / 100% 2rem,
+      linear-gradient(90deg, var(--sim-grid-line) 1px, transparent 1px) 0 0 / 2rem 100%,
+      radial-gradient(ellipse 60% 70% at 50% 45%, var(--color-surface), var(--sim-depth) 90%);
+  }
+
+  .sim-agent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .sim-agent__orb {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 6rem;
+    height: 6rem;
+  }
+
+  .sim-agent__avatar {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    width: 4rem;
+    height: 4rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    color: var(--color-fg-secondary);
+    font-size: 1.5rem;
+    transition: transform var(--lp-duration) var(--lp-ease), color var(--lp-duration) var(--lp-ease), border-color var(--lp-duration) var(--lp-ease);
+  }
+
+  .sim-agent__ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    opacity: 0;
+    transition: opacity var(--lp-duration) var(--lp-ease), transform var(--lp-duration) var(--lp-ease);
+  }
+
+  .sim-agent__ring--2 { inset: -0.75rem; }
+
+  .sim-agent--agent { --sim-accent: var(--sim-agent-accent); }
+  .sim-agent--counterpart { --sim-accent: var(--sim-counterpart-accent); }
+
+  .sim-agent__name { color: var(--color-fg); font-size: 0.9375rem; font-weight: 600; }
+
+  .sim-agent__state {
+    min-height: 1.25rem;
+    color: var(--color-fg-muted);
+    font-size: 0.8125rem;
+    font-family: var(--font-mono);
+  }
+
+  /* Estados de voz: borda/anel acendem conforme o participante fala ou pensa. */
+  .sim-agent[data-state="speaking"] .sim-agent__avatar {
+    border-color: var(--sim-accent);
+    color: var(--sim-accent);
+    transform: scale(1.04);
+  }
+
+  .sim-agent[data-state="speaking"] .sim-agent__ring {
+    opacity: 1;
+    border-color: color-mix(in srgb, var(--sim-accent) 55%, transparent);
+    animation: sim-ring 1.8s var(--lp-ease) infinite;
+  }
+
+  .sim-agent[data-state="speaking"] .sim-agent__ring--2 {
+    animation-delay: 0.4s;
+  }
+
+  .sim-agent[data-state="thinking"] .sim-agent__avatar {
+    border-color: color-mix(in srgb, var(--sim-accent) 40%, var(--color-line-strong));
+    color: var(--color-fg-secondary);
+  }
+
+  .sim-agent[data-state="thinking"] .sim-agent__state { color: var(--color-fg-secondary); }
+
+  .sim-agent[data-state="thinking"] .sim-agent__orb::after {
+    content: "";
+    position: absolute;
+    inset: -0.25rem;
+    border-radius: 999px;
+    border: 2px dashed color-mix(in srgb, var(--sim-accent) 45%, transparent);
+    animation: sim-spin 4s linear infinite;
+  }
+
+  /* Linha de conexão entre os dois lados, com onda proporcional ao nível de voz. */
+  .sim-arena__link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 5rem;
+  }
+
+  .sim-arena__core {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--color-line-strong);
+    flex: none;
+  }
+
+  .sim-arena__wave {
+    --sim-level: 0;
+    position: relative;
+    width: 2.75rem;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, var(--sim-agent-accent));
+    transform: scaleX(calc(0.3 + var(--sim-level) * 0.7));
+    transform-origin: right center;
+    opacity: calc(0.35 + var(--sim-level) * 0.65);
+    transition: transform 180ms var(--lp-ease), opacity 180ms var(--lp-ease);
+  }
+
+  .sim-arena__wave--reverse {
+    background: linear-gradient(90deg, var(--sim-counterpart-accent), transparent);
+    transform-origin: left center;
+  }
+
+  /* ---- Monitor de áudio (somente escuta) ---- */
+  /* Controle discreto: fica em repouso como um botão sóbrio e, ativo, vira uma faixa de
+     telemetria. Nada de player grande; é instrumentação, não mídia. */
+  .sim-audio {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius);
+    background: var(--color-surface);
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+  }
+
+  .sim-audio[hidden] { display: none; }
+
+  .sim-audio__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sim-audio__title i { font-size: 0.875rem; }
+
+  .sim-audio__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--lp-radius-sm);
+    background: var(--color-surface-subtle);
+    padding: 0.3125rem 0.75rem;
+    color: var(--color-fg-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--lp-duration) var(--lp-ease), background-color var(--lp-duration) var(--lp-ease), color var(--lp-duration) var(--lp-ease);
+  }
+
+  .sim-audio__button:hover {
+    border-color: var(--color-brand);
+    background: var(--color-brand-subtle);
+    color: var(--color-brand-fg);
+  }
+
+  .sim-audio__button:focus-visible { box-shadow: var(--lp-focus-ring); outline: none; }
+  .sim-audio__button[hidden] { display: none; }
+
+  .sim-audio__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-left: auto;
+  }
+
+  .sim-audio__live[hidden] { display: none; }
+
+  .sim-audio__pulse {
+    width: 0.5rem;
+    height: 0.5rem;
+    flex: none;
+    border-radius: 999px;
+    background: var(--color-info-dot);
+    animation: sim-pulse 1.8s var(--lp-ease) infinite;
+  }
+
+  .sim-audio__status {
+    color: var(--color-fg-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  /* Estados do monitor via data-audio-state no container. */
+  .sim-audio[data-audio-state="reconnecting"] .sim-audio__pulse { background: var(--color-warning-fg); }
+  .sim-audio[data-audio-state="reconnecting"] .sim-audio__status { color: var(--color-warning-fg); }
+  .sim-audio[data-audio-state="unavailable"] .sim-audio__pulse,
+  .sim-audio[data-audio-state="error"] .sim-audio__pulse { background: var(--color-danger-fg); animation: none; }
+  .sim-audio[data-audio-state="unavailable"] .sim-audio__status,
+  .sim-audio[data-audio-state="error"] .sim-audio__status { color: var(--color-danger-fg); }
+
+  .sim-audio__mute {
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius-sm);
+    background: transparent;
+    padding: 0.1875rem 0.5rem;
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--lp-duration) var(--lp-ease), color var(--lp-duration) var(--lp-ease);
+  }
+
+  .sim-audio__mute:hover { border-color: var(--color-line-strong); color: var(--color-fg-secondary); }
+  .sim-audio__mute:focus-visible { box-shadow: var(--lp-focus-ring); outline: none; }
+  .sim-audio__mute[aria-pressed="true"] { border-color: var(--color-brand); color: var(--color-brand-fg); }
+
+  /* O monitor some junto com o palco quando a execução termina. */
+  .sim-stage.is-finished .sim-audio { display: none; }
+
+  /* ---- Transcript ---- */
+  .sim-stage__columns { display: grid; gap: 1rem; }
+
+  .sim-transcript {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 22rem;
+    overflow-y: auto;
+    margin: 0;
+    padding: 1rem 1.25rem;
+    list-style: none;
+  }
+
+  .sim-transcript--static { max-height: none; }
+
+  .sim-transcript__row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    max-width: 85%;
+    border-radius: var(--lp-radius);
+    padding: 0.5rem 0.75rem;
+    background: var(--color-surface-subtle);
+  }
+
+  .sim-transcript__row--agent {
+    align-self: flex-start;
+    border-left: 2px solid var(--sim-agent-accent);
+  }
+
+  .sim-transcript__row--counterpart {
+    align-self: flex-end;
+    border-right: 2px solid var(--sim-counterpart-accent);
+    background: color-mix(in srgb, var(--lp-accent) 8%, var(--color-surface-subtle));
+  }
+
+  .sim-transcript__who {
+    color: var(--color-fg-muted);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .sim-transcript__text { color: var(--color-fg); font-size: 0.875rem; line-height: 1.3rem; }
+  .sim-transcript__empty { color: var(--color-fg-muted); font-size: 0.8125rem; text-align: center; padding: 1.5rem 0; }
+
+  .sim-stage__actions { display: flex; justify-content: flex-end; }
+
+  /* Ao terminar, o palco e as ações ao vivo saem; entra o relatório. */
+  .sim-stage.is-finished .sim-voice-page,
+  .sim-stage.is-finished .sim-arena,
+  .sim-stage.is-finished .sim-stage__columns,
+  .sim-stage.is-finished .sim-stage__actions { display: none; }
+
+  /* ---- Relatório ---- */
+  .sim-report:empty { display: none; }
+  .sim-report__inner { display: flex; flex-direction: column; gap: 1.5rem; }
+  .sim-report__section { display: flex; flex-direction: column; gap: 0.75rem; }
+  .sim-report__heading { color: var(--color-fg); font-size: 1rem; font-weight: 600; }
+  .sim-report__subheading { color: var(--color-fg-secondary); font-size: 0.8125rem; font-weight: 600; margin-top: 0.75rem; }
+
+  .sim-report__heading-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .sim-transcript-switch {
+    display: inline-flex;
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius-sm);
+    background: var(--color-surface-subtle);
+    padding: 2px;
+  }
+
+  .sim-transcript-switch__item {
+    border-radius: 4px;
+    padding: 0.1875rem 0.625rem;
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .sim-transcript-switch__item[aria-selected="true"] {
+    background: var(--color-surface);
+    box-shadow: var(--lp-shadow-xs);
+    color: var(--color-fg);
+  }
+
+  .sim-field-status {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .sim-field-status--correct_verified { background: var(--color-success-bg); color: var(--color-success-fg); }
+  .sim-field-status--correct_unverified { background: var(--color-info-bg); color: var(--color-info-fg); }
+  .sim-field-status--incorrect { background: var(--color-danger-bg); color: var(--color-danger-fg); }
+  .sim-field-status--missing { background: var(--color-warning-bg); color: var(--color-warning-fg); }
+  .sim-field-status--not_evaluated { background: var(--color-neutral-bg); color: var(--color-neutral-fg); }
+
+  .sim-report__diagnostics {
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius);
+    background: var(--color-surface-subtle);
+  }
+
+  .sim-report__diagnostics > summary {
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    color: var(--color-fg-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .sim-report__diagnostics-body { padding: 0 1rem 1rem; }
+
+  .sim-report__json {
+    overflow-x: auto;
+    border-radius: var(--lp-radius-sm);
+    background: var(--sim-depth);
+    padding: 0.75rem;
+    color: var(--color-fg-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.1rem;
+  }
+
+  @keyframes sim-pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent); }
+    70% { box-shadow: 0 0 0 0.4rem transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+
+  @keyframes sim-ring {
+    0% { transform: scale(0.9); opacity: 0.8; }
+    100% { transform: scale(1.15); opacity: 0; }
+  }
+
+  @keyframes sim-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sim-lab__active-pulse,
+    .sim-agent__ring,
+    .sim-agent__orb::after,
+    .sim-audio__pulse { animation: none !important; }
+
+    .sim-arena__wave { transition: none; }
+  }
+}

@@ -1,0 +1,40 @@
+<%= render layout: "analytics/frame" do %>
+  <%= render "analytics/drill_header", kind: :attempts, title: t("analytics.drill.attempts_title") %>
+
+  <section class="workspace-portlet">
+    <div class="workspace-table-wrap">
+      <table class="workspace-table">
+        <caption class="sr-only"><%= t("analytics.drill.attempts_title") %></caption>
+        <thead>
+          <tr>
+            <th scope="col"><%= t("analytics.table.batch") %></th>
+            <th scope="col"><%= t("analytics.drill.supplier") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.drill.attempt") %></th>
+            <th scope="col"><%= t("analytics.drill.started_at") %></th>
+            <th scope="col"><%= t("analytics.drill.call_status") %></th>
+            <th scope="col"><%= t("analytics.drill.attempt_result") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.drill.duration") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @rows.any? %>
+            <% @rows.each do |row| %>
+              <tr>
+                <td><%= workspace_code_tag(analytics_batch_code(row[:batch_id]), supplier_import_path(row[:batch_id])) %></td>
+                <td class="workspace-table__primary"><%= row[:company_name].presence || row[:external_id] %></td>
+                <td class="is-numeric"><%= row[:attempt_number] || "—" %></td>
+                <td><%= workspace_datetime_cell(row[:started_at]) %></td>
+                <td><%= row[:status] ? status_badge(t("analytics.call_statuses.#{row[:status]}", default: row[:status]), tone: workspace_status_tone(row[:status]), icon: workspace_status_icon(row[:status])) : "—" %></td>
+                <td><%= row[:result] ? analytics_result_label(row[:result]) : "—" %></td>
+                <td class="is-numeric"><%= row[:status] == "answered" ? analytics_duration(row[:duration_seconds]) : "—" %></td>
+              </tr>
+            <% end %>
+          <% else %>
+            <%= workspace_empty_table_row(colspan: 7, message: t("analytics.drill.empty")) %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <%= render "analytics/drill_pagination", kind: :attempts %>
+  </section>
+<% end %>

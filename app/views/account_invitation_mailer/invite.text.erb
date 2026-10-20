@@ -1,0 +1,9 @@
+Olá,
+
+<%= @inviter.presence || "Um administrador" %> convidou você para a equipe de <%= @company %> no LeadPulse, com o papel <%= @invitation.role_label %>.
+
+Para aceitar, abra o link abaixo. Ele vale até <%= l(@invitation.expires_at.in_time_zone("America/Sao_Paulo"), format: "%d/%m/%Y %H:%M") %> e só pode ser usado uma vez.
+
+<%= @url %>
+
+Se você não esperava este convite, ignore este e-mail.

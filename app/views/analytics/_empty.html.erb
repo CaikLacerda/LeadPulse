@@ -1,0 +1,6 @@
+<% message = local_assigns[:message] || t("analytics.empty.title") %>
+<%= workspace_empty_state(message: message, hint: t("analytics.empty.hint")) do %>
+  <% unless @filters.period == Analytics::Filters::PERIOD_TWELVE_MONTHS %>
+    <%= workspace_link_button t("analytics.empty.widen"), url_for(@filters.to_params.except(:de, :ate).merge(periodo: Analytics::Filters::PERIOD_TWELVE_MONTHS)), variant: :secondary %>
+  <% end %>
+<% end %>

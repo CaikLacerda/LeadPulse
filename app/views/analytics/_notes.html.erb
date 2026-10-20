@@ -1,0 +1,8 @@
+<% notes = notes.compact %>
+<% if notes.any? %>
+  <ul class="analytics-notes">
+    <% notes.each do |note| %>
+      <li><%= workspace_icon(:info) %><span><%= note %></span></li>
+    <% end %>
+  </ul>
+<% end %>
