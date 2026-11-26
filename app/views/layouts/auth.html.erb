@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <% signup = content_for(:auth_brand) == "signup" %>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090d13">
+    <title><%= content_for(:title) || "LeadPulse" %></title>
+    <meta name="description" content="<%= content_for(:description) %>">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" referrerpolicy="no-referrer">
+    <%# Same visual system as the public landing (landing.css), plus the sign-in surface (auth.css). %>
+    <%= stylesheet_link_tag "landing/landing", "landing/auth", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <%= javascript_include_tag "landing/glow", type: "module", "data-turbo-track": "reload" %>
+  </head>
+  <body class="auth-page">
+    <a class="skip-link" href="#auth-content">Ir para o formulário</a>
+
+    <div class="auth-stage">
+      <div class="hero-horizon auth-horizon" aria-hidden="true"></div>
+
+      <header class="auth-top">
+        <%= link_to root_path, class: "auth-logo" do %>
+          <%= image_tag "landing/brand-lockup.webp", alt: "LeadPulse, página inicial", width: 512, height: 116 %>
+        <% end %>
+        <% if controller_name == "sessions" %>
+          <%= link_to "Criar conta", new_user_registration_path, class: "auth-switch" %>
+        <% elsif !user_signed_in? %>
+          <%= link_to "Entrar", new_user_session_path, class: "auth-switch" %>
+        <% end %>
+      </header>
+
+      <main class="auth-main" id="auth-content">
+        <div class="auth-card">
+          <div class="auth-panel">
+            <%= yield %>
+          </div>
+          <%= render "devise/shared/auth_showcase", signup: signup %>
+        </div>
+      </main>
+
+      <footer class="auth-legal">
+        <span>© <%= Date.current.year %> LeadPulse</span>
+        <%= link_to "Termos", terms_path %>
+        <%= link_to "Privacidade", privacy_path %>
+      </footer>
+    </div>
+  </body>
+</html>

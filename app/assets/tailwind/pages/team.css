@@ -1,0 +1,163 @@
+/* Equipe: membros, convites e diálogo de convite. */
+@layer components {
+  .team-person {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    white-space: nowrap;
+  }
+
+  .team-avatar {
+    display: inline-flex;
+    height: 1.75rem;
+    width: 1.75rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--lp-avatar-bg);
+    color: var(--lp-avatar-fg);
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+
+  .team-avatar--pending {
+    border: 1px dashed var(--color-line-strong);
+    background: transparent;
+    color: var(--color-fg-muted);
+  }
+
+  .team-table__email {
+    color: var(--color-fg-secondary);
+    white-space: nowrap;
+  }
+
+  .team-stacked {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1.125rem;
+  }
+
+  .team-stacked__secondary {
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+  }
+
+  .team-table__row--muted td {
+    color: var(--color-fg-muted);
+  }
+
+  .team-role-form {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .team-role-form__select {
+    width: 9rem;
+    height: 2rem;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .team-role-form [hidden] {
+    display: none;
+  }
+
+  /* Link do convite (desenvolvimento) */
+  .team-link__body {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .team-link__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .team-link__row .settings-input {
+    min-width: 16rem;
+    flex: 1 1 20rem;
+  }
+
+  /* Permissões por papel */
+  .team-roles {
+    margin-top: 1rem;
+  }
+
+  .team-roles__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1.25rem;
+    color: var(--color-fg);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .team-roles__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .team-roles__summary .fa-solid {
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    transition: transform var(--lp-duration) var(--lp-ease);
+  }
+
+  .team-roles[open] .team-roles__summary {
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .team-roles[open] .team-roles__summary .fa-solid {
+    transform: rotate(180deg);
+  }
+
+  .team-roles__summary:focus-visible {
+    outline: none;
+    box-shadow: inset var(--lp-focus-ring);
+  }
+
+  /* Diálogo nativo com o painel de modal do design system */
+  .team-dialog {
+    width: min(28rem, calc(100vw - 2rem));
+    max-width: none;
+    margin: auto;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
+
+  .team-dialog::backdrop {
+    background: var(--lp-backdrop);
+  }
+
+  .team-dialog__body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+/* Tokens de BI: criação em linha */
+@layer components {
+  .bi-token-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem;
+  }
+
+  .bi-token-form__field {
+    min-width: 14rem;
+    flex: 1 1 20rem;
+    max-width: 28rem;
+  }
+}

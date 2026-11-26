@@ -1,0 +1,137 @@
+<% modes = @catalog["modes"] || [] %>
+<% targets = @catalog["targets"] || [] %>
+<% available_mode = modes.find { |mode| mode["available"] } %>
+
+<%= workspace_page do %>
+  <div class="sim-lab sim-setup">
+    <%# Cabeçalho técnico: eyebrow neutro de ambiente de teste, título e subtítulo de ação. %>
+    <header class="sim-setup__header">
+      <p class="sim-setup__eyebrow"><%= t(".eyebrow") %></p>
+      <div class="sim-setup__header-row">
+        <div>
+          <h1 class="sim-setup__title"><%= t(".title") %></h1>
+          <p class="sim-setup__subtitle"><%= t(".description") %></p>
+        </div>
+        <%= workspace_link_button(t(".back"), simulations_path, variant: :ghost) %>
+      </div>
+    </header>
+
+    <section class="sim-modes" aria-label="<%= t(".modes_aria") %>">
+      <% modes.each do |mode| %>
+        <article class="sim-mode <%= "sim-mode--available" if mode["available"] %>"
+                 <%= 'aria-current=true'.html_safe if mode["available"] %>>
+          <header class="sim-mode__head">
+            <span class="sim-mode__icon" aria-hidden="true">
+              <i class="fa-solid <%= { "ai_vs_ai" => "fa-vials", "browser_voice" => "fa-microphone-lines", "phone_call" => "fa-phone" }.fetch(mode["key"], "fa-flask") %>"></i>
+            </span>
+            <% if mode["available"] %>
+              <span class="sim-mode__state"><%= t(".mode_selected") %></span>
+            <% else %>
+              <span class="sim-mode__tag"><%= t(".coming_soon") %></span>
+            <% end %>
+          </header>
+          <h3 class="sim-mode__title"><%= mode["label"] %></h3>
+          <p class="sim-mode__description"><%= mode["description"] %></p>
+        </article>
+      <% end %>
+    </section>
+
+    <% if available_mode.present? && targets.present? %>
+      <%
+        default_target = targets.first
+        default_scenario = Array(default_target["scenarios"]).first || {}
+      %>
+      <%= form_with url: simulations_path, method: :post,
+            data: { controller: "simulation-setup", simulation_setup_mode_label_value: available_mode["label"] },
+            class: "sim-setup__form" do |form| %>
+        <%= form.hidden_field :mode, value: available_mode["key"] %>
+        <%= form.hidden_field :target_type, value: default_target["target_type"], data: { simulation_setup_target: "targetType" } %>
+
+        <section class="sim-config">
+          <div class="sim-config__header">
+            <span class="sim-config__kicker"><%= t(".config_kicker") %></span>
+            <h2 class="sim-config__title"><%= t(".config_title") %></h2>
+          </div>
+
+          <fieldset class="sim-field">
+            <legend class="sim-field__legend"><%= t(".choose_workflow") %></legend>
+            <div class="sim-choice-grid">
+              <% targets.each_with_index do |target, index| %>
+                <label class="sim-choice">
+                  <%= radio_button_tag "simulation[workflow_key]", target["key"], index.zero?,
+                        class: "sim-choice__input",
+                        data: { simulation_setup_target: "workflow", action: "simulation-setup#selectWorkflow", target_type: target["target_type"], label: target["label"] } %>
+                  <span class="sim-choice__body">
+                    <span class="sim-choice__title"><%= target["label"] %></span>
+                    <span class="sim-choice__description"><%= target["description"] %></span>
+                  </span>
+                  <span class="sim-choice__check" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+                </label>
+              <% end %>
+            </div>
+          </fieldset>
+
+          <fieldset class="sim-field">
+            <legend class="sim-field__legend"><%= t(".choose_scenario") %></legend>
+            <div class="sim-choice-grid">
+              <% targets.each_with_index do |target, target_index| %>
+                <% Array(target["scenarios"]).each_with_index do |scenario, scenario_index| %>
+                  <% outcome_label = t("simulations.call_results.#{scenario["expected_outcome"]}", default: scenario["expected_outcome"]) %>
+                  <label class="sim-choice sim-choice--scenario"
+                         data-simulation-setup-target="scenarioOption"
+                         data-workflow="<%= target["key"] %>"
+                         <%= "hidden" unless target_index.zero? %>>
+                    <%= radio_button_tag "simulation[scenario_key]", scenario["key"], target_index.zero? && scenario_index.zero?,
+                          class: "sim-choice__input",
+                          data: { simulation_setup_target: "scenario", action: "simulation-setup#selectScenario", workflow: target["key"], label: scenario["label"], outcome: outcome_label } %>
+                    <span class="sim-choice__body">
+                      <span class="sim-choice__title"><%= scenario["label"] %></span>
+                      <span class="sim-choice__description"><%= scenario["description"] %></span>
+                      <span class="sim-choice__meta"><%= t(".expected_outcome", outcome: outcome_label) %></span>
+                    </span>
+                    <span class="sim-choice__check" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+                  </label>
+                <% end %>
+              <% end %>
+            </div>
+          </fieldset>
+
+          <%# Resumo técnico dos parâmetros fixos do experimento + resultado esperado do cenário. %>
+          <dl class="sim-params">
+            <div class="sim-params__row">
+              <dt><%= t(".params.counterpart") %></dt>
+              <dd><%= t(".params.counterpart_value") %></dd>
+            </div>
+            <div class="sim-params__row">
+              <dt><%= t(".params.channel") %></dt>
+              <dd><%= t(".params.channel_value") %></dd>
+            </div>
+            <div class="sim-params__row">
+              <dt><%= t(".params.expected") %></dt>
+              <dd class="sim-params__value--mono" data-simulation-setup-target="expectedOutcome"><%= t("simulations.call_results.#{default_scenario["expected_outcome"]}", default: default_scenario["expected_outcome"]) %></dd>
+            </div>
+          </dl>
+        </section>
+
+        <%# Barra de execução: parâmetros resolvidos + ação de lançar. %>
+        <div class="sim-launch">
+          <div class="sim-launch__info">
+            <span class="sim-launch__kicker"><%= t(".launch_kicker") %></span>
+            <div class="sim-launch__params">
+              <span class="sim-launch__chip sim-launch__chip--mode"><%= available_mode["label"] %></span>
+              <span class="sim-launch__sep" aria-hidden="true">/</span>
+              <span class="sim-launch__chip" data-simulation-setup-target="workflowSummary"><%= default_target["label"] %></span>
+              <span class="sim-launch__sep" aria-hidden="true">/</span>
+              <span class="sim-launch__chip" data-simulation-setup-target="scenarioSummary"><%= default_scenario["label"] %></span>
+            </div>
+          </div>
+          <% if current_membership.can_start_validation? %>
+            <%= form.submit t(".start"), class: workspace_button_class(:primary, "sim-launch__button") %>
+          <% else %>
+            <p class="sim-setup__forbidden"><%= t("simulations.messages.forbidden") %></p>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

@@ -12,8 +12,8 @@ module ValidationApi
       client.get(path, headers: bearer_headers(api_token), query: query)
     end
 
-    def authorized_post(path, api_token:, body: nil, query: {})
-      client.post(path, headers: bearer_headers(api_token), body: body, query: query)
+    def authorized_post(path, api_token:, body: nil, query: {}, timeout_ms: 20_000)
+      client.post(path, headers: bearer_headers(api_token), body: body, query: query, timeout_ms: timeout_ms)
     end
 
     def authorized_put(path, api_token:, body: nil, query: {})
@@ -26,6 +26,10 @@ module ValidationApi
 
     def bearer_headers(api_token)
       client.bearer_headers(api_token)
+    end
+
+    def escape_path_segment(value)
+      ERB::Util.url_encode(value.to_s)
     end
   end
 end

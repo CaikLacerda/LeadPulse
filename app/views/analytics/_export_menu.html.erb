@@ -1,0 +1,29 @@
+<%# Exportações com os filtros atuais. Os links saem do turbo-frame (download comum). %>
+<% export_params = @filters.to_params(table: true).except(:page) %>
+<details data-controller="action-menu" class="relative inline-block text-left analytics-export">
+  <summary class="<%= workspace_button_class(:secondary, nil, size: :sm) %>" aria-label="<%= t("analytics.export.menu_aria") %>">
+    <%= workspace_icon(:download) %><span><%= t("analytics.export.menu") %></span><%= workspace_icon(:chevron_down, classes: "text-[0.625rem]") %>
+  </summary>
+
+  <div class="workspace-menu absolute right-0 top-full z-20 mt-1 w-80">
+    <%= link_to export_analytics_path(export_params.merge(format: :xlsx)), class: "workspace-menu-item analytics-export__item", data: { turbo: false } do %>
+      <i class="fa-solid fa-file-excel" aria-hidden="true"></i>
+      <span>
+        <span class="analytics-export__label"><%= t("analytics.export.xlsx") %></span>
+        <span class="analytics-export__hint"><%= t(current_membership.can_export_data? ? "analytics.export.xlsx_records_hint" : "analytics.export.xlsx_hint") %></span>
+      </span>
+    <% end %>
+
+    <% if current_membership.can_export_data? %>
+      <% { "registros" => "records_csv", "chamadas" => "attempts_csv" }.each do |dataset, label| %>
+        <%= link_to export_analytics_path(export_params.merge(format: :csv, conjunto: dataset)), class: "workspace-menu-item analytics-export__item", data: { turbo: false } do %>
+          <i class="fa-solid fa-file-csv" aria-hidden="true"></i>
+          <span>
+            <span class="analytics-export__label"><%= t("analytics.export.#{label}") %></span>
+            <span class="analytics-export__hint"><%= t("analytics.export.csv_hint") %></span>
+          </span>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+</details>

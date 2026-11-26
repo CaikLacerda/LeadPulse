@@ -1,0 +1,39 @@
+<%# Funil analítico. locals: title, steps (AnalyticsHelper::FunnelStep), note (opcional)
+    Cada etapa: volume, participação no total e, a partir da segunda, a passagem da etapa
+    anterior e quantos ficaram pelo caminho. Etapas com drill-down levam aos registros. %>
+<% note = local_assigns[:note] %>
+<%= portlet_form(title, [], class: "analytics-funnel-panel", body_class: "analytics-funnel__body") do %>
+  <ol class="analytics-funnel">
+    <% steps.each do |step| %>
+      <li class="analytics-funnel__step">
+        <% if step.passage %>
+          <p class="analytics-funnel__passage">
+            <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+            <span><%= t("analytics.funnel_passage", rate: analytics_percent(step.passage.value)) %></span>
+            <% if step.passage.low_sample? %><%= analytics_low_sample_flag(sample: step.passage.sample) %><% end %>
+            <% if step.lost.to_i.positive? %>
+              <span class="analytics-funnel__lost"><%= t("analytics.funnel_lost", count: analytics_count(step.lost)) %></span>
+            <% end %>
+          </p>
+        <% end %>
+        <div class="analytics-funnel__head">
+          <span class="analytics-funnel__label">
+            <% if step.link %>
+              <%= link_to step.label, step.link, class: "analytics-drill-link", data: { turbo_frame: "analytics_content", turbo_action: "advance" } %>
+            <% else %>
+              <%= step.label %>
+            <% end %>
+          </span>
+          <span class="analytics-funnel__count"><%= analytics_count(step.count) %></span>
+          <span class="analytics-funnel__share"><%= t("analytics.funnel_share", rate: analytics_percent(step.share.value)) %></span>
+        </div>
+        <div class="analytics-funnel__track" aria-hidden="true">
+          <span class="analytics-funnel__bar" style="--analytics-funnel-share: <%= ((step.share.value || 0) * 100).round(2) %>%"></span>
+        </div>
+      </li>
+    <% end %>
+  </ol>
+  <% if note.present? %>
+    <p class="analytics-chart__note"><%= note %></p>
+  <% end %>
+<% end %>

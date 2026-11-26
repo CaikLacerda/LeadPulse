@@ -1,0 +1,34 @@
+<% summary = @page[:summary] %>
+<% searches = @page[:searches] %>
+<% reviews = @page[:reviews] %>
+
+<%= render layout: "analytics/frame" do %>
+  <% if summary.failed? %>
+    <%= analytics_section_error %>
+  <% else %>
+    <% data = summary.data %>
+    <% metrics = data[:metrics].dup %>
+    <% metrics[:searches] = searches.data[:metrics][:searches] unless searches.failed? %>
+    <%= render "analytics/kpis", metrics: metrics, page: :qualification %>
+
+    <%= render "analytics/funnel",
+        title: t("analytics.sections.commercial_funnel"),
+        note: (t("analytics.outside_funnel", count: data[:outside_funnel]) if data[:outside_funnel].positive?),
+        steps: analytics_funnel_steps(data[:funnel], scope: :commercial_funnel, links: {
+          records: analytics_drill_path(:records, fluxo: SupplierImport::WORKFLOW_KIND_SUPPLIER),
+          qualified: analytics_drill_path(:records, qualificacao: "qualified_supplier")
+        }) %>
+
+    <div class="analytics-grid">
+      <%= render "analytics/chart",
+          key: "outcomes",
+          title: t("analytics.sections.outcomes"),
+          **analytics_outcomes_chart(t("analytics.sections.outcomes"), data[:by_outcome]) %>
+
+      <%= render "analytics/by_source", sources: data[:by_source] %>
+    </div>
+
+    <%= render "analytics/segments", section: searches %>
+    <%= render "analytics/reviews", section: reviews %>
+  <% end %>
+<% end %>

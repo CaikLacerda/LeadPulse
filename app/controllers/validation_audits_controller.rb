@@ -4,9 +4,19 @@ class ValidationAuditsController < ApplicationController
   PER_PAGE = 5
 
   before_action :authenticate_user!
+  require_permission :can_view_evidence?, message: "Seu perfil não possui permissão para visualizar auditorias."
 
   def index
-    entries = SupplierImports::AuditEntriesService.call(user: current_user)
+    if current_membership.can_view_evidence?
+      PrivacyAudit::Logger.log!(
+        account: current_account,
+        user: current_user,
+        action: "validation_audit_evidence_viewed",
+        metadata: { query: params[:q].presence, page: params[:page].presence }
+      )
+    end
+
+    entries = SupplierImports::AuditEntriesService.call(account: current_account)
     entries = filter_entries(entries)
 
     pagination = paginate_array(entries, page_param: params[:page], per_page: PER_PAGE)
@@ -32,7 +42,7 @@ class ValidationAuditsController < ApplicationController
         entry.summary,
         entry.customer_transcript,
         entry.assistant_transcript
-      ].compact.join(' ').downcase.include?(query)
+      ].compact.join(" ").downcase.include?(query)
     end
   end
 end

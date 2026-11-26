@@ -1,0 +1,24 @@
+{
+  "landing": {
+    "title": "LeadPulse · Prospecção e validação de fornecedores por voz com IA",
+    "description": "O LeadPulse encontra fornecedores no seu recorte, valida por voz com IA e entrega resultados com transcrição, revisão humana e exportação.",
+    "canonical": "http://127.0.0.1:3107/",
+    "h1": 1,
+    "ogImage": "http://127.0.0.1:3107/assets/landing/og-leadpulse-db9ee6a0.jpg",
+    "hero": {
+      "src": "http://127.0.0.1:3107/assets/landing/produto-analytics-800-17e62d9b.webp",
+      "loading": "eager",
+      "priority": "high",
+      "width": 601
+    }
+  },
+  "loading": {
+    "disabled": true,
+    "label": "Entrando…",
+    "busy": "true",
+    "passwordType": "password",
+    "spinnerAnimation": "none"
+  },
+  "submitRequests": 1,
+  "invalidLoginReturned": true
+}

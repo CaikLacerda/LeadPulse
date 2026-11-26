@@ -1,0 +1,32 @@
+<% points = Array(local_assigns[:points]) %>
+<% title = local_assigns[:title].presence || 'Localização dos fornecedores' %>
+<% meta = local_assigns[:meta].presence || supplier_location_map_meta(points) %>
+<% empty_message = local_assigns[:empty_message].presence || 'Nenhum fornecedor com localização confirmada foi encontrado ainda.' %>
+
+<% legend = capture do %>
+  <% if points.any? %>
+    <span class="hidden items-center gap-3 sm:inline-flex" aria-hidden="true">
+      <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-brand"></span>Exata</span>
+      <span class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-fg-subtle"></span>Aproximada</span>
+    </span>
+  <% end %>
+  <span class="workspace-portlet-meta"><%= meta %></span>
+<% end %>
+
+<%= portlet_form(title, legend, body_class: 'workspace-portlet-body--flush', data: local_assigns[:data]) do %>
+  <% if points.any? %>
+    <div class="supplier-location-map"
+         data-controller="supplier-map"
+         data-supplier-map-points-value="<%= points.to_json %>">
+      <div class="supplier-location-map__canvas supplier-location-map__canvas--dynamic">
+        <div class="supplier-location-map__map" data-supplier-map-target="canvas" role="application" aria-label="<%= title %>. Use o mouse ou o teclado para navegar pelo mapa."></div>
+        <div class="supplier-location-map__placeholder" data-supplier-map-target="placeholder" hidden>
+          <strong>Mapa indisponível</strong>
+          <span>Não foi possível carregar os dados cartográficos do OpenStreetMap.</span>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <p class="supplier-location-map__empty"><%= empty_message %></p>
+  <% end %>
+<% end %>

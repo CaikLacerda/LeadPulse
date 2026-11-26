@@ -1,0 +1,45 @@
+<%# Resumo do processamento ao lado do histograma: os mesmos percentis dos KPIs, os extremos
+    (mais rápido e mais lento, pelo mesmo relógio da tabela) e o tamanho da cauda longa.
+    locals: metrics, processing, bins %>
+<% measured = processing[:measured] %>
+<% tail = bins.to_h.fetch("over_1d", 0) %>
+<% batch = ->(extreme) { workspace_code_tag(analytics_batch_code(extreme[:id]), current_membership.can_view_evidence? ? supplier_import_path(extreme[:id]) : nil) } %>
+<%= portlet_form(t("analytics.processing_summary.title"), [], class: "analytics-processing-summary", body_class: "workspace-portlet-body--flush") do %>
+  <dl class="analytics-stat-list">
+    <div class="analytics-stat">
+      <dt><%= t("analytics.processing_summary.median") %></dt>
+      <dd><strong><%= analytics_duration(metrics[:median_processing].current.value) %></strong></dd>
+    </div>
+    <div class="analytics-stat">
+      <dt><%= t("analytics.processing_summary.p90") %></dt>
+      <dd><strong><%= analytics_duration(metrics[:p90_processing].current.value) %></strong></dd>
+    </div>
+    <% if processing[:fastest] %>
+      <div class="analytics-stat">
+        <dt><%= t("analytics.processing_summary.fastest") %></dt>
+        <dd><strong><%= analytics_duration(processing[:fastest][:seconds]) %></strong><%= batch.call(processing[:fastest]) %></dd>
+      </div>
+    <% end %>
+    <% if processing[:slowest] %>
+      <div class="analytics-stat">
+        <dt><%= t("analytics.processing_summary.slowest") %></dt>
+        <dd><strong><%= analytics_duration(processing[:slowest][:seconds]) %></strong><%= batch.call(processing[:slowest]) %></dd>
+      </div>
+    <% end %>
+    <div class="analytics-stat <%= 'analytics-stat--tail' if tail.positive? %>">
+      <dt><%= t("analytics.processing_summary.tail") %></dt>
+      <dd>
+        <strong><%= t("analytics.processing_summary.batches", count: tail, formatted: analytics_count(tail)) %></strong>
+        <span><%= analytics_percent(measured.positive? ? tail.to_f / measured : nil) %> <%= t("analytics.processing_summary.of_measured") %></span>
+      </dd>
+    </div>
+    <div class="analytics-stat">
+      <dt><%= t("analytics.processing_summary.volume") %></dt>
+      <dd>
+        <strong><%= t("analytics.processing_summary.records", count: metrics[:records].current.value, formatted: analytics_count(metrics[:records].current.value)) %></strong>
+        <span><%= t("analytics.processing_summary.in_batches", count: metrics[:batches].current.value, formatted: analytics_count(metrics[:batches].current.value)) %></span>
+      </dd>
+    </div>
+  </dl>
+  <p class="analytics-chart__note"><%= t("analytics.processing_summary.coverage", measured: analytics_count(measured), total: analytics_count(metrics[:batches].current.value)) %></p>
+<% end %>

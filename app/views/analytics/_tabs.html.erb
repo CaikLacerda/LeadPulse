@@ -1,0 +1,12 @@
+<div class="analytics-toolbar">
+  <nav class="settings-tab-rail analytics-tabs" aria-label="<%= t("analytics.tabs.aria") %>">
+    <% analytics_tabs.each do |key, path| %>
+      <% active = action_name == key.to_s %>
+      <%= link_to t("analytics.tabs.#{key}"), path,
+          class: "settings-tab #{'settings-tab--active' if active}",
+          aria: { current: (active ? "page" : nil) } %>
+    <% end %>
+  </nav>
+
+  <%= render "analytics/export_menu" %>
+</div>

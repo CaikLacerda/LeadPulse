@@ -1,0 +1,52 @@
+<% content_for :title, "Convite · LeadPulse" %>
+
+<% if @invitation.nil? %>
+  <h1 class="auth-title">Convite inválido</h1>
+  <p class="auth-description">Este link não é válido. Confira se ele foi copiado por inteiro ou peça um novo convite ao administrador da empresa.</p>
+<% elsif !@invitation.pending? %>
+  <% messages = {
+       accepted: ["Convite já usado", "Este convite já foi aceito. Entre com a sua conta para acessar a empresa."],
+       canceled: ["Convite cancelado", "Este convite foi cancelado pelo administrador da empresa."],
+       expired: ["Convite expirado", "Este convite passou da validade. Peça um novo ao administrador da empresa."]
+     } %>
+  <% title, description = messages.fetch(@invitation.status) %>
+  <h1 class="auth-title"><%= title %></h1>
+  <p class="auth-description"><%= description %></p>
+  <p class="auth-footer"><%= link_to "Ir para o login", new_user_session_path, class: "workspace-link" %></p>
+<% else %>
+  <% company = @invitation.account.validation_company_name_value %>
+  <h1 class="auth-title">Convite para <%= company %></h1>
+  <p class="auth-description">
+    <%= @invitation.invited_by&.name.presence || "Um administrador" %> convidou você para a equipe no LeadPulse.
+  </p>
+
+  <%= render "devise/shared/messages" %>
+
+  <dl class="invitation-summary">
+    <dt>Empresa</dt><dd><%= company %></dd>
+    <dt>Papel</dt><dd><%= @invitation.role_label %></dd>
+    <dt>E-mail</dt><dd><%= @invitation.email %></dd>
+    <dt>Válido até</dt><dd><%= workspace_datetime(@invitation.expires_at) %></dd>
+  </dl>
+
+  <% if user_signed_in? %>
+    <% if @invitation.for_email?(current_user.email) %>
+      <div class="invitation-actions">
+        <%= button_to "Aceitar convite", accept_invitation_path(params[:token]), class: workspace_button_class(:primary), form: { data: { turbo_submits_with: "Entrando…" } } %>
+      </div>
+    <% else %>
+      <div class="workspace-callout workspace-callout--warning" role="status">
+        <%= workspace_icon(:warning) %>
+        <p>Você entrou como <strong><%= current_user.email %></strong>, mas este convite é para <strong><%= @invitation.email %></strong>.</p>
+      </div>
+      <div class="invitation-actions mt-4">
+        <%= button_to "Sair e entrar com outro e-mail", destroy_user_session_path, method: :delete, class: workspace_button_class(:secondary) %>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="invitation-actions">
+      <%= link_to "Entrar para aceitar", new_user_session_path(user: { email: @invitation.email }), class: workspace_button_class(:primary) %>
+      <%= link_to "Criar conta", new_user_registration_path(email: @invitation.email), class: workspace_button_class(:secondary) %>
+    </div>
+  <% end %>
+<% end %>

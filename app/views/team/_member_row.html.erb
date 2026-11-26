@@ -1,0 +1,51 @@
+<% self_row = membership.user_id == current_user.id %>
+<% editable = manage && !self_row && membership.active? %>
+<tr class="<%= 'team-table__row--muted' if membership.disabled? %>">
+  <td>
+    <span class="team-person">
+      <span class="team-avatar" aria-hidden="true"><%= membership.user.name.split.first(2).map { |part| part[0] }.join.upcase %></span>
+      <span class="workspace-table__primary"><%= membership.user.name %></span>
+      <% if self_row %><span class="workspace-tag">Você</span><% end %>
+    </span>
+  </td>
+  <td class="team-table__email"><%= membership.user.email %></td>
+  <td>
+    <% if editable %>
+      <%= form_with model: membership, url: team_member_path(membership), method: :patch, class: "team-role-form",
+            data: { controller: "role-select" } do |f| %>
+        <%= f.select :role, AccountMembership::ROLES.map { |value, label| [label, value] }, {},
+              class: "settings-input team-role-form__select", aria: { label: "Papel de #{membership.user.name}" },
+              data: { role_select_target: "select", action: "change->role-select#changed", initial: membership.role } %>
+        <%= workspace_button_tag "Salvar", type: :submit, name: nil, variant: :secondary, size: :sm,
+              data: { role_select_target: "submit" } %>
+      <% end %>
+    <% else %>
+      <%= membership.role_label %>
+    <% end %>
+  </td>
+  <td><%= status_badge(membership.status_label, tone: membership.active? ? :success : :neutral) %></td>
+  <td class="is-nowrap"><%= workspace_date(membership.created_at) %></td>
+  <% if manage %>
+    <td class="is-actions">
+      <% unless self_row %>
+        <details data-controller="action-menu" data-action-menu-floating-value="true" class="relative inline-block text-left">
+          <summary class="workspace-row-menu-trigger" aria-label="Ações para <%= membership.user.name %>">
+            <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+          </summary>
+          <div class="workspace-menu absolute right-0 top-full w-56">
+            <% if membership.active? %>
+              <%= button_to team_member_path(membership), method: :delete, class: "workspace-menu-item workspace-menu-item--danger",
+                    form: { data: { turbo_confirm: "#{membership.user.name} perde o acesso à empresa. O usuário e o histórico continuam.", turbo_confirm_title: "Remover da empresa?", turbo_confirm_confirm_label: "Remover", turbo_confirm_cancel_label: "Cancelar", turbo_confirm_variant: "danger" } } do %>
+                <i class="fa-solid fa-user-minus" aria-hidden="true"></i><span>Remover da empresa</span>
+              <% end %>
+            <% else %>
+              <%= button_to reactivate_team_member_path(membership), method: :patch, class: "workspace-menu-item" do %>
+                <i class="fa-solid fa-user-check" aria-hidden="true"></i><span>Reativar acesso</span>
+              <% end %>
+            <% end %>
+          </div>
+        </details>
+      <% end %>
+    </td>
+  <% end %>
+</tr>

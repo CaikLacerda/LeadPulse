@@ -1,0 +1,4 @@
+<%# Status de um campo avaliado. locals: status %>
+<span class="sim-field-status sim-field-status--<%= status %>">
+  <%= t("simulations.field_statuses.#{status}", default: status.to_s.humanize) %>
+</span>

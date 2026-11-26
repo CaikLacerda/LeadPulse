@@ -1,0 +1,42 @@
+<% permissions = [
+     ["Consultar lotes, resultados e Analytics", %w[admin manager operator auditor viewer]],
+     ["Ver evidências (transcrições e gravações)", %w[admin manager operator auditor]],
+     ["Iniciar validações", %w[admin manager operator]],
+     ["Importar planilhas", %w[admin manager]],
+     ["Exportar dados por registro", %w[admin manager auditor]],
+     ["Configurações, integrações e LGPD", %w[admin]],
+     ["Equipe e tokens de BI", %w[admin]]
+   ] %>
+<details class="workspace-portlet team-roles">
+  <summary class="team-roles__summary">
+    <span>Permissões por papel</span>
+    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+  </summary>
+  <div class="workspace-table-wrap">
+    <table class="workspace-table">
+      <caption class="sr-only">Permissões de cada papel na empresa</caption>
+      <thead>
+        <tr>
+          <th scope="col">Permissão</th>
+          <% AccountMembership::ROLES.each_value do |label| %><th scope="col" class="text-center"><%= label %></th><% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% permissions.each do |label, roles| %>
+          <tr>
+            <td><%= label %></td>
+            <% AccountMembership::ROLES.each_key do |role| %>
+              <td class="text-center">
+                <% if roles.include?(role) %>
+                  <i class="fa-solid fa-check text-success-fg" aria-hidden="true"></i><span class="sr-only">Sim</span>
+                <% else %>
+                  <span class="text-fg-subtle" aria-hidden="true">—</span><span class="sr-only">Não</span>
+                <% end %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</details>

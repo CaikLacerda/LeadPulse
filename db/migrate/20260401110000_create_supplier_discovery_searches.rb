@@ -20,6 +20,6 @@ class CreateSupplierDiscoverySearches < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :supplier_discovery_searches, [:user_id, :search_id], unique: true
+    add_index :supplier_discovery_searches, [ :user_id, :search_id ], unique: true
   end
 end

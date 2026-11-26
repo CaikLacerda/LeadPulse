@@ -1,0 +1,24 @@
+const {chromium}=require('playwright');
+const fs=require('fs');
+const assert=require('assert/strict');
+(async()=>{
+ const browser=await chromium.launch({executablePath:process.env.BROWSER_EXECUTABLE,args:['--no-sandbox','--disable-dev-shm-usage']});
+ const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'});
+ await page.goto((process.env.PUBLIC_UI_URL || 'http://127.0.0.1:3107')+'/',{waitUntil:'networkidle'});
+ const landing=await page.evaluate(()=>({title:document.title,description:document.querySelector('meta[name="description"]').content,canonical:document.querySelector('link[rel="canonical"]').href,h1:document.querySelectorAll('h1').length,ogImage:document.querySelector('meta[property="og:image"]').content,hero:{src:document.querySelector('.landing-hero img').currentSrc,loading:document.querySelector('.landing-hero img').loading,priority:document.querySelector('.landing-hero img').fetchPriority,width:document.querySelector('.landing-hero img').width}}));
+ assert.equal(landing.h1,1);assert.equal(landing.hero.loading,'eager');assert.equal(landing.hero.priority,'high');
+ await page.goto((process.env.PUBLIC_UI_URL || 'http://127.0.0.1:3107')+'/users/sign_in',{waitUntil:'networkidle'});
+ await page.locator('#user_email').fill('ui-check-no-account@example.test');await page.locator('#user_password').fill('ui-check-password');
+ await page.getByRole('button',{name:'Mostrar senha'}).click();
+ let release;const pending=new Promise(resolve=>{release=resolve});let posts=0;
+ await page.route('**/users/sign_in',async route=>{if(route.request().method()==='POST'){posts++;await pending}await route.continue()});
+ await page.getByRole('button',{name:'Entrar',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('.auth-form').getAttribute('aria-busy')==='true');
+ const loading=await page.evaluate(()=>{const b=document.querySelector('.auth-submit');return {disabled:b.disabled,label:b.textContent.trim(),busy:document.querySelector('.auth-form').getAttribute('aria-busy'),passwordType:document.querySelector('#user_password').type,spinnerAnimation:getComputedStyle(b,'::before').animationName}});
+ assert.equal(loading.disabled,true);assert.equal(loading.label,'Entrando…');assert.equal(loading.passwordType,'password');assert.equal(loading.spinnerAnimation,'none');
+ await page.locator('.auth-submit').evaluate(e=>{e.click();e.click()});assert.equal(posts,1);
+ release();await page.waitForFunction(()=>!document.querySelector('.auth-form')?.hasAttribute('aria-busy'));await page.waitForLoadState('networkidle');
+ const screenshotRoot=require('path').resolve(__dirname, '..');
+ fs.writeFileSync(screenshotRoot+'/verificacao-final.json',JSON.stringify({landing,loading,submitRequests:posts,invalidLoginReturned:await page.locator('.auth-submit').isEnabled()},null,2));
+ await browser.close();console.log(JSON.stringify({landing,loading,submitRequests:posts}));
+})().catch(e=>{console.error(e);process.exit(1)});

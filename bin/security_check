@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+require "open3"
+require "digest"
+
+root = File.expand_path("..", __dir__)
+files, status = Open3.capture2("git", "-C", root, "ls-files", "-z")
+abort "Cannot inspect Git index" unless status.success?
+blocked = files.split("\0").select do |path|
+  path.match?(%r{(?:\A|/)master\.key\z|\Aconfig/credentials/.*\.key\z|(?:\A|/)\.env(?:\.|\z)}) && !path.end_with?(".example")
+end
+abort "Secret files in Git index: #{blocked.join(', ')}" if blocked.any?
+
+if ARGV.include?("--deployment")
+  require_relative "../config/environment"
+  require_relative "../lib/security/compromised_key_guard"
+  key_path = Rails.application.config.credentials.key_path
+  key = ENV["RAILS_MASTER_KEY"].presence || (File.read(key_path).strip if File.file?(key_path))
+  abort "Rails master key missing" if key.blank?
+  Security::CompromisedKeyGuard.check!(key)
+  # A new wrapping key is insufficient when secret_key_base is unchanged.
+  Security::CompromisedKeyGuard.check_secret_key_base!(Rails.application.secret_key_base)
+end
+puts "Security guard: OK (no secret values emitted)"

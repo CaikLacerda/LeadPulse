@@ -1,0 +1,55 @@
+<%= workspace_page do %>
+  <%= workspace_page_header(title: t(".title"), description: t(".description")) do %>
+    <% if current_membership.can_start_validation? %>
+      <%= workspace_link_button(new_simulation_path, variant: :primary) do %>
+        <%= workspace_icon(:plus) %><span><%= t(".new_simulation") %></span>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <div class="sim-lab">
+    <% if @active_simulation.present? %>
+      <%= link_to simulation_path(@active_simulation), class: "sim-lab__active-banner" do %>
+        <span class="sim-lab__active-pulse" aria-hidden="true"></span>
+        <span class="sim-lab__active-text">
+          <strong><%= t(".active_banner_title") %></strong>
+          <span><%= t(".active_banner_hint", code: @active_simulation.display_code) %></span>
+        </span>
+        <span class="sim-lab__active-go"><%= workspace_icon(:chevron_right) %></span>
+      <% end %>
+    <% end %>
+
+    <section class="workspace-portlet">
+      <div class="workspace-table-wrap">
+        <table class="workspace-table">
+          <thead>
+            <tr>
+              <th scope="col"><%= t(".table.code") %></th>
+              <th scope="col"><%= t(".table.workflow") %></th>
+              <th scope="col"><%= t(".table.scenario") %></th>
+              <th scope="col"><%= t(".table.status") %></th>
+              <th scope="col" class="is-numeric"><%= t(".table.accuracy") %></th>
+              <th scope="col"><%= t(".table.started_at") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @simulations.empty? %>
+              <%= workspace_empty_table_row(colspan: 6, message: t(".empty.title"), hint: t(".empty.hint")) %>
+            <% else %>
+              <% @simulations.each do |simulation| %>
+                <tr>
+                  <td><%= workspace_code_tag(simulation.display_code, simulation_path(simulation)) %></td>
+                  <td><%= t("simulations.workflows.#{simulation.workflow_key}", default: simulation.workflow_key) %></td>
+                  <td><%= t("simulations.scenarios.#{simulation.scenario_key}", default: simulation.scenario_key) %></td>
+                  <td><%= render "simulations/status_badge", status: simulation.status %></td>
+                  <td class="is-numeric"><%= simulation.accuracy.present? ? number_to_percentage(simulation.accuracy * 100, precision: 0) : "—" %></td>
+                  <td><%= workspace_datetime_cell(simulation.created_at) %></td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+<% end %>

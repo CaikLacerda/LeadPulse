@@ -1,0 +1,41 @@
+<%# Rodapé público (landing, termos e privacidade). Só links que existem. %>
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__brand">
+      <%= link_to root_path, class: 'site-header__brand' do %>
+        <%= render 'shared/app_logo' %>
+      <% end %>
+      <p>Busca de fornecedores, validação por voz com IA e auditoria das chamadas.</p>
+    </div>
+
+    <nav class="site-footer__columns" aria-label="Rodapé">
+      <div>
+        <p class="site-footer__title">Produto</p>
+        <ul>
+          <li><%= link_to 'Como funciona', root_path(anchor: 'como-funciona') %></li>
+          <li><%= link_to 'Recursos', root_path(anchor: 'recursos') %></li>
+          <li><%= link_to 'Planos', root_path(anchor: 'planos') %></li>
+        </ul>
+      </div>
+      <div>
+        <p class="site-footer__title">Empresa</p>
+        <ul>
+          <li><%= link_to 'Sobre', root_path(anchor: 'sobre') %></li>
+          <li><%= link_to 'Contato', root_path(anchor: 'contato') %></li>
+          <li><%= link_to 'Entrar', new_user_session_path %></li>
+        </ul>
+      </div>
+      <div>
+        <p class="site-footer__title">Legal</p>
+        <ul>
+          <li><%= link_to 'Termos de Serviço', terms_path %></li>
+          <li><%= link_to 'Política de Privacidade', privacy_path %></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <div class="site-footer__bottom">
+    <p>© <%= Date.current.year %> LeadPulse</p>
+  </div>
+</footer>

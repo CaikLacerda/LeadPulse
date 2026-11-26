@@ -1,0 +1,45 @@
+<% summary = @page[:summary] %>
+<% evolution = @page[:evolution] %>
+
+<%= render layout: "analytics/frame" do %>
+  <% if summary.failed? %>
+    <%= analytics_section_error %>
+  <% elsif summary.data[:metrics][:records].current.value.zero? && summary.data[:metrics][:batches].current.value.zero? %>
+    <%= render "analytics/empty" %>
+  <% else %>
+    <% data = summary.data %>
+    <%= render "analytics/kpis", metrics: data[:metrics], page: :overview,
+          links: { records: (analytics_drill_path(:records) if analytics_drill?), batches: batches_analytics_path(@filters.to_params) }.compact %>
+
+    <% coverage = data[:duration_coverage] %>
+    <%= render "analytics/notes", notes: [
+          (t("analytics.awaiting_sync", count: data[:awaiting_sync]) if data[:awaiting_sync].positive?),
+          (t("analytics.duration_coverage", value: analytics_percent(coverage.value), count: analytics_count(coverage.numerator), total: analytics_count(coverage.sample)) if coverage.available?)
+        ] %>
+
+    <%= render "analytics/chart",
+        key: "evolution",
+        title: t("analytics.sections.evolution"),
+        section: evolution,
+        controls: render("analytics/grouping_toggle"),
+        **(evolution.failed? ? { head: [], rows: [] } : analytics_evolution_chart(evolution.data)) %>
+
+    <div class="analytics-grid">
+      <%= render "analytics/chart",
+          key: "results",
+          title: t("analytics.sections.results"),
+          **analytics_distribution_chart(t("analytics.sections.results"), data[:results], drill: [ :records, "resultado" ]) %>
+
+      <%= render "analytics/funnel",
+          title: t("analytics.sections.funnel"),
+          steps: analytics_funnel_steps(data[:funnel], scope: :funnel, links: {
+            sent: analytics_drill_path(:records),
+            called: analytics_drill_path(:records, ligacao: "com_ligacao"),
+            answered: analytics_drill_path(:records, ligacao: "atendidos"),
+            confirmed: analytics_drill_path(:records, resultado: "confirmed")
+          }) %>
+    </div>
+
+    <%= render "analytics/top_batches" %>
+  <% end %>
+<% end %>

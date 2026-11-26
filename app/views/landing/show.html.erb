@@ -1,0 +1,202 @@
+<header class="site-nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#inicio" aria-label="LeadPulse, início"><%= image_tag "landing/brand-lockup.webp", alt: "LeadPulse", width: 512, height: 116 %></a>
+    <button class="menu-toggle" aria-expanded="false" aria-controls="main-navigation">Menu <span aria-hidden="true">＋</span></button>
+    <nav id="main-navigation" aria-label="Navegação principal">
+      <a href="#workflows">Workflows</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#confiabilidade">Simulações</a>
+      <a href="#ecossistema">Ecossistema</a>
+      <%= link_to "Entrar", new_user_session_path, class: "nav-login" %>
+      <a class="button button-small" href="#workflows">Explorar a plataforma</a>
+    </nav>
+  </div>
+</header>
+<main id="conteudo">
+  <section id="inicio" class="hero" aria-labelledby="hero-title">
+    <div class="wrap hero-copy">
+      <h1 id="hero-title">Transforme conversas<br>em processos.</h1>
+      <p class="hero-description">Crie workflows de IA por voz que seguem suas regras, consultam seus sistemas e executam ações durante a conversa.</p>
+      <div class="actions">
+        <a class="button" href="#workflows">Explorar a plataforma <%= landing_icon(:arrow) %></a>
+        <a class="text-link" href="#como-funciona">Ver como funciona <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <div class="wrap hero-film-wrap">
+      <div class="hero-horizon" aria-hidden="true"></div>
+      <div class="hero-film">
+        <video muted loop playsinline preload="none"
+               poster="<%= image_path("landing/hero-film-poster.jpg") %>"
+               data-source="<%= asset_path("landing/hero-film.mp4") %>"
+               aria-label="Animação: chamadas chegam, a IA atende, o workflow decide o caminho e a ação é concluída."></video>
+      </div>
+    </div>
+  </section>
+
+  <%= render "landing/workflow_builder" %>
+  <%= render "landing/conversation" %>
+
+  <section id="integracoes" class="section integrations-section" aria-labelledby="integrations-title">
+    <div class="wrap">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">Tools e integrações</p>
+          <h2 id="integrations-title">A conversa chega<br>aos seus sistemas.</h2>
+        </div>
+        <p class="heading-aside">Consulte informações, registre resultados e acione o próximo passo. Suas ferramentas passam a fazer parte do workflow.</p>
+      </div>
+      <div class="integration-rows">
+        <% [
+          [ "Consultar", "Contexto para decidir.", "Cadastro e histórico", "Pedidos e disponibilidade", "tool" ],
+          [ "Registrar", "A conversa vira ação.", "Chamados e agendamentos", "Atualizações no CRM ou ERP", "check" ],
+          [ "Acionar", "O processo continua.", "Webhooks e sistemas internos", "Mensageria e canais complementares", "flow" ]
+        ].each do |verb, title, first, second, icon| %>
+          <article>
+            <span class="integration-verb"><%= verb %></span>
+            <p><%= title %></p>
+            <div><%= first %><br><%= second %></div>
+            <%= landing_icon(icon) %>
+          </article>
+        <% end %>
+      </div>
+      <p class="section-note">APIs, CRM, ERP, TMS e sistemas internos conectados pela lógica do seu processo.</p>
+    </div>
+  </section>
+
+  <%= render "landing/reliability" %>
+
+  <section id="operacao" class="section operations-section" aria-labelledby="operations-title">
+    <div class="wrap split-layout">
+      <div class="section-copy">
+        <p class="section-label">Observabilidade</p>
+        <h2 id="operations-title">Veja o caminho.<br>Entenda o resultado.</h2>
+        <p>Acompanhe conversas, decisões e ações. Encontre o ponto que precisa de atenção, da visão da operação ao detalhe de uma execução.</p>
+        <dl class="operation-points">
+          <div>
+            <dt>Conversa</dt>
+            <dd>Contexto, transcrição e evidências.</dd>
+          </div>
+          <div>
+            <dt>Execução</dt>
+            <dd>Etapas, ferramentas, tentativas e fallbacks.</dd>
+          </div>
+          <div>
+            <dt>Resultado</dt>
+            <dd>Indicadores, revisão e rastreabilidade.</dd>
+          </div>
+        </dl>
+      </div>
+      <figure class="analytics-figure">
+        <button data-image="<%= image_path("landing/produto-analytics-1600.webp") %>" data-caption="Analytics do LeadPulse. Tela real com dados de demonstração." aria-label="Ampliar tela real de Analytics"><%= image_tag "landing/produto-analytics-1600.webp", width: 1600, height: 1173, alt: "Analytics do LeadPulse com resultados por período e gráfico de registros.", loading: "lazy" %></button>
+        <figcaption>Tela real do LeadPulse com dados de demonstração.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="controle" class="section human-section" aria-labelledby="human-title">
+    <div class="wrap">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">Human-in-the-loop</p>
+          <h2 id="human-title">Automação com espaço<br>para o julgamento humano.</h2>
+        </div>
+        <p class="heading-aside">Defina quando o fluxo executa e quando sua equipe entra. A pessoa certa recebe o contexto para decidir ou continuar a conversa.</p>
+      </div>
+      <div class="human-stages">
+        <% [
+          [ "Antes", "shield", "Aprovar para operar.", "Revise o workflow e seus testes. Estabeleça os critérios de publicação." ],
+          [ "Durante", "person", "Assumir com contexto.", "Encaminhe exceções, autorize ações e transfira a conversa conforme suas regras." ],
+          [ "Depois", "check", "Revisar para melhorar.", "Examine evidências, corrija resultados e use os aprendizados para ajustar o processo." ]
+        ].each do |moment, icon, title, body| %>
+          <article>
+            <span><%= moment %></span><%= landing_icon(icon) %>
+            <h3><%= title %></h3>
+            <p><%= body %></p>
+          </article>
+        <% end %>
+      </div>
+    </div>
+  </section>
+
+  <section id="aplicacoes" class="section usecases-section" aria-labelledby="usecases-title">
+    <div class="wrap">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">Uma plataforma horizontal</p>
+          <h2 id="usecases-title">Seu próximo processo<br>também pode ter voz.</h2>
+        </div>
+        <p class="heading-aside">Mudam as perguntas, os sistemas e as ações. A base para construir e operar continua a mesma.</p>
+      </div>
+      <div class="usecase-list">
+        <% [
+          [ "Suporte e atendimento", "Entenda a solicitação, consulte informações e encaminhe a solução.", "support" ],
+          [ "Comercial e qualificação", "Identifique necessidades, registre contexto e conecte o próximo contato.", "qualification" ],
+          [ "Agendamento e confirmação", "Consulte disponibilidade, registre escolhas e confirme informações.", "scheduling" ]
+        ].each do |title, description, kind| %>
+          <a href="#workflows" data-usecase="<%= kind %>"><h3><%= title %></h3><p><%= description %></p><%= landing_icon(:arrow) %></a>
+        <% end %>
+      </div>
+      <p class="other-usecases">Também para <strong>logística, cobrança, pesquisas, validação e processos internos.</strong></p>
+      <div class="channel-line">
+        <span><%= landing_icon(:phone) %> Chamadas de entrada e saída</span>
+        <span><%= landing_icon(:message) %> Canais complementares no mesmo processo</span>
+      </div>
+    </div>
+  </section>
+
+  <%= render "landing/ecosystem" %>
+
+  <section class="closing-section" aria-labelledby="closing-title">
+    <div class="wrap">
+      <div class="closing-card">
+        <div class="closing-copy">
+          <h2 id="closing-title">O próximo passo<br>começa no seu fluxo.</h2>
+          <div class="actions">
+            <a class="button" href="#workflows">Explorar a plataforma <%= landing_icon(:arrow) %></a>
+            <a class="text-link" href="#integracoes">Conhecer as integrações</a>
+          </div>
+        </div>
+        <%# Same real screen shown in the simulation section; decorative here. %>
+        <div class="closing-shot" aria-hidden="true">
+          <%= image_tag "landing/simulation-live.webp", alt: "", width: 1265, height: 1422, loading: "lazy" %>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div>
+        <a href="#inicio" class="footer-wordmark">LeadPulse</a>
+        <p>Conversas, decisões e ações.<br>Conectadas pelo seu processo.</p>
+      </div>
+      <nav aria-label="Produto">
+        <strong>Plataforma</strong>
+        <a href="#workflows">Workflows</a>
+        <a href="#confiabilidade">Simulações</a>
+        <a href="#operacao">Operação</a>
+      </nav>
+      <nav aria-label="Recursos">
+        <strong>Recursos</strong>
+        <a href="#ecossistema">Ecossistema</a>
+        <%= link_to "Documentação técnica", developer_docs_path %>
+        <%= link_to "Entrar", new_user_session_path %>
+      </nav>
+      <nav aria-label="Informações legais">
+        <strong>Informações</strong>
+        <%= link_to "Termos de serviço", terms_path %>
+        <%= link_to "Privacidade", privacy_path %>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>© <%= Date.current.year %> LeadPulse</span>
+      <span>Transforme conversas em processos.</span>
+    </div>
+  </div>
+</footer>
+<dialog class="image-dialog" aria-labelledby="image-caption">
+  <button class="dialog-close" aria-label="Fechar imagem">Fechar ×</button>
+  <img alt="" width="1600" height="1200">
+  <p id="image-caption"></p>
+</dialog>

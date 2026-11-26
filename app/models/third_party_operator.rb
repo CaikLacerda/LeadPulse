@@ -1,0 +1,26 @@
+class ThirdPartyOperator < ApplicationRecord
+  SERVICE_TYPES = {
+    telephony: "Telefonia",
+    artificial_intelligence: "Inteligência artificial",
+    maps: "Mapas/geolocalização",
+    email: "E-mail",
+    hosting: "Hospedagem/armazenamento",
+    other: "Outro"
+  }.freeze
+
+  belongs_to :account
+  # Quem fez a ação; o isolamento entre empresas é por account.
+  # Autoria (opcional): a empresa é a dona; quem criou pode deixar de existir.
+  belongs_to :created_by, class_name: "User", optional: true
+
+  validates :name, :service_type, presence: true
+  validates :service_type, inclusion: { in: SERVICE_TYPES.keys.map(&:to_s) }
+  validates :name, :technical_owner, length: { maximum: 255 }, allow_blank: true
+  validates :country, length: { maximum: 120 }, allow_blank: true
+  validates :contract_reference, length: { maximum: 255 }, allow_blank: true
+  validates :data_shared, :purpose, length: { maximum: 4_000 }, allow_blank: true
+
+  def service_type_label
+    SERVICE_TYPES.fetch(service_type.to_sym, service_type.to_s.humanize)
+  end
+end

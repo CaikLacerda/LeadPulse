@@ -1,0 +1,146 @@
+/* Menus suspensos (details + summary) usados em ações de linha, exportação e conta. */
+@layer components {
+  .workspace-menu {
+    min-width: 11rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--lp-radius);
+    background: var(--color-surface);
+    padding: 0.25rem;
+    box-shadow: var(--lp-shadow-lg);
+    animation: workspace-menu-enter 120ms var(--lp-ease) both;
+  }
+
+  .workspace-menu form {
+    display: block;
+    width: 100%;
+  }
+
+  .workspace-menu-item {
+    display: flex;
+    min-height: 2rem;
+    width: 100%;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 5px;
+    padding: 0.375rem 0.625rem;
+    color: var(--color-fg-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.125rem;
+    text-align: left;
+    white-space: nowrap;
+    transition: background-color var(--lp-duration) var(--lp-ease), color var(--lp-duration) var(--lp-ease);
+  }
+
+  .workspace-menu-item:hover,
+  .workspace-menu-item:focus-visible {
+    background: var(--color-surface-hover);
+    color: var(--color-fg);
+    outline: none;
+  }
+
+  .workspace-menu-item .fa-solid {
+    width: 0.875rem;
+    flex: none;
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .workspace-menu-item--active {
+    background: var(--color-surface-active);
+    color: var(--color-fg);
+  }
+
+  .workspace-menu-item--danger,
+  .workspace-menu-item--danger .fa-solid {
+    color: var(--color-danger-fg);
+  }
+
+  .workspace-menu-item--danger:hover,
+  .workspace-menu-item--danger:focus-visible {
+    background: var(--color-danger-bg);
+    color: var(--color-danger-fg);
+  }
+
+  .workspace-menu-item--disabled,
+  .workspace-menu-item--disabled:hover {
+    background: transparent;
+    color: var(--color-fg-subtle);
+    pointer-events: none;
+  }
+
+  .workspace-menu-separator {
+    height: 1px;
+    margin: 0.25rem -0.25rem;
+    background: var(--color-line);
+  }
+
+  /* Gatilho de menu por linha de tabela (ícone de reticências). */
+  .workspace-row-menu-trigger,
+  .workspace-summary-button {
+    display: inline-flex;
+    height: 1.875rem;
+    min-width: 1.875rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border: 1px solid transparent;
+    border-radius: var(--lp-radius-sm);
+    padding: 0 0.5rem;
+    color: var(--color-fg-muted);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    list-style: none;
+    transition: background-color var(--lp-duration) var(--lp-ease), color var(--lp-duration) var(--lp-ease), border-color var(--lp-duration) var(--lp-ease);
+  }
+
+  .workspace-summary-button {
+    border-color: var(--color-line-strong);
+    background: var(--color-surface);
+    padding: 0 0.75rem;
+    color: var(--color-fg-secondary);
+    box-shadow: var(--lp-shadow-xs);
+  }
+
+  .workspace-row-menu-trigger:hover,
+  details[open] > .workspace-row-menu-trigger {
+    background: var(--color-surface-active);
+    color: var(--color-fg);
+  }
+
+  .workspace-summary-button:hover,
+  details[open] > .workspace-summary-button {
+    background: var(--color-surface-subtle);
+    color: var(--color-fg);
+  }
+
+  .workspace-row-menu-trigger:focus-visible,
+  .workspace-summary-button:focus-visible {
+    outline: none;
+    box-shadow: var(--lp-focus-ring);
+  }
+
+  /* Menus flutuantes (posicionados pelo action_menu_controller para escapar de áreas com overflow). */
+  .workspace-menu--floating {
+    position: fixed;
+    z-index: 60;
+  }
+}
+
+@keyframes workspace-menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-menu {
+    animation: none;
+  }
+}

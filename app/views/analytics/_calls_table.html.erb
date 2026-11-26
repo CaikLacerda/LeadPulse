@@ -1,0 +1,30 @@
+<%= portlet_form(t("analytics.sections.calls_table.#{@filters.grouping}"), [], body_class: "workspace-portlet-body--flush") do %>
+  <% if section.failed? %>
+    <div class="workspace-portlet-body"><%= analytics_section_error %></div>
+  <% else %>
+    <div class="workspace-table-wrap">
+      <table class="workspace-table">
+        <thead>
+          <tr>
+            <th scope="col"><%= t("analytics.table.period") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.attempts") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.answered") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.answer_rate") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.median_duration") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% section.data[:rows].select { |row| row[:attempts].positive? }.reverse_each do |row| %>
+            <tr>
+              <td><%= analytics_bucket_label(row[:date], section.data[:grouping]) %></td>
+              <td class="is-numeric"><%= analytics_count(row[:attempts]) %></td>
+              <td class="is-numeric"><%= analytics_count(row[:answered]) %></td>
+              <td class="is-numeric"><%= render "analytics/rate_cell", metric: Analytics::Metric.rate(row[:answered], row[:answer_base]) %></td>
+              <td class="is-numeric"><%= render "analytics/rate_cell", metric: Analytics::Metric.duration(row[:median_duration], row[:with_duration]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+<% end %>

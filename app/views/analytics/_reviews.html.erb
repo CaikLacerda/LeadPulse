@@ -1,0 +1,26 @@
+<%= portlet_form(t("analytics.sections.reviews"), [], body_class: "workspace-portlet-body--flush") do %>
+  <% if section.failed? %>
+    <div class="workspace-portlet-body"><%= analytics_section_error %></div>
+  <% elsif section.data[:reviews].value.zero? %>
+    <%= workspace_empty_state(message: t("analytics.reviews.empty")) %>
+  <% else %>
+    <% data = section.data %>
+    <%= workspace_metrics(classes: "workspace-metrics--flush analytics-kpis analytics-kpis--2") do %>
+      <%= content_tag(:div, class: "workspace-metric-card analytics-kpi", data: { metric: "reviews" }) do %>
+        <p class="workspace-metric-card__label"><%= t("analytics.reviews.count") %></p>
+        <p class="workspace-metric-card__value"><%= analytics_count(data[:reviews].value) %></p>
+      <% end %>
+      <%= content_tag(:div, class: "workspace-metric-card analytics-kpi", data: { metric: "altered" }) do %>
+        <p class="workspace-metric-card__label"><%= t("analytics.reviews.altered") %></p>
+        <p class="workspace-metric-card__value"><%= analytics_metric_value(data[:altered]) %></p>
+        <%= analytics_sample(data[:altered]) %>
+      <% end %>
+    <% end %>
+    <p class="analytics-chart__note">
+      <%= t("analytics.reviews.definition") %>
+      <% if data[:unmatched].positive? %>
+        <%= t("analytics.reviews.unmatched", count: data[:unmatched]) %>
+      <% end %>
+    </p>
+  <% end %>
+<% end %>

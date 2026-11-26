@@ -1,0 +1,267 @@
+/*
+  Design tokens do LeadPulse.
+  As cores ficam no namespace do Tailwind (gera utilitários como text-fg, bg-canvas, border-line)
+  e também ficam disponíveis como variáveis CSS para os componentes.
+*/
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  --color-canvas: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f9fafb;
+  --color-surface-hover: #f4f5f7;
+  --color-surface-active: #eceef2;
+
+  --color-line: #e4e7ec;
+  --color-line-subtle: #eef0f3;
+  --color-line-strong: #d0d5dd;
+
+  --color-fg: #101828;
+  --color-fg-secondary: #344054;
+  --color-fg-muted: #667085;
+  --color-fg-subtle: #98a2b3;
+
+  --color-brand: #2563eb;
+  --color-brand-hover: #1d4ed8;
+  --color-brand-active: #1e40af;
+  --color-brand-subtle: #eff4ff;
+  --color-brand-fg: #1d4ed8;
+
+  --color-success-fg: #067647;
+  --color-success-bg: #ecfdf3;
+  --color-success-line: #abefc6;
+  --color-success-dot: #17b26a;
+
+  --color-warning-fg: #b54708;
+  --color-warning-bg: #fffaeb;
+  --color-warning-line: #fedf89;
+  --color-warning-dot: #f79009;
+
+  --color-danger-fg: #b42318;
+  --color-danger-bg: #fef3f2;
+  --color-danger-line: #fecdca;
+  --color-danger-dot: #f04438;
+  --color-danger-solid: #d92d20;
+  --color-danger-solid-hover: #b42318;
+
+  --color-info-fg: #175cd3;
+  --color-info-bg: #eff8ff;
+  --color-info-line: #b2ddff;
+  --color-info-dot: #2e90fa;
+
+  --color-neutral-fg: #344054;
+  --color-neutral-bg: #f9fafb;
+  --color-neutral-line: #e4e7ec;
+  --color-neutral-dot: #98a2b3;
+}
+
+:root {
+  color-scheme: light;
+
+  --lp-logo-accent: linear-gradient(90deg, #0284c7, #2563eb);
+  --lp-avatar-bg: #e0e7ff;
+  --lp-avatar-fg: #3730a3;
+  --lp-row-hover: #fafbfc;
+  --lp-input-hover-border: #b9c0cb;
+  --lp-backdrop: rgba(16, 24, 40, 0.45);
+  --lp-chart-bar: #2563eb;
+  --lp-chart-bar-hover: #1d4ed8;
+  --lp-chart-column-hover: rgba(16, 24, 40, 0.035);
+  /* Resultados nos gráficos do Analytics: ≥ 3:1 sobre a superfície e separáveis com daltonismo. */
+  --lp-chart-confirmed: #067647;
+  --lp-chart-rejected: #b42318;
+  --lp-chart-inconclusive: #dc6803;
+  --lp-chart-not-answered: #667085;
+  --lp-chart-other: #2e90fa;
+  --lp-chart-previous: #98a2b3;
+  --lp-chart-muted: #d0d5dd;
+  --lp-map-canvas: #eef1f5;
+
+  /* Superfícies institucionais (painel do login/cadastro e rodapé público): iguais nos dois temas. */
+  --lp-navy: #0e1525;
+  --lp-navy-raised: #162036;
+  --lp-navy-line: #26324a;
+  --lp-navy-fg: #d0d5dd;
+  --lp-navy-muted: #98a2b3;
+  --lp-navy-link: #a9c4ff;
+  --lp-navy-success: #6ee7a0;
+  /* Laranja da marca só em detalhes: --lp-accent sobre fundo escuro, --lp-accent-fg em texto sobre claro (AA). */
+  --lp-accent: #fb8a2e;
+  --lp-accent-fg: #c2410c;
+
+  --lp-radius-sm: 6px;
+  --lp-radius: 8px;
+  --lp-radius-lg: 12px;
+
+  --lp-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --lp-shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --lp-shadow-lg: 0 12px 16px -4px rgba(16, 24, 40, 0.08), 0 4px 6px -2px rgba(16, 24, 40, 0.03);
+  --lp-shadow-xl: 0 20px 24px -4px rgba(16, 24, 40, 0.1), 0 8px 8px -4px rgba(16, 24, 40, 0.04);
+  --lp-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.24);
+
+  --lp-sidebar-width: 15rem;
+  --lp-sidebar-collapsed-width: 4rem;
+  --lp-topbar-height: 3.5rem;
+
+  --lp-ease: cubic-bezier(0.2, 0, 0, 1);
+  --lp-duration: 140ms;
+}
+
+/*
+  Modo escuro. "Sistema" (padrão) segue o sistema operacional; "Claro" e "Escuro" são escolhas
+  explícitas salvas no cookie lp_theme e aplicadas em <html data-theme>. Os dois blocos têm os mesmos valores.
+*/
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-canvas: #0c0d10;
+    --color-surface: #15171b;
+    --color-surface-subtle: #1a1c21;
+    --color-surface-hover: #202329;
+    --color-surface-active: #272b32;
+
+    --color-line: #2a2e35;
+    --color-line-subtle: #212429;
+    --color-line-strong: #3a3f48;
+
+    --color-fg: #eceef2;
+    --color-fg-secondary: #c6cad2;
+    --color-fg-muted: #8f96a3;
+    --color-fg-subtle: #6b7280;
+
+    --color-brand: #2563eb;
+    --color-brand-hover: #3572f0;
+    --color-brand-active: #1d4ed8;
+    --color-brand-subtle: #172241;
+    --color-brand-fg: #86b0ff;
+
+    --color-success-fg: #6ee7a0;
+    --color-success-bg: #0f2a1c;
+    --color-success-line: #1f5134;
+    --color-success-dot: #22c55e;
+
+    --color-warning-fg: #fbc063;
+    --color-warning-bg: #2c2110;
+    --color-warning-line: #5c4414;
+    --color-warning-dot: #f59e0b;
+
+    --color-danger-fg: #fc9a9a;
+    --color-danger-bg: #2d1414;
+    --color-danger-line: #5e2626;
+    --color-danger-dot: #ef4444;
+    --color-danger-solid: #dc2626;
+    --color-danger-solid-hover: #ef4444;
+
+    --color-info-fg: #8cc2ff;
+    --color-info-bg: #0f2139;
+    --color-info-line: #1e416e;
+    --color-info-dot: #3b8bf6;
+
+    --color-neutral-fg: #c6cad2;
+    --color-neutral-bg: #1f2227;
+    --color-neutral-line: #33373e;
+    --color-neutral-dot: #6b7280;
+
+    --lp-logo-accent: linear-gradient(90deg, #5fd4f4, #3b9eea);
+    --lp-avatar-bg: #202b4a;
+    --lp-avatar-fg: #b4c8ff;
+    --lp-row-hover: #1a1d22;
+    --lp-input-hover-border: #4b515b;
+    --lp-backdrop: rgba(0, 0, 0, 0.6);
+    --lp-chart-bar: #3b82f6;
+    --lp-chart-bar-hover: #60a5fa;
+    --lp-chart-column-hover: rgba(255, 255, 255, 0.04);
+    --lp-chart-confirmed: #75e0a7;
+    --lp-chart-rejected: #d92d20;
+    --lp-chart-inconclusive: #fdb022;
+    --lp-chart-not-answered: #98a2b3;
+    --lp-chart-other: #1570ef;
+    --lp-chart-previous: #6b7280;
+    --lp-chart-muted: #3a3f48;
+    --lp-map-canvas: #1a1c21;
+
+    --lp-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --lp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --lp-shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.55), 0 4px 8px -2px rgba(0, 0, 0, 0.35);
+    --lp-shadow-xl: 0 24px 32px -8px rgba(0, 0, 0, 0.65), 0 8px 12px -4px rgba(0, 0, 0, 0.4);
+    --lp-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.45);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-canvas: #0c0d10;
+  --color-surface: #15171b;
+  --color-surface-subtle: #1a1c21;
+  --color-surface-hover: #202329;
+  --color-surface-active: #272b32;
+
+  --color-line: #2a2e35;
+  --color-line-subtle: #212429;
+  --color-line-strong: #3a3f48;
+
+  --color-fg: #eceef2;
+  --color-fg-secondary: #c6cad2;
+  --color-fg-muted: #8f96a3;
+  --color-fg-subtle: #6b7280;
+
+  --color-brand: #2563eb;
+  --color-brand-hover: #3572f0;
+  --color-brand-active: #1d4ed8;
+  --color-brand-subtle: #172241;
+  --color-brand-fg: #86b0ff;
+
+  --color-success-fg: #6ee7a0;
+  --color-success-bg: #0f2a1c;
+  --color-success-line: #1f5134;
+  --color-success-dot: #22c55e;
+
+  --color-warning-fg: #fbc063;
+  --color-warning-bg: #2c2110;
+  --color-warning-line: #5c4414;
+  --color-warning-dot: #f59e0b;
+
+  --color-danger-fg: #fc9a9a;
+  --color-danger-bg: #2d1414;
+  --color-danger-line: #5e2626;
+  --color-danger-dot: #ef4444;
+  --color-danger-solid: #dc2626;
+  --color-danger-solid-hover: #ef4444;
+
+  --color-info-fg: #8cc2ff;
+  --color-info-bg: #0f2139;
+  --color-info-line: #1e416e;
+  --color-info-dot: #3b8bf6;
+
+  --color-neutral-fg: #c6cad2;
+  --color-neutral-bg: #1f2227;
+  --color-neutral-line: #33373e;
+  --color-neutral-dot: #6b7280;
+
+  --lp-logo-accent: linear-gradient(90deg, #5fd4f4, #3b9eea);
+  --lp-avatar-bg: #202b4a;
+  --lp-avatar-fg: #b4c8ff;
+  --lp-row-hover: #1a1d22;
+  --lp-input-hover-border: #4b515b;
+  --lp-backdrop: rgba(0, 0, 0, 0.6);
+  --lp-chart-bar: #3b82f6;
+  --lp-chart-bar-hover: #60a5fa;
+  --lp-chart-column-hover: rgba(255, 255, 255, 0.04);
+  --lp-chart-confirmed: #75e0a7;
+  --lp-chart-rejected: #d92d20;
+  --lp-chart-inconclusive: #fdb022;
+  --lp-chart-not-answered: #98a2b3;
+  --lp-chart-other: #1570ef;
+  --lp-chart-previous: #6b7280;
+  --lp-chart-muted: #3a3f48;
+  --lp-map-canvas: #1a1c21;
+
+  --lp-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --lp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --lp-shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.55), 0 4px 8px -2px rgba(0, 0, 0, 0.35);
+  --lp-shadow-xl: 0 24px 32px -8px rgba(0, 0, 0, 0.65), 0 8px 12px -4px rgba(0, 0, 0, 0.4);
+  --lp-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.45);
+}

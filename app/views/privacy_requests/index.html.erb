@@ -1,0 +1,122 @@
+<% status_tones = { 'open' => :warning, 'in_progress' => :info, 'resolved' => :success, 'rejected' => :neutral } %>
+
+<%= platform_settings_page(title: t('platform_settings.lgpd.title'), description: t('platform_settings.lgpd.description'), nav: :lgpd) do %>
+  <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+    <section class="workspace-portlet" data-controller="disclosure">
+      <%= workspace_panel_header(title: 'Solicitações de titulares', count: @privacy_requests.size) %>
+
+      <div class="workspace-table-wrap">
+        <table class="workspace-table">
+          <thead>
+            <tr>
+              <th scope="col">Titular</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Status</th>
+              <th scope="col">Recebida em</th>
+              <th scope="col" class="is-actions"><span class="sr-only">Tratativa</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @privacy_requests.any? %>
+              <% @privacy_requests.each do |request| %>
+                <% detail_id = "privacy-request-#{request.id}" %>
+                <tr>
+                  <td>
+                    <span class="workspace-table__primary"><%= request.subject_name %></span>
+                    <span class="workspace-table__secondary"><%= request.subject_contact %></span>
+                  </td>
+                  <td>
+                    <%= request.request_type_label %>
+                    <% if request.supplier_import.present? %>
+                      <span class="workspace-table__secondary"><%= workspace_code_tag(request.supplier_import.display_code) %></span>
+                    <% end %>
+                  </td>
+                  <td><%= status_badge(request.status_label, tone: status_tones.fetch(request.status.to_s, :neutral)) %></td>
+                  <td><%= workspace_datetime_cell(request.requested_at) %></td>
+                  <td class="is-actions">
+                    <button type="button" class="workspace-row-toggle" aria-expanded="false" aria-controls="<%= detail_id %>" data-action="disclosure#toggle">
+                      <span>Tratativa</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr class="workspace-table__detail-row" id="<%= detail_id %>" hidden>
+                  <td colspan="5">
+                    <%= form_with model: request, url: privacy_request_path(request), method: :patch, local: true, class: 'grid gap-3 p-5 md:grid-cols-[12rem_minmax(0,1fr)_auto] md:items-end' do |f| %>
+                      <div>
+                        <%= f.label :status, 'Status', class: 'settings-label', for: "#{detail_id}-status" %>
+                        <%= f.select :status, PrivacyRequest::STATUSES.map { |value, label| [label, value] }, {}, class: 'settings-input', id: "#{detail_id}-status" %>
+                      </div>
+                      <div>
+                        <%= f.label :resolution, 'Tratativa', class: 'settings-label', for: "#{detail_id}-resolution" %>
+                        <%= f.text_area :resolution, value: request.resolution, rows: 2, placeholder: 'Tratativa, justificativa ou resposta enviada.', class: 'settings-input', id: "#{detail_id}-resolution" %>
+                      </div>
+                      <div>
+                        <%= f.submit 'Atualizar', class: workspace_submit_class(:secondary), data: { turbo_submits_with: 'Salvando…' } %>
+                      </div>
+                    <% end %>
+                    <% if request.description.present? %>
+                      <p class="border-t border-line-subtle px-5 py-3 text-[0.8125rem] text-fg-muted"><span class="font-medium text-fg-secondary">Descrição:</span> <%= request.description %></p>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <%= workspace_empty_table_row(colspan: 5, message: 'Nenhuma solicitação registrada.', hint: 'Pedidos de acesso, correção, exclusão ou anonimização aparecem aqui.') %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <%= portlet_form('Registrar solicitação', []) do %>
+      <p class="-mt-1 mb-4 text-[0.8125rem] text-fg-muted">Formalize pedidos feitos pelo titular, por representante ou pela área interna.</p>
+
+      <%= form_with model: @privacy_request, url: privacy_requests_path, local: true, class: 'grid gap-4' do |f| %>
+        <div>
+          <%= f.label :request_type, 'Tipo', class: 'settings-label' %>
+          <%= f.select :request_type, PrivacyRequest::REQUEST_TYPES.map { |value, label| [label, value] }, {}, class: 'settings-input' %>
+        </div>
+
+        <div>
+          <%= f.label :subject_name, 'Nome do titular ou solicitante', class: 'settings-label' %>
+          <%= f.text_field :subject_name, class: 'settings-input', required: true %>
+        </div>
+
+        <div>
+          <%= f.label :subject_contact, 'Contato', class: 'settings-label' %>
+          <%= f.text_field :subject_contact, class: 'settings-input', required: true %>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+          <div>
+            <%= f.label :supplier_name, 'Fornecedor relacionado', class: 'settings-label' %>
+            <%= f.text_field :supplier_name, class: 'settings-input' %>
+          </div>
+          <div>
+            <%= f.label :phone, 'Telefone relacionado', class: 'settings-label' %>
+            <%= f.text_field :phone, class: 'settings-input' %>
+          </div>
+        </div>
+
+        <div>
+          <%= f.label :supplier_import_id, 'Lote relacionado', class: 'settings-label' %>
+          <%= f.collection_select :supplier_import_id,
+              current_account.supplier_imports.order(created_at: :desc),
+              :id,
+              :display_code,
+              { include_blank: 'Nenhum lote específico' },
+              class: 'settings-input' %>
+        </div>
+
+        <div>
+          <%= f.label :description, 'Descrição', class: 'settings-label' %>
+          <%= f.text_area :description, rows: 3, class: 'settings-input' %>
+        </div>
+
+        <div>
+          <%= f.submit 'Registrar solicitação', class: workspace_submit_class(:primary), data: { turbo_submits_with: 'Registrando…' } %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

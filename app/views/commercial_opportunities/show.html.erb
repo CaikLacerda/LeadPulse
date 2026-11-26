@@ -1,0 +1,72 @@
+<% workspace_breadcrumbs @commercial_opportunity.display_code %>
+<% awaiting = content_tag(:span, 'Aguardando coleta', class: 'text-fg-muted') %>
+
+<%= workspace_page do %>
+  <%= workspace_page_header(
+    title: @commercial_opportunity.display_code,
+    status: workspace_status_tag(@commercial_opportunity.status),
+    description: @commercial_opportunity.supplier_name
+  ) do %>
+    <% if @commercial_opportunity.ready_to_export? && current_membership.can_export_data? %>
+      <%= workspace_link_button export_commercial_opportunity_path(@commercial_opportunity), variant: :secondary, data: { turbo: false } do %>
+        <i class="fa-solid fa-file-excel" aria-hidden="true"></i><span>Exportar XLSX</span>
+      <% end %>
+    <% end %>
+    <% if @commercial_opportunity.startable? && current_membership.can_start_validation? %>
+      <%= button_to start_commercial_opportunity_path(@commercial_opportunity), method: :post, class: workspace_button_class(:primary), data: { turbo_submits_with: 'Iniciando…' } do %>
+        <i class="fa-solid fa-play" aria-hidden="true"></i><span>Iniciar coleta</span>
+      <% end %>
+    <% elsif @commercial_opportunity.syncable? && current_membership.can_start_validation? %>
+      <%= button_to sync_status_commercial_opportunity_path(@commercial_opportunity), method: :post, class: workspace_button_class(:secondary), data: { turbo_submits_with: 'Consultando…' } do %>
+        <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i><span><%= @commercial_opportunity.completed? ? 'Atualizar dados' : 'Consultar status' %></span>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% if @commercial_opportunity.error_message.present? %>
+    <div class="workspace-callout workspace-callout--danger mb-6" role="alert">
+      <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span><%= @commercial_opportunity.error_message %></span>
+    </div>
+  <% end %>
+
+  <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
+    <%= portlet_form('Contato confirmado', [], body_class: 'workspace-portlet-body--flush') do %>
+      <dl class="workspace-definition-list">
+        <%= workspace_definition_row(label: 'Fornecedor', value: @commercial_opportunity.supplier_name) %>
+        <%= workspace_definition_row(label: 'Telefone do retorno') do %>
+          <span class="tabular-nums"><%= @commercial_opportunity.callback_phone %></span>
+        <% end %>
+        <%= workspace_definition_row(label: 'Origem do telefone', value: @commercial_opportunity.callback_phone_choice_label) %>
+        <%= workspace_definition_row(label: 'Data e horário', value: @commercial_opportunity.callback_preferred_at.present? ? @commercial_opportunity.callback_schedule_label : content_tag(:span, 'A confirmar', class: 'text-fg-muted')) %>
+        <%= workspace_definition_row(label: 'Preferência informada', value: @commercial_opportunity.callback_preferred_time.presence || content_tag(:span, 'Sem preferência', class: 'text-fg-muted')) %>
+        <%= workspace_definition_row(label: 'Lote de origem') do %>
+          <%= workspace_code_tag(@commercial_opportunity.source_import_code, current_membership.can_view_evidence? ? supplier_import_path(@commercial_opportunity.supplier_import) : nil) %>
+        <% end %>
+      </dl>
+    <% end %>
+
+    <%= portlet_form('Condições comerciais', content_tag(:span, @commercial_opportunity.outcome_label, class: 'workspace-portlet-meta'), body_class: 'workspace-portlet-body--flush') do %>
+      <dl class="workspace-definition-list">
+        <%= workspace_definition_row(label: 'Produto ou especificação', value: @commercial_opportunity.display_product_specification.presence || awaiting) %>
+        <%= workspace_definition_row(label: 'Preço por unidade', value: @commercial_opportunity.display_unit_price.presence || awaiting) %>
+        <%= workspace_definition_row(label: 'Preço por lote ou faixas', value: @commercial_opportunity.display_lot_price_ranges.presence || awaiting) %>
+        <%= workspace_definition_row(label: 'Pedido mínimo', value: @commercial_opportunity.display_minimum_order.presence || awaiting) %>
+      </dl>
+
+      <% if @commercial_opportunity.original_commercial_terms_differ? %>
+        <details class="group border-t border-line">
+          <summary class="flex cursor-pointer items-center gap-2 px-5 py-3 text-[0.8125rem] font-medium text-fg-secondary hover:text-fg">
+            <i class="fa-solid fa-chevron-right text-[0.625rem] text-fg-subtle transition-transform group-open:rotate-90" aria-hidden="true"></i>
+            Respostas originais da ligação
+          </summary>
+          <dl class="workspace-definition-list border-t border-line-subtle bg-surface-subtle">
+            <%= workspace_definition_row(label: 'Produto ou especificação', value: @commercial_opportunity.product_specification.presence || 'Não informado') %>
+            <%= workspace_definition_row(label: 'Preço por unidade', value: @commercial_opportunity.unit_price.presence || 'Não informado') %>
+            <%= workspace_definition_row(label: 'Preço por lote ou faixas', value: @commercial_opportunity.lot_price_ranges.presence || 'Não informado') %>
+            <%= workspace_definition_row(label: 'Pedido mínimo', value: @commercial_opportunity.minimum_order.presence || 'Não informado') %>
+          </dl>
+        </details>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

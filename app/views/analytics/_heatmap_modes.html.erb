@@ -1,0 +1,16 @@
+<%# Controles do mapa de calor no padrão do Analytics: Métrica [Volume | Taxa] e Visão [2D | 3D].
+    A métrica precisa de JavaScript (a tabela traz as duas); a visão 3D só aparece se for possível. %>
+<div class="analytics-chart__modes">
+  <div class="analytics-control">
+    <span class="analytics-control__label" aria-hidden="true"><%= t("analytics.heatmap_modes.label") %></span>
+    <div class="analytics-segmented" role="group" aria-label="<%= t("analytics.heatmap_modes.aria") %>">
+      <% { "volume" => t("analytics.heatmap_modes.volume"), "rate" => t("analytics.heatmap_modes.rate") }.each do |mode, label| %>
+        <button type="button" class="analytics-segmented__item" aria-pressed="<%= mode == "volume" %>"
+                data-analytics-chart-target="mode" data-action="analytics-chart#setMode" data-analytics-chart-mode-param="<%= mode %>">
+          <%= label %>
+        </button>
+      <% end %>
+    </div>
+  </div>
+  <%= render "analytics/view_switch" %>
+</div>

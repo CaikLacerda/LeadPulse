@@ -33,6 +33,7 @@ const confirmCopyFor = (message, element) => {
     message: dataset.turboConfirm || message || "Deseja continuar?",
     confirmLabel: dataset.turboConfirmConfirmLabel || "Confirmar",
     cancelLabel: dataset.turboConfirmCancelLabel || "Cancelar",
+    danger: dataset.turboConfirmVariant === "danger",
   }
 }
 
@@ -75,18 +76,13 @@ const ensureConfirmModal = () => {
   root.innerHTML = `
     <div class="app-confirm__backdrop" data-confirm-cancel></div>
     <div class="app-confirm__panel" role="alertdialog" aria-modal="true" aria-labelledby="app-confirm-title" aria-describedby="app-confirm-message" tabindex="-1">
-      <div class="app-confirm__accent" aria-hidden="true"></div>
-      <div class="app-confirm__header">
-        <span class="app-confirm__icon" aria-hidden="true">⚡</span>
-        <div class="app-confirm__copy">
-          <p class="app-confirm__eyebrow">LeadPulse</p>
-          <h2 class="app-confirm__title" id="app-confirm-title">Confirmar ação</h2>
-        </div>
+      <div class="app-confirm__body">
+        <h2 class="app-confirm__title" id="app-confirm-title">Confirmar ação</h2>
+        <p class="app-confirm__message" id="app-confirm-message">Deseja continuar?</p>
       </div>
-      <p class="app-confirm__message" id="app-confirm-message">Deseja continuar?</p>
       <div class="app-confirm__actions">
-        <button type="button" class="app-confirm__button app-confirm__button--secondary" data-confirm-cancel>Cancelar</button>
-        <button type="button" class="app-confirm__button app-confirm__button--danger" data-confirm-accept>Confirmar</button>
+        <button type="button" class="workspace-button workspace-button--secondary" data-confirm-cancel>Cancelar</button>
+        <button type="button" class="workspace-button workspace-button--primary" data-confirm-accept>Confirmar</button>
       </div>
     </div>
   `
@@ -118,9 +114,13 @@ const showCustomConfirm = (message, element) => {
   modal.title.textContent = copy.title
   modal.message.textContent = copy.message
   modal.accept.textContent = copy.confirmLabel
-  modal.cancelButtons.forEach((button) => {
-    button.textContent = copy.cancelLabel
-  })
+  modal.accept.classList.toggle("workspace-button--danger", copy.danger)
+  modal.accept.classList.toggle("workspace-button--primary", !copy.danger)
+  modal.cancelButtons
+    .filter((element) => element.tagName === "BUTTON")
+    .forEach((button) => {
+      button.textContent = copy.cancelLabel
+    })
 
   modal.root.classList.remove("hidden")
   modal.root.setAttribute("aria-hidden", "false")

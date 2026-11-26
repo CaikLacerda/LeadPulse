@@ -1,0 +1,34 @@
+<%= portlet_form(t("analytics.sections.segments"), [], body_class: "workspace-portlet-body--flush") do %>
+  <% if section.failed? %>
+    <div class="workspace-portlet-body"><%= analytics_section_error %></div>
+  <% elsif section.data[:segments].empty? %>
+    <%= workspace_empty_state(message: t("analytics.empty_searches"), hint: t("analytics.searches_note")) %>
+  <% else %>
+    <% data = section.data %>
+    <div class="workspace-table-wrap">
+      <table class="workspace-table">
+        <thead>
+          <tr>
+            <th scope="col"><%= t("analytics.table.segment") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.searches") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.found") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.converted") %></th>
+            <th scope="col" class="is-numeric"><%= t("analytics.table.batches") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% data[:segments].each do |segment| %>
+            <tr>
+              <td><%= segment[:segment] %></td>
+              <td class="is-numeric"><%= analytics_count(segment[:searches]) %></td>
+              <td class="is-numeric"><%= analytics_count(segment[:found]) %></td>
+              <td class="is-numeric"><%= render "analytics/rate_cell", metric: Analytics::Metric.rate(segment[:converted], segment[:searches]) %></td>
+              <td class="is-numeric"><%= analytics_count(segment[:batches]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <p class="analytics-chart__note"><%= t("analytics.searches_note") %></p>
+  <% end %>
+<% end %>

@@ -1,0 +1,65 @@
+<% manage = current_membership.can_manage_team? %>
+<% active_count = @memberships.count(&:active?) %>
+
+<div data-controller="dialog">
+  <%= workspace_page do %>
+    <%= workspace_page_header(
+      title: "Equipe",
+      description: "Pessoas com acesso a #{current_account.validation_company_name_value} e o papel de cada uma na empresa."
+    ) do %>
+      <% if manage %>
+        <%= workspace_button_tag type: :button, variant: :primary, data: { action: "dialog#open" } do %>
+          <%= workspace_icon(:plus) %><span>Convidar usuário</span>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <% if @invitation_link.present? %>
+      <div class="workspace-callout workspace-callout--info team-link mb-4"
+           data-controller="copy-to-clipboard"
+           data-copy-to-clipboard-source-value="invitation_link"
+           data-copy-to-clipboard-default-text-value="Copiar link"
+           data-copy-to-clipboard-success-text-value="Copiado">
+        <%= workspace_icon(:info) %>
+        <div class="team-link__body">
+          <label for="invitation_link" class="font-medium text-fg">Link do convite (ambiente de desenvolvimento)</label>
+          <p>Sem e-mail configurado, envie este link à pessoa convidada. Ele aparece só agora e vale por 7 dias.</p>
+          <div class="team-link__row">
+            <input type="text" id="invitation_link" value="<%= @invitation_link %>" readonly class="settings-input settings-input--mono">
+            <button type="button" class="<%= workspace_button_class(:secondary) %>" data-copy-to-clipboard-target="button" data-action="copy-to-clipboard#copy">Copiar link</button>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <section class="workspace-portlet">
+      <%= workspace_panel_header(title: "Membros", count: "#{active_count} #{active_count == 1 ? 'ativo' : 'ativos'}#{" · #{@invitations.size} #{@invitations.size == 1 ? 'convite' : 'convites'}" if manage && @invitations.any?}") %>
+      <div class="workspace-table-wrap">
+        <table class="workspace-table team-table">
+          <thead>
+            <tr>
+              <th scope="col">Nome</th>
+              <th scope="col">E-mail</th>
+              <th scope="col">Papel</th>
+              <th scope="col">Status</th>
+              <th scope="col">Desde</th>
+              <% if manage %><th scope="col" class="is-actions"><span class="sr-only">Ações</span></th><% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% @memberships.each do |membership| %>
+              <%= render "team/member_row", membership: membership, manage: manage %>
+            <% end %>
+            <% @invitations.each do |invitation| %>
+              <%= render "team/invitation_row", invitation: invitation %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <%= render "team/roles" %>
+  <% end %>
+
+  <%= render "team/invite_dialog" if manage %>
+</div>

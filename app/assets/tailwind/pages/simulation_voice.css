@@ -1,0 +1,161 @@
+/* O painel ao vivo da simulação (palco, monitor de áudio e conversa) tem tema próprio;
+   cabeçalho, indicadores e relatório seguem o tema do workspace. Os estados e níveis vêm do controller existente;
+   não há canvas, timers, listeners, áudio sintético ou bibliotecas de animação. */
+@layer components {
+  .sim-voice-page {
+    --color-fg: #e9eff8;
+    --color-fg-secondary: #c5d0df;
+    --color-fg-muted: #9aaac0;
+    --color-fg-subtle: #899ab1;
+    --color-canvas: #080f1b;
+    --color-surface: #0e1827;
+    --color-surface-subtle: #111e30;
+    --color-line: #263549;
+    --color-line-subtle: #1d2c40;
+    --color-line-strong: #3e5570;
+    --color-brand: #55c4ed;
+    --color-brand-fg: #9de5fc;
+    --color-brand-subtle: #122e40;
+    --sim-agent-accent: #6dd5f4;
+    --sim-counterpart-accent: #8eaee8;
+    display: grid;
+    gap: 1.125rem;
+    padding: 1.125rem;
+    border-radius: var(--lp-radius-lg);
+    color: var(--color-fg);
+    background: radial-gradient(ellipse at 45% 0%, #122037 0%, #080f1b 65%);
+  }
+
+  .sim-voice-page :is(a, button, [tabindex]):focus-visible { outline: 2px solid #8be0fa; outline-offset: 4px; }
+
+
+  .sim-voice-page .sim-arena {
+    display: block;
+    overflow: hidden;
+    isolation: isolate;
+    padding: 1.2rem 1.5rem 1.4rem;
+    border: 1px solid #2a405c;
+    border-radius: 1.25rem;
+    background: radial-gradient(ellipse at 50% 36%, #16344d60, transparent 57%), linear-gradient(145deg, #101d2e, #0b1423 70%);
+    box-shadow: inset 0 1px 0 #8ccffb0a, 0 16px 55px #02050c33;
+  }
+
+  .sim-voice-page .sim-arena::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .35; background: linear-gradient(#839fb510 1px, transparent 1px), linear-gradient(90deg, #839fb510 1px, transparent 1px); background-size: 36px 36px; mask-image: radial-gradient(ellipse at center, #000, transparent 78%); }
+  .sim-arena__heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .sim-arena__channel { display: flex; align-items: center; gap: .55rem; color: #aac0d7; font-size: .75rem; }
+  .sim-arena__channel > span { height: .375rem; width: .375rem; border-radius: 50%; background: #72cbe6; box-shadow: 0 0 10px #63c9ed55; }
+  .sim-arena__mode { border: 1px solid #304259; border-radius: 999px; padding: .28rem .65rem; color: #aebfd3; font-family: var(--font-mono); font-size: .625rem; letter-spacing: .05em; }
+  .sim-arena__caption { display: flex; justify-content: center; align-items: center; gap: .65rem; color: #9cacc1; font-size: .75rem; text-align: center; line-height: 1.6; }
+  .sim-arena__caption > span { width: 1.3rem; height: 1px; background: #4c718a; }
+
+  .sim-orbit-stage { --sim-orb-size: clamp(12rem, 22vw, 15rem); position: relative; display: grid; grid-template-columns: 1fr var(--sim-orb-size) 1fr; grid-template-areas: "agent core counterpart"; align-items: start; min-height: 21rem; padding: 1.75rem 0 1.25rem; }
+  .sim-orbit-link { position: absolute; top: calc(1.75rem + var(--sim-orb-size) / 2); height: 1px; background: linear-gradient(90deg, #5eaed954, #6cbfe025); }
+  .sim-orbit-link--agent { left: 18%; right: 50%; }
+  .sim-orbit-link--counterpart { left: 50%; right: 18%; background: linear-gradient(90deg, #769add25, #8daae154); }
+  .sim-orbit-link::after { content: ""; position: absolute; top: -2px; width: 4px; height: 4px; border-radius: 50%; background: #b4eeff; box-shadow: 0 0 10px 2px #72cfef66; opacity: 0; }
+  .sim-orbit-stage:has(.sim-agent--agent[data-state="speaking"]) .sim-orbit-link--agent::after { animation: sim-voice-transfer 2.4s ease-in-out infinite; }
+  .sim-orbit-stage:has(.sim-agent--counterpart[data-state="speaking"]) .sim-orbit-link--counterpart::after { animation: sim-voice-transfer 2.4s ease-in-out infinite reverse; }
+
+  .sim-voice-page .sim-agent { position: relative; z-index: 1; gap: .45rem; min-width: 0; padding-top: calc((var(--sim-orb-size) - 5rem) / 2); }
+  .sim-voice-page .sim-agent--agent { grid-area: agent; }
+  .sim-voice-page .sim-agent--counterpart { grid-area: counterpart; }
+  .sim-voice-page .sim-agent__orb { width: 5rem; height: 5rem; margin-bottom: .8rem; }
+  .sim-voice-page .sim-agent__avatar { width: 3.65rem; height: 3.65rem; border-color: #3b5671; background: radial-gradient(circle at 40% 20%, #223c52, #112032 80%); color: #b3dcf1; font-size: 1.2rem; box-shadow: 0 0 0 6px #75c9ef07; }
+  .sim-voice-page .sim-agent--counterpart .sim-agent__avatar { color: #beceee; background: radial-gradient(circle at 40% 20%, #293955, #121e32 80%); }
+  .sim-voice-page .sim-agent__ring { border-width: 1px; border-color: color-mix(in srgb, var(--sim-accent) 24%, transparent); opacity: .5; }
+  .sim-voice-page .sim-agent__ring--2 { inset: -.5rem; border-style: dotted; opacity: .25; }
+  .sim-agent__caption { color: #8ea6c0; font-size: .75rem; }
+  .sim-voice-page .sim-agent__name { color: #e5effb; font-size: clamp(.875rem, 1.45vw, 1.0625rem); letter-spacing: -.025em; line-height: 1.4; }
+  .sim-voice-page .sim-agent__state { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 1.5rem; padding: .15rem .6rem; border: 1px solid #34455b; border-radius: 999px; color: #acbdd0; background: #142033; font-size: .625rem; line-height: 1.4; }
+  .sim-voice-page .sim-agent__state::before { content: ""; width: .25rem; height: .25rem; border-radius: 50%; background: currentColor; }
+  .sim-voice-page .sim-agent[data-state="speaking"] .sim-agent__state { color: var(--sim-accent); border-color: color-mix(in srgb, var(--sim-accent) 35%, transparent); background: color-mix(in srgb, var(--sim-accent) 8%, #0b1423); }
+  .sim-voice-page .sim-agent[data-state="speaking"] .sim-agent__avatar { color: #edfbff; border-color: var(--sim-accent); box-shadow: 0 0 32px color-mix(in srgb, var(--sim-accent) 18%, transparent); }
+  .sim-voice-page .sim-agent[data-state="listening"] .sim-agent__ring { animation: sim-voice-listen 5s ease-in-out infinite; }
+  .sim-voice-page .sim-agent[data-state="idle"] .sim-agent__orb { opacity: .65; }
+  .sim-voice-page .sim-agent[data-state="thinking"] .sim-agent__orb::after { border-width: 1px; animation-duration: 8s; }
+  .sim-agent__waveform { --sim-level: 0; display: flex; align-items: center; justify-content: center; gap: 3px; height: 2rem; color: var(--sim-accent); }
+  .sim-agent__waveform > span { width: 2px; height: var(--bar-height); border-radius: 2px; background: currentColor; transform: scaleY(calc(.1 + var(--sim-level) * .9)); opacity: .45; transition: transform 220ms ease-out, opacity 220ms; }
+  .sim-agent[data-state="speaking"] .sim-agent__waveform > span { opacity: .9; }
+
+  .sim-orb { grid-area: core; position: relative; z-index: 2; width: var(--sim-orb-size); aspect-ratio: 1; margin: auto; }
+  .sim-orb__halo { position: absolute; inset: -35%; border-radius: 50%; background: radial-gradient(circle, #52bfe72e, #2b7cbc0b 53%, transparent 70%); opacity: .65; transition: opacity 600ms; }
+  .sim-orb__sphere { position: absolute; inset: 13%; overflow: hidden; isolation: isolate; border: 1px solid #a1edff55; border-radius: 50%; background: radial-gradient(circle at 35% 22%, #dcfbff 0%, #73d7ef 18%, #218ac2 46%, #134376 72%, #081c37 98%); box-shadow: inset -12px -16px 28px #03192f99, inset 3px 4px 16px #c4f7ff77, 0 0 32px #63cce92b, 0 0 100px #298ccd17; transform: scale(.96); transition: transform 700ms ease, box-shadow 700ms ease; }
+  .sim-orb__current { position: absolute; inset: -45%; border-radius: 40%; background: conic-gradient(from 30deg, transparent 8%, #c9ffff88 19%, transparent 32%, #3184b588 48%, #82d4eaaa 61%, transparent 80%); filter: blur(10px); mix-blend-mode: soft-light; animation: sim-spin 28s linear infinite; }
+  .sim-orb__light { position: absolute; inset: 6% 10% 40%; border-radius: 50%; background: radial-gradient(ellipse at 38% 28%, #efffff7a, transparent 63%); transform: rotate(-25deg); }
+  .sim-orb__orbit { position: absolute; border: 1px solid #85cef329; border-radius: 50%; }
+  .sim-orb__orbit--outer { inset: -11%; border-color: #85cef314; }
+  .sim-orb__orbit--inner { inset: 1%; border-color: #85cef335; box-shadow: 0 0 0 9px #64bfe703; }
+  .sim-orb__satellite { position: absolute; inset: 1%; border-radius: 50%; animation: sim-spin 32s linear infinite; }
+  .sim-orb__satellite::before { content: ""; position: absolute; top: 48%; left: -2px; width: 4px; height: 4px; border-radius: 50%; background: #a3dcf4; box-shadow: 0 0 12px #87d8fb80; }
+  .sim-orb__equator { position: absolute; inset: -4%; border: 1px solid #92d7f351; border-top-color: #92d7f317; border-radius: 50%; transform: rotate(-28deg) scaleY(.34); pointer-events: none; }
+  .sim-orbit-stage:has([data-state="speaking"]) .sim-orb__sphere { transform: scale(1); box-shadow: inset -12px -16px 28px #03192f88, inset 3px 4px 16px #c4f7ff77, 0 0 45px #63cce949, 0 0 95px #298ccd24; }
+  .sim-orbit-stage:has([data-state="speaking"]) .sim-orb__halo { opacity: 1; animation: sim-voice-listen 3s ease-in-out infinite; }
+  .sim-orbit-stage:has([data-state="thinking"]) .sim-orb__orbit--inner { border-top-color: #a9e9fb9c; animation: sim-spin 10s linear infinite; }
+  .sim-stage[data-simulation-live-status-value="queued"] .sim-orb__sphere { opacity: .75; }
+  .sim-stage[data-simulation-live-status-value="queued"] :is(.sim-orb__current, .sim-orb__satellite) { animation-play-state: paused; }
+  .sim-stage[data-simulation-live-status-value="queued"] .sim-arena__channel > span { background: #8295ad; box-shadow: none; }
+
+  .sim-voice-page .sim-audio { gap: 1rem; border: 1px solid #283b52; border-radius: .875rem; padding: 1rem 1.25rem; background: linear-gradient(110deg, #112033, #0e1828); }
+  .sim-audio__identity { display: flex; align-items: center; gap: .85rem; }
+  .sim-audio__icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; flex: none; border: 1px solid #34546b; border-radius: .7rem; color: #8bd8f2; background: #173349; }
+  .sim-voice-page .sim-audio__title { color: #e2edf9; font-family: inherit; font-size: .8125rem; letter-spacing: 0; text-transform: none; font-weight: 600; }
+  .sim-audio__description { color: #9db0c6; font-size: .6875rem; line-height: 1.6; margin-top: .2rem; }
+  .sim-voice-page .sim-audio__button { min-height: 2.65rem; border: 1px solid #8bdcf4; border-radius: 999px; padding: .65rem 1.15rem; color: #07202e; background: #98def2; box-shadow: 0 2px 12px #72d6f218; }
+  .sim-voice-page .sim-audio__button:hover { color: #051d29; background: #bbecfa; border-color: #bbecfa; }
+  .sim-voice-page .sim-audio__live { gap: .75rem; }
+  .sim-voice-page .sim-audio__status { font-size: .6875rem; }
+  .sim-voice-page .sim-audio__pulse { color: #6ad8ed; background: #6ad8ed; }
+  .sim-voice-page .sim-audio__mute { border-radius: 999px; min-height: 2.5rem; padding: .45rem .8rem; color: #d2deed; border-color: #405773; }
+  .sim-voice-page .sim-audio__mute[aria-pressed="true"] { color: #9de5fc; background: #18354b; border-color: #69bfdc; }
+  .sim-voice-page .sim-audio[data-audio-state="reconnecting"] .sim-audio__pulse { background: #f0cb83; }
+  .sim-voice-page .sim-audio[data-audio-state="reconnecting"] .sim-audio__status { color: #f0cb83; }
+  .sim-voice-page .sim-audio:is([data-audio-state="error"], [data-audio-state="unavailable"]) .sim-audio__pulse { background: #f0a3ab; }
+  .sim-voice-page .sim-audio:is([data-audio-state="error"], [data-audio-state="unavailable"]) .sim-audio__status { color: #f0a3ab; }
+
+  .sim-conversation { overflow: hidden; border: 1px solid #26364c; border-radius: 1rem; background: #0d1726; }
+  .sim-conversation__header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem; padding: 1.15rem 1.4rem; border-bottom: 1px solid #24344b; }
+  .sim-conversation__eyebrow { color: #93a9c2; font-size: .75rem; margin-bottom: .2rem; }
+  .sim-conversation__header h2 { color: #dfebfa; font-size: .9375rem; font-weight: 600; letter-spacing: -.02em; }
+  .sim-conversation__hint { color: #93a9c2; font-size: .625rem; }
+  .sim-voice-page .sim-conversation .sim-transcript { gap: 1rem; min-height: 9rem; max-height: 24rem; padding: 1.35rem 1.4rem 1.5rem; scrollbar-color: #3a526c #0d1726; scrollbar-width: thin; }
+  .sim-voice-page .sim-conversation .sim-transcript__row { gap: .45rem; max-width: min(82%, 46rem); padding: .85rem 1rem; border: 1px solid #29465c; border-radius: .3rem 1rem 1rem; background: linear-gradient(135deg, #163047, #12283b); }
+  .sim-voice-page .sim-conversation .sim-transcript__row--counterpart { border-color: #324058; border-radius: 1rem .3rem 1rem 1rem; background: linear-gradient(135deg, #1c283e, #172237); }
+  .sim-voice-page .sim-conversation .sim-transcript__who { display: inline-flex; align-items: center; gap: .45rem; font-size: .5625rem; letter-spacing: .095em; color: #91d4eb; }
+  .sim-voice-page .sim-conversation .sim-transcript__who::before { content: ""; width: .3rem; height: .3rem; border-radius: 50%; background: currentColor; }
+  .sim-voice-page .sim-conversation .sim-transcript__row--counterpart .sim-transcript__who { color: #adbee8; }
+  .sim-voice-page .sim-conversation .sim-transcript__text { color: #deebf7; font-size: .875rem; line-height: 1.7; overflow-wrap: anywhere; }
+  .sim-voice-page .sim-transcript__empty { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: .85rem; flex: 1; font-size: .8125rem; color: #97aac2; }
+  .sim-transcript__empty-icon { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: .75rem; border: 1px solid #2c4058; color: #8db9d0; background: #142236; }
+  .sim-voice-page .sim-stage__actions .workspace-button { font-size: .75rem; }
+
+  @keyframes sim-voice-listen { 0%, 100% { opacity: .4; } 50% { opacity: .85; } }
+  @keyframes sim-voice-transfer { 0% { left: 0; opacity: 0; } 25%, 75% { opacity: .8; } 100% { left: 100%; opacity: 0; } }
+
+  @media (max-width: 900px) {
+        .sim-voice-page .sim-arena { padding-inline: .875rem; }
+  }
+
+  @media (max-width: 640px) {
+                  .sim-orbit-stage { --sim-orb-size: 11rem; grid-template-columns: 1fr 1fr; grid-template-areas: "core core" "agent counterpart"; row-gap: 1.2rem; padding-top: 1.5rem; }
+    .sim-voice-page .sim-agent { padding-top: 0; gap: .375rem; }
+    .sim-voice-page .sim-agent__orb { width: 3.5rem; height: 3.5rem; margin-bottom: .45rem; }
+    .sim-voice-page .sim-agent__avatar { width: 2.75rem; height: 2.75rem; font-size: 1rem; }
+    .sim-voice-page .sim-agent__name { font-size: .8125rem; }
+    .sim-agent__waveform { height: 1.6rem; }
+    .sim-orbit-link { display: none; }
+    .sim-arena__caption { margin-top: .5rem; font-size: .6875rem; }
+    .sim-voice-page .sim-audio { padding: 1rem; }
+    .sim-voice-page .sim-audio__button, .sim-voice-page .sim-audio__live { margin-left: 0; }
+    .sim-audio__description { max-width: 31ch; }
+    .sim-conversation__header { padding: 1rem; }
+    .sim-conversation__hint { display: none; }
+    .sim-voice-page .sim-conversation .sim-transcript { padding: 1rem; }
+    .sim-voice-page .sim-conversation .sim-transcript__row { max-width: 94%; }
+  }
+
+
+  @media (prefers-reduced-motion: reduce) {
+    .sim-voice-page *, .sim-voice-page *::before, .sim-voice-page *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    .sim-agent[data-state="speaking"] .sim-agent__waveform > span { transform: scaleY(.45); }
+  }
+}

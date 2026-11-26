@@ -1,0 +1,16 @@
+<% tabs = [
+  ['Política', lgpd_platform_settings_path],
+  ['Solicitações', privacy_requests_path],
+  ['Operadores e terceiros', third_party_operators_path],
+  ['Trilha de auditoria', privacy_audit_events_path]
+] %>
+
+<nav class="settings-tab-rail mb-6" aria-label="Seções de LGPD" data-tutorial-id="settings-tabs">
+  <% tabs.each do |label, path| %>
+    <% active = request.path == path %>
+    <%= link_to label, path,
+        class: "settings-tab #{'settings-tab--active' if active}",
+        aria: { current: (active ? 'page' : nil) },
+        data: { turbo_frame: 'platform_settings_content', turbo_action: 'advance' } %>
+  <% end %>
+</nav>

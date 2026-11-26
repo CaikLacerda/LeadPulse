@@ -1,0 +1,44 @@
+<%# Colunas: registros importados por dia (uma série, sem legenda). Cada coluna é focável e tem rótulo acessível; o tooltip aparece em hover e foco. %>
+<% max_value = series.map { |day| day[:records] }.max.to_i %>
+<% magnitude = 10**Math.log10([ max_value, 1 ].max).floor %>
+<% chart_top = [ 1, 2, 4, 5, 10 ].map { |factor| factor * magnitude }.find { |candidate| candidate >= max_value } %>
+<% chart_top = [ chart_top, 2 ].max %>
+<% ticks = [ 0, chart_top / 2, chart_top ] %>
+<% columns = series.size %>
+<% label_indexes = [ 0, 7, 14, 21, columns - 1 ].uniq %>
+<% weekdays = %w[dom seg ter qua qui sex sáb] %>
+
+<div class="lp-chart" style="--lp-chart-columns: <%= columns %>;">
+  <div class="lp-chart__plot">
+    <% ticks.each do |tick| %>
+      <div aria-hidden="true" class="lp-chart__gridline <%= 'lp-chart__gridline--base' if tick.zero? %>" style="bottom: <%= (tick.to_f / chart_top * 100).round(2) %>%;">
+        <span class="lp-chart__tick"><%= number_with_delimiter(tick) %></span>
+      </div>
+    <% end %>
+
+    <ol class="lp-chart__columns" aria-label="Registros importados por dia, últimos <%= columns %> dias">
+      <% series.each_with_index do |day, index| %>
+        <% height = (day[:records].to_f / chart_top * 100).round(2) %>
+        <% edge_class = if index < 3 then 'lp-chart__col--start' elsif index >= columns - 3 then 'lp-chart__col--end' end %>
+        <li class="lp-chart__col <%= edge_class %>" tabindex="0"
+            aria-label="<%= day[:date].strftime('%d/%m/%Y') %>: <%= pluralize(day[:records], 'registro', plural: 'registros') %>, <%= pluralize(day[:batches], 'lote', plural: 'lotes') %>">
+          <% if day[:records].positive? %>
+            <span class="lp-chart__bar" style="height: <%= height %>%;"></span>
+          <% end %>
+          <span class="lp-chart__tip" aria-hidden="true">
+            <strong><%= day[:date].strftime('%d/%m') %> · <%= weekdays[day[:date].wday] %></strong>
+            <%= pluralize(day[:records], 'registro', plural: 'registros') %> · <%= pluralize(day[:batches], 'lote', plural: 'lotes') %>
+          </span>
+        </li>
+      <% end %>
+    </ol>
+  </div>
+
+  <div class="lp-chart__labels" aria-hidden="true">
+    <% series.each_with_index do |day, index| %>
+      <% if label_indexes.include?(index) %>
+        <span class="lp-chart__label <%= 'lp-chart__label--start' if index.zero? %> <%= 'lp-chart__label--end' if index == columns - 1 %>" style="grid-column: <%= index + 1 %>;"><%= index == columns - 1 ? 'Hoje' : day[:date].strftime('%d/%m') %></span>
+      <% end %>
+    <% end %>
+  </div>
+</div>

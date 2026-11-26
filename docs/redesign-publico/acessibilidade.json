@@ -1,0 +1,99 @@
+{
+  "axeVersion": "4.13.0",
+  "results": [
+    {
+      "name": "landing",
+      "width": 390,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "login",
+      "width": 390,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "cadastro",
+      "width": 390,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "landing",
+      "width": 768,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "login",
+      "width": 768,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "cadastro",
+      "width": 768,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "landing",
+      "width": 1024,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "login",
+      "width": 1024,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "cadastro",
+      "width": 1024,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "landing",
+      "width": 1440,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "login",
+      "width": 1440,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "cadastro",
+      "width": 1440,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "landing",
+      "width": 1920,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "login",
+      "width": 1920,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "name": "cadastro",
+      "width": 1920,
+      "violations": [],
+      "incomplete": []
+    }
+  ],
+  "interactions": "menu keyboard/Escape, anchor, password toggle keyboard, checkbox, reset link, legal links, server validation: passed",
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Content)"
+  ]
+}

@@ -1,0 +1,29 @@
+<section id="ecossistema" class="section ecosystem-section" aria-labelledby="ecosystem-title">
+  <div class="wrap">
+    <div class="section-heading">
+      <div>
+        <p class="section-label">Arquitetura por capacidades</p>
+        <h2 id="ecosystem-title">Várias tecnologias.<br>Uma orquestração.</h2>
+      </div>
+      <p class="heading-aside">O LeadPulse coordena inteligência, canais e ferramentas. Cada camada tem um papel. Seu workflow conecta todas elas.</p>
+    </div>
+    <div class="ecosystem-map" data-reveal>
+      <div class="orchestrator"><%= landing_icon(:flow) %><strong>LeadPulse</strong><span>Contexto · Regras · Execução · Controle</span></div>
+      <div class="capabilities">
+        <% [
+          [ "voice", "Inteligência", "Interpretar e conversar.", "Provedores de IA e modelos self-hosted" ],
+          [ "phone", "Telefonia", "Iniciar e receber.", "Provedores de voz e infraestrutura de chamadas" ],
+          [ "message", "Mensageria", "Dar continuidade.", "WhatsApp e canais complementares" ],
+          [ "tool", "Tools e integrações", "Consultar e agir.", "APIs, sistemas internos e webhooks" ]
+        ].each_with_index do |(icon, title, verb, body), index| %>
+          <article style="--i: <%= index %>">
+            <%= landing_icon(icon) %>
+            <h3><%= title %></h3>
+            <p><%= verb %></p>
+            <small><%= body %></small>
+          </article>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</section>

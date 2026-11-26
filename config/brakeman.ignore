@@ -1,0 +1,28 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "55c10c35c30b2452d0772b6f898ef8d78c37c50da792c7080cc7139e666153ee",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/team_invitations_controller.rb",
+      "line": 34,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.require(:account_invitation).permit(:email, :role)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "TeamInvitationsController",
+        "method": "invitation_params"
+      },
+      "user_input": ":role",
+      "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
+      "note": "Revisado: só quem tem can_manage_team? (admin) chega à ação, checado no controller e em Accounts::TeamManagement; o papel é validado por inclusão em AccountMembership::ROLES e por check constraint no banco. Escolher o papel do convidado é a função do formulário."
+    }
+  ],
+  "brakeman_version": "8.1.0"
+}

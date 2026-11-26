@@ -1,0 +1,34 @@
+<%# Right side of the sign-in card: the brand icon as a 3D piece you can drag around, preceded by the first steps on sign-up. Hidden on narrow screens. %>
+<aside class="auth-showcase" aria-label="Sobre o LeadPulse">
+  <% if signup %>
+    <p class="auth-showcase__title">Do cadastro à primeira conversa.</p>
+    <ol class="auth-steps">
+      <% [
+        [ "Criar conta", "Seu acesso à plataforma." ],
+        [ "Configurar a empresa", "Conecte a telefonia e a IA da sua conta." ],
+        [ "Simular antes de ligar", "Teste o agente em cenários antes das chamadas reais." ]
+      ].each_with_index do |(title, description), index| %>
+        <li style="--n: <%= index %>">
+          <span class="auth-steps__number" aria-hidden="true"><%= format("%02d", index + 1) %></span>
+          <span><strong><%= title %></strong><small><%= description %></small></span>
+        </li>
+      <% end %>
+    </ol>
+  <% else %>
+    <p class="auth-showcase__title">Transforme conversas em processos.</p>
+  <% end %>
+
+  <%# Decorative: dragging only turns the brand icon. %>
+  <div class="brand-object" aria-hidden="true"
+       data-controller="brand-object"
+       data-action="pointerdown->brand-object#grab pointermove->brand-object#move pointerup->brand-object#release pointercancel->brand-object#release lostpointercapture->brand-object#release">
+    <div class="brand-object__piece" data-brand-object-target="piece">
+      <% 20.times do |layer| %>
+        <span class="brand-object__layer" style="--i: <%= layer + 1 %>"></span>
+      <% end %>
+      <span class="brand-object__face brand-object__face--back"><%= image_tag "brand/logo-symbol.webp", alt: "", width: 284, height: 200 %></span>
+      <span class="brand-object__face"><%= image_tag "brand/logo-symbol.webp", alt: "", width: 284, height: 200 %></span>
+    </div>
+    <span class="brand-object__floor"></span>
+  </div>
+</aside>
